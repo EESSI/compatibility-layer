@@ -1,0 +1,9 @@
+Bootstrap: docker
+From: centos:8.2.2004
+
+%post
+    dnf install -y gcc gcc-c++ diffutils
+
+%environment
+    export LC_ALL=C
+    export PATH=/usr/games:$PATH
