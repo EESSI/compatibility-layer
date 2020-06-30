@@ -6,12 +6,12 @@ The compatibility layer of the EESSI project uses [Gentoo Prefix](https://wiki.g
 
 - Build a Singularity container with the provided definition file:
 ```
-sudo singularity build prefix.simg singularity-prefix.def
+sudo singularity build singularity-prefix.simg singularity-prefix.def
 ```
 
 - Run the bootstrap script inside the container:
 ```
-singularity exec ./centos8.simg ./bootstrap-prefix.sh
+singularity exec ./singularity-prefix.simg ./bootstrap-prefix.sh
 ```
 
 - Answer the simple questions, e.g. about the installation path, and wait 
