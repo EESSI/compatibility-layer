@@ -14,8 +14,8 @@ sudo singularity build singularity-prefix.simg singularity-prefix.def
 singularity exec ./singularity-prefix.simg ./bootstrap-prefix.sh
 ```
 
-- Answer the simple questions, e.g. about the installation path, and wait 
-for a couple of hours for the script to complete.
+- Answer the simple questions, e.g. about the installation path (or set $EPREFIX before running the script),
+and wait for a couple of hours for the script to complete.
 
 ## Bootstrap script
 The included Prefix bootstrap script, `bootstrap-prefix.sh`, has been taken from:
