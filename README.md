@@ -4,7 +4,7 @@
 
 The compatibility layer of the EESSI project uses [Gentoo Prefix](https://wiki.gentoo.org/wiki/Project:Prefix)
 to provide a known base on top of the host. This is the foundation we use to build our software stack on.
-An alternative would be the NixOS.
+An alternative would be the [NixOS](https://nixos.org/).
 
 ## Installation and Configuration
 
