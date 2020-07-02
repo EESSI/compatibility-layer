@@ -6,4 +6,10 @@ From: centos:8.2.2004
 
 %environment
     export LC_ALL=C
-    export PATH=/usr/games:$PATH
+    export PATH=/usr/local/bin:$PATH
+
+%files
+    bootstrap-prefix.sh /usr/local/bin
+
+%runscript
+    exec /usr/local/bin/bootstrap-prefix.sh "$@"
