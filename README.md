@@ -17,7 +17,7 @@ EESSI provides a Singularity container for this.
 ### Building the Singularity container
 The provided Singularity definition file can be used to build a container with a clean environment:
 ```
-sudo singularity build prefix.sif singularity-prefix.def
+sudo singularity build bootstrap-prefix.sif singularity-bootstrap-prefix.def
 ```
 
 ### Bootstrapping Gentoo Prefix
@@ -30,12 +30,16 @@ of the bootstrap script and made the following modifications:
 
 You can run our version of the bootstrap script (see `bootstrap-prefix.sh`) inside the Singularity container by executing:
 ```
-singularity run prefix.sif
+singularity run bootstrap-prefix.sif
+```
+or simply:
+```
+./bootstrap-prefix.sif
 ```
 
 If you want to run your own version of the bootstrap script, use:
 ```
-singularity exec ./centos8.simg ./bootstrap-prefix.sh
+singularity exec bootstrap-prefix.sif ./bootstrap-prefix.sh
 ```
 
 After starting the bootstrap have a long coffee...
