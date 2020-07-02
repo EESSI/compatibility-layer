@@ -27,7 +27,8 @@ We forked [this version](https://gitweb.gentoo.org/repo/proj/prefix.git/tree/scr
 of the bootstrap script and made the following modifications:
 
 - removed the minus on line 1528 to solve a circular dependency issue;
-- use https instead of http for the download mirrors on lines 2094 and 2095.
+- use https instead of http for the download mirrors on lines 2094 and 2095;
+- fix line 589 and take into account that $SHELL may contain additional flags (e.g. `SHELL="/bin/bash --no-profile --norc"`).
 
 You can run our version of the bootstrap script (see `bootstrap-prefix.sh`) inside the Singularity container by executing:
 ```
