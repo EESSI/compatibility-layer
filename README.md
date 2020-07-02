@@ -14,8 +14,6 @@ The bootstrap process will need a clean environment with a compiler (the system 
 the environment, so setup a user with unset CFFLAGS, CFLAGS, LDFLAGS, PKG_CONFIG_PATH and the always harmful LD_LIBRARY_PATH variables.
 EESSI provides a singularity container for this.
 
-## Installation and Configuration
-
 ### Bootstrapping Gentoo Prefix
 Gentoo Prefix provides a bootstrap script to build the prefix. See [Gentoo Prefix Bootstrap](https://wiki.gentoo.org/wiki/Project:Prefix/Bootstrap)
 or build and use the singularity container. After starting the bootstrap have a long coffee...
