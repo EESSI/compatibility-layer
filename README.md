@@ -11,7 +11,7 @@ An alternative would be the [NixOS](https://nixos.org/).
 ### Prerequisites
 
 The bootstrap process will need a clean environment with a compiler (the system version of gcc will do). It also is very sensitive to 
-the environment, so setup a user with unset CFFLAGS, CFLAGS, LDFLAGS, PKG_CONFIG_PATH and the always harmful LD_LIBRARY_PATH variables.
+the environment, so setup a user with unset `CFFLAGS`, `CFLAGS`, `LDFLAGS`, `PKG_CONFIG_PATH` and the always harmful `LD_LIBRARY_PATH` variables.
 
 EESSI provides a Singularity container for this.
 
@@ -28,7 +28,7 @@ of the bootstrap script and made the following modifications:
 
 - removed the minus on line 1528 to solve a circular dependency issue;
 - use https instead of http for the download mirrors on lines 2094 and 2095;
-- fix line 589 and take into account that $SHELL may contain additional flags (e.g. `SHELL="/bin/bash --no-profile --norc"`).
+- fix line 589 and take into account that `$SHELL` may contain additional flags (e.g. `SHELL="/bin/bash --no-profile --norc"`).
 
 You can run our version of the bootstrap script (see `bootstrap-prefix.sh`) inside the Singularity container by executing:
 ```
