@@ -586,7 +586,7 @@ bootstrap_tree() {
 }
 
 bootstrap_startscript() {
-	local theshell=${SHELL##*/}
+	local theshell=$(echo "${SHELL##*/}" | cut -f1 -d' ')
 	if [[ ${theshell} == "sh" ]] ; then
 		einfo "sh is a generic shell, using bash instead"
 		theshell="bash"
