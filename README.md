@@ -24,7 +24,7 @@ sudo singularity build bootstrap-prefix.sif singularity-bootstrap-prefix.def
 ### Bootstrapping Gentoo Prefix
 Gentoo Prefix provides a bootstrap script to build the prefix, see [Gentoo Prefix Bootstrap](https://wiki.gentoo.org/wiki/Project:Prefix/Bootstrap).
 We forked [this version](https://gitweb.gentoo.org/repo/proj/prefix.git/tree/scripts/bootstrap-prefix.sh?id=e77fd01734f21ec2e9c985c28ba4eb30c1b2bc9d)
-and made some modifications. See #8 for more details. 
+and made some modifications. See issue [#8](https://github.com/EESSI/compatibility-layer/issues/8) for more details. 
 
 You can run our version of the bootstrap script (see `bootstrap-prefix.sh`) inside the Singularity container by executing:
 ```
