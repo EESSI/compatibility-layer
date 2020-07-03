@@ -11,7 +11,7 @@ An alternative would be the [NixOS](https://nixos.org/).
 ### Prerequisites
 
 The bootstrap process will need a clean environment with a compiler (the system version of gcc will do). It also is very sensitive to 
-the environment, so setup a user with unset CFFLAGS, CFLAGS, LDFLAGS, PKG_CONFIG_PATH and the always harmful LD_LIBRARY_PATH variables.
+the environment, so setup a user with unset `CFFLAGS`, `CFLAGS`, `LDFLAGS`, `PKG_CONFIG_PATH` and the always harmful `LD_LIBRARY_PATH` variables.
 
 EESSI provides a Singularity container for this.
 
