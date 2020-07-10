@@ -1,0 +1,24 @@
+- name: Install equery command (dependency for the portage module)
+  command:
+    cmd: emerge gentoolkit
+    creates: "{{ prefix_location }}/usr/bin/equery"
+
+- name: Create repos directory
+  file:
+    path: "{{ prefix_location }}/etc/portage/repos.conf"
+    state: directory
+    mode: '0755'
+
+- name: Install eselect-repository
+  portage:
+    package: eselect-repository
+    state: present
+
+- name: Add our overlay
+  command: 
+    cmd: "eselect repository add {{ custom_overlay_name }} {{ custom_overlay_source }} {{ custom_overlay_url }}"
+    creates: "{{ prefix_location }}/etc/portage/repos.conf/eselect-repo.conf"
+
+- name: Sync the overlay
+  portage:
+    sync: yes

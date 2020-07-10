@@ -1,0 +1,18 @@
+# Build Debian (deb) and Redhat (rpm) packages for CVMFS clients.
+---
+- name: Install Prefix
+  hosts: cvmfsstratum0servers
+  environment:
+    PATH: "{{ prefix_location }}/usr/bin:{{ ansible_env.PATH }}"
+
+  #pre_tasks:
+  #  - name: Start transaction
+  #    command: cvmfs_server transaction pilot.eessi-hpc.org
+  #    become: True
+
+#  pre_tasks:
+#    - name: Start Prefix
+#      command: /cvmfs/pilot.eessi-hpc.org/test/gentoo/2020/startprefix
+
+  roles:
+    - compatibility-layer

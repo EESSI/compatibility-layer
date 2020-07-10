@@ -1,0 +1,7 @@
+#- include_tasks: install_prefix.yml
+# TODO: when startprefix does not exist
+# use container to install prefix?
+
+- include_tasks: add_overlay.yml
+
+- include_tasks: install_packages.yml
