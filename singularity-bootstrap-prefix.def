@@ -3,7 +3,7 @@ From: centos:8.2.2004
 
 %post
     dnf install -y gcc gcc-c++ diffutils
-
+chmod 755 /usr/local/bin/bootstrap-prefix.sh
 %environment
     export LC_ALL=C
     export PATH=/usr/local/bin:$PATH
