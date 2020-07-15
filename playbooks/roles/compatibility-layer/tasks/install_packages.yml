@@ -1,4 +1,12 @@
-- name: Install packages
+---
+- name: Install package set
+  portage:
+    package: "{{ pkg_set }}"
+    state: present
+  tags:
+    - set
+
+- name: Install additional packages
   portage:
     package: "{{ item }}"
     state: present

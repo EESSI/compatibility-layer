@@ -4,6 +4,8 @@ custom_overlay_url: https://github.com/EESSI/gentoo-overlay.git
 
 prefix_location: /cvmfs/pilot.eessi-hpc.org/test/gentoo/2020
 
+pkg_set: '@2020'
+
 prefix_packages:
   - dev-lang/tcl
   - dev-lang/lua
