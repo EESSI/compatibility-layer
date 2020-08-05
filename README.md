@@ -26,9 +26,13 @@ Start the prefix
 ```
 startprefix
 ```
-Configure the overlay
+Ensure the configuration directory exists, with $(EPREFIX) the path to your prefix installation.
 ```
+export EPREFIX=path/to/your/prefix
 mkdir $(EPREFIX)/etc/portage/repos.conf
+```
+Configure the overlay. 
+```
 emerge eselect-repository
 eselect repository add eessi git https://github.com/EESSI/gentoo-overlay.git
 ```
