@@ -2,7 +2,7 @@ Bootstrap: docker
 From: centos:8.2.2004
 
 %post
-    dnf install -y gcc gcc-c++ diffutils
+    dnf install -y gcc gcc-c++ make
     chmod 755 /usr/local/bin/bootstrap-prefix.sh
 
 %environment
