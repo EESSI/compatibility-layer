@@ -96,7 +96,7 @@ rpm -ivh kernel-ml-devel-4.20.0-1.el7.elrepo.x86_64.rpm
 cd /usr/src ; ln -s kernels/4.20.0-1.el7.elrepo.x86_64 linux
 ```
 
-When ready update portage from the prefix:
+ When ready update Portage from the Prefix environment:
 ```
 startprefix
 emerge --oneshot sys-apps/portage
