@@ -90,7 +90,7 @@ cat /proc/version
 Linux version 4.20.0-1.el7.elrepo.x86_64 (mockbuild@Build64R7) 
 ```
 
-On a Centos 7 host kernel sources are installed in /usr/src/kernels. Link /usr/src/linux to the appropiate kernel source after installation. Example an elrepo kernel:
+On a Centos 7 host kernel sources are installed in `/usr/src/kernels`. Link `/usr/src/linux` to the appropiate kernel source after installation. Example for an `elrepo` kernel:
 ```
 rpm -ivh kernel-ml-devel-4.20.0-1.el7.elrepo.x86_64.rpm
 cd /usr/src ; ln -s kernels/4.20.0-1.el7.elrepo.x86_64 linux
