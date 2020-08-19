@@ -77,8 +77,7 @@ Try to mask latest versions:
 
 Create a mask file if not existing and mask newer versions from thin provisioning tools greater or equal to 0.7.6:
 ```
-touch /path/to/prefix/etc/portage/package.mask
-echo ">=sys-block/thin-provisioning-tools-0.7.6" >> /path/to/prefix/etc/portage/package.mask
+echo ">=sys-block/thin-provisioning-tools-0.7.6" >> $(EPREFIX)/etc/portage/package.mask
 ```
 
 #### Portage
