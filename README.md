@@ -82,7 +82,7 @@ echo ">=sys-block/thin-provisioning-tools-0.7.6" >> /path/to/prefix/etc/portage/
 ```
 
 #### Portage
-Updating Portage requires the kernel source which corresponds to your running kernel on the host. Emerge will detect it in /usr/src/linux.
+Updating Portage requires the kernel source which corresponds to your running kernel on the host. Emerge will detect it in `/usr/src/linux`.
 
 Check your running kernel version with:
 ```
