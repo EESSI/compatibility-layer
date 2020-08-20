@@ -10,7 +10,7 @@ An alternative would be the [NixOS](https://nixos.org/).
 
 ### Prerequisites
 
-The bootstrap process will need a clean environment with a compiler (the system version of gcc will do). It also is very sensitive to 
+The bootstrap process will need a clean environment with C and C++ compilers (the system version of gcc and g++ will do) as well as the `make` command. It also is very sensitive to 
 the environment, so setup a user with unset `CFFLAGS`, `CFLAGS`, `LDFLAGS`, `PKG_CONFIG_PATH` and the always harmful `LD_LIBRARY_PATH` variables.
 
 EESSI provides a Singularity container for this.
@@ -50,13 +50,53 @@ Start the prefix
 ```
 startprefix
 ```
-Configure the overlay
+Ensure the configuration directory exists, with $(EPREFIX) the path to your prefix installation.
 ```
+export EPREFIX=path/to/your/prefix
 mkdir $(EPREFIX)/etc/portage/repos.conf
+```
+Configure the overlay. 
+```
 emerge eselect-repository
 eselect repository add eessi git https://github.com/EESSI/gentoo-overlay.git
 ```
 Sync the overlay
 ```
 emerge --sync
+```
+
+### Updating the Prefix
+#### Packages
+Updating packages can be as easy as
+```
+emerge --sync
+emerge
+```
+If you run into problems, usually a newer ebuild is not suited to build in a prefix environment.
+Try to mask latest versions:
+
+Create a mask file if not existing and mask newer versions from thin provisioning tools greater or equal to 0.7.6:
+```
+echo ">=sys-block/thin-provisioning-tools-0.7.6" >> $(EPREFIX)/etc/portage/package.mask
+```
+
+#### Portage
+Updating Portage requires the kernel source which corresponds to your running kernel on the host. Emerge will detect it in `/usr/src/linux`.
+
+Check your running kernel version with:
+```
+cat /proc/version
+Linux version 4.20.0-1.el7.elrepo.x86_64 (mockbuild@Build64R7) 
+```
+
+On a Centos 7 host kernel sources are installed in `/usr/src/kernels`. Link `/usr/src/linux` to the appropiate kernel source after installation. Example for an `elrepo` kernel:
+```
+rpm -ivh kernel-ml-devel-4.20.0-1.el7.elrepo.x86_64.rpm
+cd /usr/src ; ln -s kernels/4.20.0-1.el7.elrepo.x86_64 linux
+```
+
+ When ready update Portage from the Prefix environment:
+```
+startprefix
+emerge --oneshot sys-apps/portage
 ```
