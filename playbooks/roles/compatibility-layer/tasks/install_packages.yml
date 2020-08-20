@@ -1,7 +1,7 @@
 ---
 - name: Install package set
   portage:
-    package: "{{ item }}"
+    package: "@{{ item }}"
     state: present
   with_items: "{{ package_sets }}"
   tags:

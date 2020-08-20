@@ -1,3 +1,4 @@
+---
 - name: Install equery command (dependency for the portage module)
   command:
     cmd: emerge gentoolkit
@@ -14,7 +15,13 @@
     package: eselect-repository
     state: present
 
-- name: Add our overlay
+# We need git in order to add Gentoo overlays hosted on git repositories.
+- name: Install git
+  portage:
+    package: dev-vcs/git
+    state: present
+    
+- name: Add our overlay configuration
   command: 
     cmd: "eselect repository add {{ custom_overlay_name }} {{ custom_overlay_source }} {{ custom_overlay_url }}"
     creates: "{{ prefix_location }}/etc/portage/repos.conf/eselect-repo.conf"
@@ -22,3 +29,17 @@
 - name: Sync the overlay
   portage:
     sync: yes
+    
+- name: Make sets directory
+  file:
+    path: "{{ prefix_location }}/etc/portage/sets"
+    state: directory
+    mode: '0755'
+    
+- name: Make symlink to all our package set files
+  file:
+    src: "{{ prefix_location }}/var/db/repos/{{ custom_overlay_name }}/etc/portage/sets/{{ item }}"
+    dest: "{{ prefix_location }}/etc/portage/sets/{{ item }}"
+    state: link
+  with_items:
+    "{{ package_sets }}"

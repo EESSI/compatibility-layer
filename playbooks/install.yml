@@ -1,18 +1,13 @@
-# Build Debian (deb) and Redhat (rpm) packages for CVMFS clients.
+# Playbook for installing the EESSI compatibility layer.
 ---
-- name: Install Prefix
+- name: Install compatibility layer
   hosts: cvmfsstratum0servers
   environment:
     PATH: "{{ prefix_location }}/usr/bin:{{ ansible_env.PATH }}"
-
-  #pre_tasks:
-  #  - name: Start transaction
-  #    command: cvmfs_server transaction pilot.eessi-hpc.org
-  #    become: True
-
-#  pre_tasks:
-#    - name: Start Prefix
-#      command: /cvmfs/pilot.eessi-hpc.org/test/gentoo/2020/startprefix
+    LC_ALL: C
 
   roles:
     - compatibility-layer
+  
+  become: True
+
