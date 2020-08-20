@@ -1,3 +1,5 @@
+# Defaults file for the compatibility layer role.
+---
 custom_overlay_name: eessi
 custom_overlay_source: git
 custom_overlay_url: https://github.com/EESSI/gentoo-overlay.git

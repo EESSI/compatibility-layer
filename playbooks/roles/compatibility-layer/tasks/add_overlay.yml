@@ -1,3 +1,4 @@
+# Add a custom overlay to the Gentoo Prefix installation.
 ---
 - name: Install equery command (dependency for the portage module)
   command:
@@ -20,22 +21,22 @@
   portage:
     package: dev-vcs/git
     state: present
-    
+
 - name: Add our overlay configuration
-  command: 
+  command:
     cmd: "eselect repository add {{ custom_overlay_name }} {{ custom_overlay_source }} {{ custom_overlay_url }}"
     creates: "{{ prefix_location }}/etc/portage/repos.conf/eselect-repo.conf"
 
 - name: Sync the overlay
   portage:
     sync: yes
-    
+
 - name: Make sets directory
   file:
     path: "{{ prefix_location }}/etc/portage/sets"
     state: directory
     mode: '0755'
-    
+
 - name: Make symlink to all our package set files
   file:
     src: "{{ prefix_location }}/var/db/repos/{{ custom_overlay_name }}/etc/portage/sets/{{ item }}"
