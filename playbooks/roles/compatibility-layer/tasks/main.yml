@@ -10,14 +10,14 @@
 - name: Start transaction
   command: "cvmfs_server transaction {{ cvmfs_repository }}"
   when: cvmfs_start_transaction
-  
+
 - block:
   - include_tasks: add_overlay.yml
     when: emerge.stat.exists
 
   - include_tasks: install_packages.yml
     when: emerge.stat.exists
-    
+
   - name: Publish transaction
     command: "cvmfs_server publish {{ cvmfs_repository }}"
     when: cvmfs_publish_transaction
