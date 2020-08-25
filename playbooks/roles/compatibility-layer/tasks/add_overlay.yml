@@ -27,7 +27,7 @@
     cmd: "eselect repository add {{ custom_overlay_name }} {{ custom_overlay_source }} {{ custom_overlay_url }}"
     creates: "{{ prefix_location }}/etc/portage/repos.conf/eselect-repo.conf"
 
-- name: Sync the overlay
+- name: Sync the repositories
   portage:
     sync: yes
 
