@@ -1,5 +1,5 @@
 # Container image that runs your code
-FROM awesomebytes/gentoo_prefix_ci
+FROM awesomebytes/gentoo_prefix_boostrapped
 
 # Copies your code file from your action repository to the filesystem path `/` of the container
 COPY entrypoint.sh /entrypoint.sh
