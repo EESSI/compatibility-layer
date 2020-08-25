@@ -1,6 +1,6 @@
 #!/bin/sh -l
 
-which ansible-playbook
+ansible-playbook --connection=local --inventory=127.0.0.1, compatibility-layer/playbooks/install.yml
 
 ls ~/compatibility-layer
 

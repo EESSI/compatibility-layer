@@ -1,7 +1,11 @@
 # Container image that runs your code
 FROM awesomebytes/gentoo_prefix_boostrapped
 
+USER root
 RUN apt-get install -y ansible
+#RUN pip install --user ansible
+
+USER user
 
 # Copies your code file from your action repository to the filesystem path `/` of the container
 COPY entrypoint.sh /entrypoint.sh
