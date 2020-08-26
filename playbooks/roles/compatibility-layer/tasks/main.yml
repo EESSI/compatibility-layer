@@ -7,16 +7,22 @@
     path: "{{ gentoo_prefix_path }}/usr/bin/emerge"
   register: emerge
 
+- name: Fail if the given Prefix path does not have emerge
+  fail:
+    msg: |
+         The given Gentoo Prefix path does not seem to be valid,
+         because the emerge command cannot be found in {{ gentoo_prefix_path }}/usr/bin.
+         Please check it and fix (the path to) the Gentoo Prefix installation.
+  when: not emerge.stat.exists
+
 - name: Start transaction
   command: "cvmfs_server transaction {{ cvmfs_repository }}"
   when: cvmfs_start_transaction
 
 - block:
   - include_tasks: add_overlay.yml
-    when: emerge.stat.exists
 
   - include_tasks: install_packages.yml
-    when: emerge.stat.exists
 
   - name: Publish transaction
     command: "cvmfs_server publish {{ cvmfs_repository }}"
