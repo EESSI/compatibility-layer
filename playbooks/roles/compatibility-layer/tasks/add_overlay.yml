@@ -22,10 +22,14 @@
     package: dev-vcs/git
     state: present
 
-- name: Add our overlay configuration
+- name: Check which repositories have been installed
+  command: eselect repository list -i
+  register: repositories_installed
+
+- name: Add custom overlay configuration
   command:
     cmd: "eselect repository add {{ custom_overlay_name }} {{ custom_overlay_source }} {{ custom_overlay_url }}"
-    creates: "{{ gentoo_prefix_path }}/etc/portage/repos.conf/eselect-repo.conf"
+  when: repositories_installed.stdout.find(custom_overlay_name) == -1
 
 - name: Sync the repositories
   portage:
@@ -37,7 +41,7 @@
     state: directory
     mode: '0755'
 
-- name: Make symlink to all our package set files
+- name: Make symlink to all package set files in the custom overlay
   file:
     src: "{{ gentoo_prefix_path }}/var/db/repos/{{ custom_overlay_name }}/etc/portage/sets/{{ item }}"
     dest: "{{ gentoo_prefix_path }}/etc/portage/sets/{{ item }}"
