@@ -1,0 +1,15 @@
+# Install a specified list of sets and packages.
+---
+- name: Install package set
+  portage:
+    package: "@{{ item }}"
+    state: present
+  with_items: "{{ package_sets }}"
+  tags:
+    - set
+
+- name: Install additional packages
+  portage:
+    package: "{{ item }}"
+    state: present
+  with_items: "{{ prefix_packages }}"

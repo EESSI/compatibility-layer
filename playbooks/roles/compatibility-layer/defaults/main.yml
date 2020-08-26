@@ -1,0 +1,17 @@
+# Defaults file for the compatibility layer role.
+---
+custom_overlay_name: eessi
+custom_overlay_source: git
+custom_overlay_url: https://github.com/EESSI/gentoo-overlay.git
+
+cvmfs_start_transaction: False
+cvmfs_publish_transaction: False
+cvmfs_abort_transaction_on_failures: False
+cvmfs_repository: pilot.eessi-hpc.org
+
+prefix_location: /cvmfs/pilot.eessi-hpc.org/compat/x86_64
+
+package_sets: 
+  - 2020
+
+prefix_packages:

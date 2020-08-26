@@ -1,0 +1,10 @@
+# Playbook for installing the EESSI compatibility layer.
+---
+- name: Install compatibility layer
+  hosts: cvmfsstratum0servers
+  environment:
+    PATH: "{{ prefix_location }}/usr/bin:{{ ansible_env.PATH }}"
+    LC_ALL: C
+  roles:
+    - compatibility-layer
+  become: True
