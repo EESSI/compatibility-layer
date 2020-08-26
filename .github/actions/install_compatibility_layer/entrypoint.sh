@@ -7,4 +7,6 @@ EOF
 
 ansible-playbook --connection=local --inventory=hosts -e ansible_python_interpreter=python3 -e prefix_location=$1 ${GITHUB_WORKSPACE}/playbooks/install.yml
 
-ls /usr/lmod/lmod
+ls $1/usr/lmod/lmod
+source $1/usr/lmod/lmod/init/profile
+module avail
