@@ -22,11 +22,7 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: Hello world action step
-      id: hello
+    - name: Run install.yml playbook in Docker container
       uses: ./.github/actions/install_compatibility_layer
       with:
-        who-to-greet: 'Mona the Octocat'
-    # Use the output from the `hello` step
-    - name: Get the output time
-      run: echo "The time was ${{ steps.hello.outputs.time }}"
+        prefix-path: '/tmp/gentoo'
