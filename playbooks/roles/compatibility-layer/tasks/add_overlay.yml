@@ -3,11 +3,11 @@
 - name: Install equery command (dependency for the portage module)
   command:
     cmd: emerge gentoolkit
-    creates: "{{ prefix_location }}/usr/bin/equery"
+    creates: "{{ gentoo_prefix_path }}/usr/bin/equery"
 
 - name: Create repos directory
   file:
-    path: "{{ prefix_location }}/etc/portage/repos.conf"
+    path: "{{ gentoo_prefix_path }}/etc/portage/repos.conf"
     state: directory
     mode: '0755'
 
@@ -25,7 +25,7 @@
 - name: Add our overlay configuration
   command:
     cmd: "eselect repository add {{ custom_overlay_name }} {{ custom_overlay_source }} {{ custom_overlay_url }}"
-    creates: "{{ prefix_location }}/etc/portage/repos.conf/eselect-repo.conf"
+    creates: "{{ gentoo_prefix_path }}/etc/portage/repos.conf/eselect-repo.conf"
 
 - name: Sync the repositories
   portage:
@@ -33,14 +33,14 @@
 
 - name: Make sets directory
   file:
-    path: "{{ prefix_location }}/etc/portage/sets"
+    path: "{{ gentoo_prefix_path }}/etc/portage/sets"
     state: directory
     mode: '0755'
 
 - name: Make symlink to all our package set files
   file:
-    src: "{{ prefix_location }}/var/db/repos/{{ custom_overlay_name }}/etc/portage/sets/{{ item }}"
-    dest: "{{ prefix_location }}/etc/portage/sets/{{ item }}"
+    src: "{{ gentoo_prefix_path }}/var/db/repos/{{ custom_overlay_name }}/etc/portage/sets/{{ item }}"
+    dest: "{{ gentoo_prefix_path }}/etc/portage/sets/{{ item }}"
     state: link
   with_items:
     "{{ package_sets }}"

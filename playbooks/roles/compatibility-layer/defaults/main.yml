@@ -9,7 +9,7 @@ cvmfs_publish_transaction: False
 cvmfs_abort_transaction_on_failures: False
 cvmfs_repository: pilot.eessi-hpc.org
 
-prefix_location: /cvmfs/pilot.eessi-hpc.org/compat/x86_64
+gentoo_prefix_path: /cvmfs/pilot.eessi-hpc.org/compat/x86_64
 
 package_sets: 
   - 2020

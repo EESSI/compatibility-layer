@@ -3,7 +3,9 @@
 - name: Install compatibility layer
   hosts: cvmfsstratum0servers
   environment:
-    PATH: "{{ prefix_location }}/usr/bin:{{ ansible_env.PATH }}"
+    PATH: "{{ gentoo_prefix_path }}/usr/bin:{{ gentoo_prefix_path }}/bin:{{ ansible_env.PATH }}"
+    EPREFIX: "{{ gentoo_prefix_path }}"
+    BPREFIX: "{{ gentoo_prefix_path }}"
     LC_ALL: C
   roles:
     - compatibility-layer

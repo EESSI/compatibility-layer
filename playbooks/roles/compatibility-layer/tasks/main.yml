@@ -4,7 +4,7 @@
 
 - name: Check if a Prefix installation is found at the specified location
   stat:
-    path: "{{ prefix_location }}/usr/bin/emerge"
+    path: "{{ gentoo_prefix_path }}/usr/bin/emerge"
   register: emerge
 
 - name: Start transaction
