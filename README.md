@@ -34,6 +34,10 @@ or simply:
 ```
 ./bootstrap-prefix.sif
 ```
+or noninteractively, with prefix location in $(EPREFIX) and /scratch mounted in the image:
+```
+singularity run --bind /scratch:/scratch bootstrap-prefix.sh $(EPREFIX) noninteractive
+```
 
 If you want to run your own version of the bootstrap script, use:
 ```
