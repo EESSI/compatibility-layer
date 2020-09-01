@@ -31,4 +31,4 @@
   rescue:
     - name: Abort transaction
       command: "cvmfs_server abort {{ cvmfs_repository }}"
-      when: cvmfs_abort_transaction_on_failures
+      when: cvmfs_start_transaction and cvmfs_abort_transaction_on_failures
