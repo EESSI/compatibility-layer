@@ -65,6 +65,11 @@ Sync the overlay
 emerge --sync
 ```
 
+#### Ansible playbook
+
+The steps described above can be automatically executed by running the Ansible playbook `install.yml` inside the folder `playbooks`. 
+See the `README` in that folder for more details.
+
 ### Updating the Prefix
 #### Packages
 Updating packages can be as easy as
