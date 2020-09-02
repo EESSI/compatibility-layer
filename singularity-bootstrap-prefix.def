@@ -9,8 +9,6 @@ Stage: spython-base
 # Let's get some specs of the machine that is running this job
 cat /proc/cpuinfo && cat /proc/meminfo && df -h
 
-mkdir /scratch
-
 cd /usr/local/bin
 # Get EESSI or Official bootstrap script
 # wget https://gitweb.gentoo.org/repo/proj/prefix.git/plain/scripts/bootstrap-prefix.sh
