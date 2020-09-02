@@ -1,6 +1,6 @@
 Bootstrap: docker
 From: awesomebytes/gentoo_prefix_ci_prepare
-Stage: spython-base
+Stage: build-prefix
 
 # This container installs Gentoo Prefix non-interactively in ${EPREFIX}.
 
@@ -16,12 +16,14 @@ wget https://raw.githubusercontent.com/EESSI/compatibility-layer/master/bootstra
 chmod +x bootstrap-prefix.sh
 
 %environment
-#   export EPREFIX=/scratch/gentoo
    export LC_ALL=C
    export PATH=/usr/local/bin:$PATH
-
+   if [ -z "$EPREFIX" ]; then
+      export EPREFIX=$1
+   fi
+      
 %runscript
-   exec /usr/local/bin/bootstrap-prefix.sh "$@" 
+   exec /usr/local/bin/bootstrap-prefix.sh $EPREFIX noninteractive 
 
 %test
     grep -q NAME=\"Ubuntu\" /etc/os-release
