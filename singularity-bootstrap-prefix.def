@@ -5,7 +5,6 @@ Stage: spython-base
 # This container installs Gentoo Prefix non-interactively in ${EPREFIX}.
 
 %post
-# Prepared Ubuntu 16.04
 
 # Let's get some specs of the machine that is running this job
 cat /proc/cpuinfo && cat /proc/meminfo && df -h
