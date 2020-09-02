@@ -6,8 +6,6 @@ Stage: build-prefix
 
 %post
 
-# Let's get some specs of the machine that is running this job
-cat /proc/cpuinfo && cat /proc/meminfo && df -h
 
 cd /usr/local/bin
 # Get EESSI or Official bootstrap script
