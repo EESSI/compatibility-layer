@@ -2,7 +2,7 @@ Bootstrap: docker
 From: awesomebytes/gentoo_prefix_ci_prepare
 Stage: spython-base
 
-# This container installs Gentoo Prefix noninteractively in 
+# This container installs Gentoo Prefix non-interactively in ${EPREFIX}.
 
 %post
 # Prepared Ubuntu 16.04
