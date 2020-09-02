@@ -34,7 +34,7 @@ or simply:
 ```
 ./bootstrap-prefix.sif
 ```
-or noninteractively, with prefix location in $(EPREFIX) and /scratch mounted in the image:
+or non-interactively, with prefix location in `${EPREFIX}` and `/scratch` mounted in the image:
 ```
 singularity run --bind /scratch:/scratch bootstrap-prefix.sh $(EPREFIX) noninteractive
 ```
