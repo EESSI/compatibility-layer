@@ -11,4 +11,4 @@ ansible-playbook --connection=local --inventory=hosts -e ansible_python_interpre
 # so let's  check if we can use them.
 source $1/usr/lmod/lmod/init/profile
 module avail
-archspec cpu
+$1/usr/bin/archspec cpu
