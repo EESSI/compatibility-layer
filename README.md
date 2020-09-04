@@ -50,10 +50,10 @@ Start the prefix
 ```
 startprefix
 ```
-Ensure the configuration directory exists, with $(EPREFIX) the path to your prefix installation.
+Ensure the configuration directory exists, with ${EPREFIX} the path to your prefix installation.
 ```
 export EPREFIX=path/to/your/prefix
-mkdir $(EPREFIX)/etc/portage/repos.conf
+mkdir ${EPREFIX}/etc/portage/repos.conf
 ```
 Configure the overlay. 
 ```
@@ -82,7 +82,7 @@ Try to mask latest versions:
 
 Create a mask file if not existing and mask newer versions from thin provisioning tools greater or equal to 0.7.6:
 ```
-echo ">=sys-block/thin-provisioning-tools-0.7.6" >> $(EPREFIX)/etc/portage/package.mask
+echo ">=sys-block/thin-provisioning-tools-0.7.6" >> ${EPREFIX}/etc/portage/package.mask
 ```
 
 #### Portage
