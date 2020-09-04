@@ -1,16 +1,13 @@
 # action.yml
-name: 'Install compatibility layer'
-description: 'Use Ansible playbook to install the compatibility layer inside a Gentoo Prefix Docker container'
+name: 'Install EESSI compatibility layer'
+description: 'Use Ansible playbook to install the EESSI compatibility layer inside a Gentoo Prefix Docker container'
 inputs:
-  prefix-path:  
+  gentoo-prefix-path:  
     description: 'Path to the Gentoo Prefix installation'
     required: true
     default: '/tmp/gentoo'
-#outputs:
-#  time: # id of output
-#    description: 'The time we greeted you'
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - ${{ inputs.prefix-path }}
+    - ${{ inputs.gentoo-prefix-path }}
