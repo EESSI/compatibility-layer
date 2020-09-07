@@ -44,6 +44,9 @@ After starting the bootstrap have a long coffee...
 
 ### Adding EESSI overlay
 Additional packages are added in the EESSI overlay, which is based on ComputeCanada.
+You can add them manually or in an automated way by using ansible. Below you can find the two options explained.
+
+#### Manually
 To add the overlay: 
 
 Start the prefix
