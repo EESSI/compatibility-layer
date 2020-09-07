@@ -46,7 +46,7 @@ After starting the bootstrap have a long coffee...
 Additional packages are added in the EESSI overlay, which is based on ComputeCanada.
 You can add them manually or in an automated way by using ansible. Below you can find the two options explained.
 
-#### Manually
+#### Manually (Option 1)
 To add the overlay: 
 
 Start the prefix
@@ -68,7 +68,7 @@ Sync the overlay
 emerge --sync
 ```
 
-#### Ansible playbook
+#### Ansible playbook (Option 2)
 
 The steps described above can be automatically executed by running the Ansible playbook `install.yml` inside the folder `playbooks`. 
 See the `README` in that folder for more details.
