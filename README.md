@@ -71,7 +71,7 @@ emerge --sync
 #### Ansible playbook (Option 2)
 
 The steps described above can be automatically executed by running the Ansible playbook `install.yml` inside the folder `playbooks`. 
-See the `README` in that folder for more details.
+See the `README` in that folder for more details. Note that the playbook will also install a set of packages, e.g. `Lmod` and `archspec`.
 
 ### Updating the Prefix
 #### Packages
