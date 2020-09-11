@@ -27,7 +27,7 @@ Before running the playbook, make sure the following settings are correct, and o
 ### Prefix and packages
 | Variable | Description | Default value |
 | --- | --- | --- |
-| prefix_location | Root of your Gentoo Prefix installation | /cvmfs/pilot.eessi-hpc.org/compat/x86_64 |
+| gentoo_prefix_path | Path to the root of your Gentoo Prefix installation | /cvmfs/pilot.eessi-hpc.org/compat/x86_64 |
 | package_sets | List of package sets to be installed | 2020 |
 | prefix_packages | List of additional packages to be installed | - |
 
