@@ -68,6 +68,17 @@ Sync the overlay
 emerge --sync
 ```
 
+After synching the overlay, add the EESSI package set.
+```
+mkdir ${EPREFIX}/etc/portage/sets/
+ln -s  ${EPREFIX}/var/db/repos/eessi/etc/portage/sets/2020.08 ${EPREFIX}//etc/portage/sets/
+```
+
+Install the package set.
+```
+emerge @2020.08
+```
+
 #### Ansible playbook (Option 2)
 
 The steps described above can be automatically executed by running the Ansible playbook `install.yml` inside the folder `playbooks`. 
