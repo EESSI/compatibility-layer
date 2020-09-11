@@ -569,7 +569,9 @@ bootstrap_tree() {
 	# RAP uses the latest gentoo main repo snapshot to bootstrap.
 	is-rap && LATEST_TREE_YES=1
 	local PV="20200607"
-	if [[ -n ${LATEST_TREE_YES} ]]; then
+	if [[ -n ${CUSTOM_SNAPSHOT} ]]; then
+		do_tree "${SNAPSHOT_URL}" "${CUSTOM_SNAPSHOT}"
+	elif [[ -n ${LATEST_TREE_YES} ]]; then
 		do_tree "${SNAPSHOT_URL}" portage-latest.tar.bz2
 	else
 		do_tree http://dev.gentoo.org/~grobian/distfiles prefix-overlay-${PV}.tar.bz2
