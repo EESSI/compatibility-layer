@@ -35,6 +35,12 @@ or simply:
 ./bootstrap-prefix.sif
 ```
 
+Our version of the script allows you to pick a custom snapshot for the Portage tree. This can be done by setting `SNAPSHOT_URL` to
+a URL that points to a directory, and setting `CUSTOM_SNAPSHOT` to the name of a snapshot file (must be a bzip2 archive). For instance:
+```
+env SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT="portage-20200909.tar.bz2" ./bootstrap-prefix.sif
+```
+
 If you want to run your own version of the bootstrap script, use:
 ```
 singularity exec bootstrap-prefix.sif ./bootstrap-prefix.sh
