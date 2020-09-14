@@ -44,9 +44,13 @@ After starting the bootstrap have a long coffee...
 
 ### Adding EESSI overlay
 Additional packages are added in the EESSI overlay, which is based on ComputeCanada.
-You can add them manually or in an automated way by using Ansible. Below you can find the two options explained.
+You can add them manually or in an automated way by using Ansible, being Ansible the preferred way. Below you can find the two options explained.
 
-#### Manually (Option 1)
+#### Ansible playbook (Option 1)
+The steps described above can be automatically executed by running the Ansible playbook `install.yml` inside the folder `playbooks`. 
+See the `README` in that folder for more details. Note that the playbook will also install a set of packages, e.g. `Lmod` and `archspec`.
+
+#### Manually (Option 2)
 To add the overlay: 
 
 Start the prefix
@@ -71,18 +75,14 @@ emerge --sync
 After synching the overlay, add the EESSI package set.
 ```
 mkdir ${EPREFIX}/etc/portage/sets/
-ln -s  ${EPREFIX}/var/db/repos/eessi/etc/portage/sets/2020.08 ${EPREFIX}//etc/portage/sets/
+ln -s  ${EPREFIX}/var/db/repos/eessi/etc/portage/sets/2020.08 ${EPREFIX}/etc/portage/sets/
 ```
 
-Install the package set.
+Install the package set defined at `${EPREFIX}/etc/portage/sets/`.
+E.g.
 ```
 emerge @2020.08
 ```
-
-#### Ansible playbook (Option 2)
-
-The steps described above can be automatically executed by running the Ansible playbook `install.yml` inside the folder `playbooks`. 
-See the `README` in that folder for more details. Note that the playbook will also install a set of packages, e.g. `Lmod` and `archspec`.
 
 ### Updating the Prefix
 #### Packages
