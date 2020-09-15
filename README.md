@@ -72,7 +72,7 @@ Sync the overlay
 emerge --sync
 ```
 
-After synching the overlay, add the EESSI package set.
+After synchronizing the overlay, add the EESSI package set(s) that you would like to install, e.g. for set `2020.08`:
 ```
 mkdir ${EPREFIX}/etc/portage/sets/
 ln -s  ${EPREFIX}/var/db/repos/eessi/etc/portage/sets/2020.08 ${EPREFIX}/etc/portage/sets/
