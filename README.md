@@ -48,7 +48,7 @@ You can add them manually or in an automated way by using Ansible, being Ansible
 
 #### Ansible playbook (Option 1)
 The installation of the EESSI-specific parts can be automatically executed by running the Ansible playbook `install.yml` inside the folder `playbooks`. 
-This playbook will install the (EESSI Gentoo overlay)[https://github.com/EESSI/gentoo-overlay] and a set of packages, including `Lmod` and `archspec`. See the `README` in the `playbooks` folder for more details.
+This playbook will install the [EESSI Gentoo overlay](https://github.com/EESSI/gentoo-overlay) and a set of packages, including `Lmod` and `archspec`. See the `README` in the `playbooks` folder for more details.
 
 #### Manually (Option 2)
 To add the overlay: 
