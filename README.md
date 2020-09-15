@@ -47,7 +47,7 @@ Additional packages are added in the EESSI overlay, which is based on ComputeCan
 You can add them manually or in an automated way by using Ansible, being Ansible the preferred way. Below you can find the two options explained.
 
 #### Ansible playbook (Option 1)
-The steps described above can be automatically executed by running the Ansible playbook `install.yml` inside the folder `playbooks`. 
+The installation of the EESSI-specific parts can be automatically executed by running the Ansible playbook `install.yml` inside the folder `playbooks`. 
 See the `README` in that folder for more details. Note that the playbook will also install a set of packages, e.g. `Lmod` and `archspec`.
 
 #### Manually (Option 2)
