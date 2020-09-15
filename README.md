@@ -48,8 +48,15 @@ singularity exec bootstrap-prefix.sif ./bootstrap-prefix.sh
 
 After starting the bootstrap have a long coffee...
 
-### Adding EESSI overlay
+### Adding the EESSI overlay and packages
 Additional packages are added in the EESSI overlay, which is based on ComputeCanada.
+You can add them manually or in an automated way by using Ansible, being Ansible the preferred way. Below you can find the two options explained.
+
+#### Ansible playbook (Option 1)
+The installation of the EESSI-specific parts can be automatically executed by running the Ansible playbook `install.yml` inside the folder `playbooks`. 
+This playbook will install the [EESSI Gentoo overlay](https://github.com/EESSI/gentoo-overlay) and a set of packages, including `Lmod` and `archspec`. See the `README` in the `playbooks` folder for more details.
+
+#### Manually (Option 2)
 To add the overlay: 
 
 Start the prefix
@@ -71,10 +78,16 @@ Sync the overlay
 emerge --sync
 ```
 
-#### Ansible playbook
+After synchronizing the overlay, add the EESSI package set(s) that you would like to install, e.g. for set `2020.08`:
+```
+mkdir ${EPREFIX}/etc/portage/sets/
+ln -s  ${EPREFIX}/var/db/repos/eessi/etc/portage/sets/2020.08 ${EPREFIX}/etc/portage/sets/
+```
 
-The steps described above can be automatically executed by running the Ansible playbook `install.yml` inside the folder `playbooks`. 
-See the `README` in that folder for more details.
+Finally, install the package set(s) defined at `${EPREFIX}/etc/portage/sets/`, e.g.:
+```
+emerge @2020.08
+```
 
 ### Updating the Prefix
 #### Packages
