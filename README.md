@@ -42,7 +42,7 @@ singularity exec bootstrap-prefix.sif ./bootstrap-prefix.sh
 
 After starting the bootstrap have a long coffee...
 
-### Adding EESSI overlay
+### Adding the EESSI overlay and packages
 Additional packages are added in the EESSI overlay, which is based on ComputeCanada.
 You can add them manually or in an automated way by using Ansible, being Ansible the preferred way. Below you can find the two options explained.
 
