@@ -78,8 +78,7 @@ mkdir ${EPREFIX}/etc/portage/sets/
 ln -s  ${EPREFIX}/var/db/repos/eessi/etc/portage/sets/2020.08 ${EPREFIX}/etc/portage/sets/
 ```
 
-Install the package set defined at `${EPREFIX}/etc/portage/sets/`.
-E.g.
+Finally, install the package set(s) defined at `${EPREFIX}/etc/portage/sets/`, e.g.:
 ```
 emerge @2020.08
 ```
