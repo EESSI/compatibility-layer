@@ -1,0 +1,16 @@
+Bootstrap: docker
+From: arm64v8/centos:8.2.2004
+
+%post
+    dnf install -y gcc gcc-c++ make diffutils gmp-devel
+    chmod 755 /usr/local/bin/bootstrap-prefix.sh
+
+%environment
+    export LC_ALL=C
+    export PATH=/usr/local/bin:$PATH
+
+%files
+    bootstrap-prefix.sh /usr/local/bin
+
+%runscript
+    exec /usr/local/bin/bootstrap-prefix.sh "$@"
