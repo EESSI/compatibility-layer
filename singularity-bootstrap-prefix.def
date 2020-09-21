@@ -1,9 +1,35 @@
+# stick to CentOS 7 for now, because FUSE3 in CentOS 8 is too old for CernVM-FS (must be FUSE 3.3 or newer)
+# see https://sft.its.cern.ch/jira/projects/CVM/issues/CVM-1912
 Bootstrap: docker
-From: centos:8.2.2004
+From: centos:7.8.2003
 
 %post
-    dnf install -y gcc gcc-c++ make diffutils
+    yum install -y gcc gcc-c++ make diffutils
     chmod 755 /usr/local/bin/bootstrap-prefix.sh
+
+    yum install -y http://cvmrepo.web.cern.ch/cvmrepo/yum/cvmfs-release-latest.noarch.rpm
+    yum install -y cvmfs cvmfs-config-default cvmfs-fuse3
+    yum install -y /root/cvmfs-config-eessi-0.1-1.noarch.rpm
+
+    # install fuse-overlayfs 0.4.1,
+    # since the one obtain via 'yum' in CentOS 7 does not work in combination with Singularity,
+    # and more recent versions do not work either...
+    # see https://github.com/containers/fuse-overlayfs/issues/232
+    yum install -y fuse3-devel fuse3-libs automake autoconf
+    curl -OL https://github.com/containers/fuse-overlayfs/archive/v0.4.1.tar.gz && \
+    tar xfz v0.4.1.tar.gz && rm v0.4.1.tar.gz && \
+    cd fuse-overlayfs-0.4.1 && \
+    sh autogen.sh && \
+    LIBS="-ldl" ./configure --prefix /usr && \
+    make && \
+    make install && \
+    cd - && rm -r fuse-overlayfs-0.4.1 && \
+    fuse-overlayfs --version
+
+    cat << EOF > /etc/cvmfs/default.local
+CVMFS_QUOTA_LIMIT=10000
+CVMFS_HTTP_PROXY="DIRECT"
+EOF
 
 %environment
     export LC_ALL=C
@@ -11,6 +37,7 @@ From: centos:8.2.2004
 
 %files
     bootstrap-prefix.sh /usr/local/bin
+    cvmfs-config-eessi-0.1-1.noarch.rpm /root
 
 %runscript
     exec /usr/local/bin/bootstrap-prefix.sh "$@"
