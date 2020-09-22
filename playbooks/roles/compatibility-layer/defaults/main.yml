@@ -9,9 +9,30 @@ cvmfs_publish_transaction: False
 cvmfs_abort_transaction_on_failures: False
 cvmfs_repository: pilot.eessi-hpc.org
 
-gentoo_prefix_path: /cvmfs/pilot.eessi-hpc.org/2020.08/compat/x86_64
+gentoo_prefix_path: /cvmfs/pilot.eessi-hpc.org/2020.09/compat/x86_64
 
 package_sets: 
   - 2020.08
 
 prefix_packages:
+
+
+symlinks_to_host:
+  - /etc/group
+  - /etc/passwd
+#  - /etc/hosts
+#  - /etc/nsswitch.conf
+#  - /etc/resolv.conf
+#  - /var/lib/munge
+#  - /var/lib/unbound
+#  - /var/lib/VirtualGL
+#  - /var/log/munge
+#  - /var/log/wtmp
+#  - /var/run
+#  - /var/spool
+#  - /var/tmp
+#  - /lib64/libnss_centrifydc.so.2
+#  - /lib64/libnss_ldap.so.2
+#  - /lib64/libnss_sss.so.2
+#  - /run/dbus
+#  - /tmp
