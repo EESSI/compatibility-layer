@@ -1,3 +1,6 @@
+![Ansible Lint](https://github.com/EESSI/compatibility-layer/workflows/Ansible%20Lint/badge.svg)
+![Install compatibility layer](https://github.com/EESSI/compatibility-layer/workflows/Install%20compatibility%20layer/badge.svg)
+
 # Ansible role/playbooks for installing the compatibility layer
 
 This directory contains an Ansible role (`compatibility-layer`) in the subdirectory `roles` which has
