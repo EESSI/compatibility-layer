@@ -9,7 +9,7 @@
   register: orig_types
 
 - name: Remove original files/directories
-  file: 
+  file:
     path: "{{ gentoo_prefix_path }}{{ item.item }}"
     state: absent
   with_items: "{{ orig_types.results }}"
@@ -19,7 +19,7 @@
 
 - name: Make symlinks
   file:
-    src: "{{ item}}"
+    src: "{{ item }}"
     dest: "{{ gentoo_prefix_path }}{{ item }}"
     state: link
     force: yes
