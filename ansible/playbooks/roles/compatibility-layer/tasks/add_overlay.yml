@@ -1,0 +1,51 @@
+# Add a custom overlay to the Gentoo Prefix installation.
+---
+- name: Install equery command (dependency for the portage module)
+  command:
+    cmd: emerge gentoolkit
+    creates: "{{ gentoo_prefix_path }}/usr/bin/equery"
+
+- name: Create repos directory
+  file:
+    path: "{{ gentoo_prefix_path }}/etc/portage/repos.conf"
+    state: directory
+    mode: '0755'
+
+- name: Install eselect-repository
+  portage:
+    package: eselect-repository
+    state: present
+
+# We need git in order to add Gentoo overlays hosted on git repositories.
+- name: Install git
+  portage:
+    package: dev-vcs/git
+    state: present
+
+- name: Check which repositories have been installed
+  command: eselect repository list -i
+  register: repositories_installed
+  changed_when: False
+
+- name: Add custom overlay configuration
+  command:
+    cmd: "eselect repository add {{ custom_overlay_name }} {{ custom_overlay_source }} {{ custom_overlay_url }}"
+  when: custom_overlay_name not in repositories_installed.stdout
+
+- name: Sync the repositories
+  portage:
+    sync: 'yes'
+
+- name: Make sets directory
+  file:
+    path: "{{ gentoo_prefix_path }}/etc/portage/sets"
+    state: directory
+    mode: '0755'
+
+- name: Make symlink to all package set files in the custom overlay
+  file:
+    src: "{{ gentoo_prefix_path }}/var/db/repos/{{ custom_overlay_name }}/etc/portage/sets/{{ item }}"
+    dest: "{{ gentoo_prefix_path }}/etc/portage/sets/{{ item }}"
+    state: link
+  with_items:
+    "{{ package_sets }}"
