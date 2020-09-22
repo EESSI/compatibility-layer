@@ -6,11 +6,11 @@ on:
   push:
     branches: [ master ]
     paths:
-    - 'playbooks/**'
+    - 'ansible/playbooks/**'
   pull_request:
     branches: [ master ]
     paths:
-    - 'playbooks/**'
+    - 'ansible/playbooks/**'
 
 jobs:
   install_compat_layer:

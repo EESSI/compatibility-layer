@@ -35,6 +35,12 @@ or simply:
 ./bootstrap-prefix.sif
 ```
 
+Our version of the script allows you to pick a custom snapshot for the Portage tree. This can be done by setting `SNAPSHOT_URL` to
+a URL that points to a directory, and setting `CUSTOM_SNAPSHOT` to the name of a snapshot file (must be a bzip2 archive). For instance:
+```
+env SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT="portage-20200909.tar.bz2" ./bootstrap-prefix.sif
+```
+
 If you want to run your own version of the bootstrap script, use:
 ```
 singularity exec bootstrap-prefix.sif ./bootstrap-prefix.sh
@@ -42,8 +48,21 @@ singularity exec bootstrap-prefix.sif ./bootstrap-prefix.sh
 
 After starting the bootstrap have a long coffee...
 
-### Adding EESSI overlay
+Once the bootstrap is completed, run the script to replace some paths with symlinks into the host OS:
+
+```
+scripts/prefix-symlink-host-paths.sh
+```
+
+### Adding the EESSI overlay and packages
 Additional packages are added in the EESSI overlay, which is based on ComputeCanada.
+You can add them manually or in an automated way by using Ansible, being Ansible the preferred way. Below you can find the two options explained.
+
+#### Ansible playbook (Option 1)
+The installation of the EESSI-specific parts can be automatically executed by running the Ansible playbook `install.yml` inside the folder `ansible/playbooks`. 
+This playbook will install the [EESSI Gentoo overlay](https://github.com/EESSI/gentoo-overlay) and a set of packages, including `Lmod` and `archspec`. See the `README` in the `ansible/playbooks` folder for more details.
+
+#### Manually (Option 2)
 To add the overlay: 
 
 Start the prefix
@@ -65,10 +84,16 @@ Sync the overlay
 emerge --sync
 ```
 
-#### Ansible playbook
+After synchronizing the overlay, add the EESSI package set(s) that you would like to install, e.g. for set `2020.08`:
+```
+mkdir ${EPREFIX}/etc/portage/sets/
+ln -s  ${EPREFIX}/var/db/repos/eessi/etc/portage/sets/2020.08 ${EPREFIX}/etc/portage/sets/
+```
 
-The steps described above can be automatically executed by running the Ansible playbook `install.yml` inside the folder `playbooks`. 
-See the `README` in that folder for more details.
+Finally, install the package set(s) defined at `${EPREFIX}/etc/portage/sets/`, e.g.:
+```
+emerge @2020.08
+```
 
 ### Updating the Prefix
 #### Packages
