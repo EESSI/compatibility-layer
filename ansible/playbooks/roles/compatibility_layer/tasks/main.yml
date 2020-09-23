@@ -1,7 +1,8 @@
-# TODO: when startprefix does not exist
-# use container to install prefix?
-#- include_tasks: install_prefix.yml
-
+# Main task which:
+# - checks the given path for a Prefix installation,
+# - starts (and publishes at the end) a CVMFS transaction, if requested,
+# - calls the tasks for adding the overlay and installation of sets and packages.
+---
 - name: Check if a Prefix installation is found at the specified location
   stat:
     path: "{{ gentoo_prefix_path }}/usr/bin/emerge"

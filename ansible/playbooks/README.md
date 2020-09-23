@@ -1,3 +1,6 @@
+![Ansible Lint](https://github.com/EESSI/compatibility-layer/workflows/Ansible%20Lint/badge.svg)
+![Install compatibility layer](https://github.com/EESSI/compatibility-layer/workflows/Install%20compatibility%20layer/badge.svg)
+
 # Ansible role/playbooks for installing the compatibility layer
 
 This directory contains an Ansible role (`compatibility_layer`) in the subdirectory `roles` which has
@@ -38,4 +41,8 @@ The playbook can be run using:
 ansible-playbook -i hosts -K install.yml
 ```
 The `-K` option will ask for your sudo password, and you have to supply a valid hosts file (here named `hosts`).
-By default, the playbook will only run on the host listed in the `cvmfsstratum0servers` section of your hosts file.
+By default, the playbook will only run on the host listed in the `cvmfsstratum0servers` section of the supplied `hosts` file. So, your `hosts` file should at least have:
+```
+[cvmfsstratum0servers]
+ip-or-hostname-of-your-stratum0
+```
