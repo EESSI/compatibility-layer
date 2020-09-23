@@ -19,11 +19,28 @@ prefix_packages:
 # List of locations that should get a symlink $EPREFIX/$LOCATION -> $LOCATION.
 # This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.
 symlinks_to_host:
-  - /etc/group
-  - /etc/passwd
-#  - /etc/hosts
+  # required to ensure local user groups are known
+  - /etc/group 
+
+  # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
+  - /etc/passwd 
+
+  # required to ensure name-service information is taken from the right source (e.g. ldap)
   - /etc/nsswitch.conf
+
+  # required to use the DNS resolver from the host (should be done automatically)
   - /etc/resolv.conf
+
+  # required if Centrify is used in nsswitch.conf
+  - /lib64/libnss_centrifydc.so.2
+
+  # required if LDAP is used in nsswitch.conf
+  - /lib64/libnss_ldap.so.2
+
+  # required if SSSD is used in nsswitch.conf
+  - /lib64/libnss_sss.so.2
+
+#  - /etc/hosts
 #  - /var/lib/munge
 #  - /var/lib/unbound
 #  - /var/lib/VirtualGL
@@ -32,8 +49,5 @@ symlinks_to_host:
 #  - /var/run
 #  - /var/spool
 #  - /var/tmp
-  - /lib64/libnss_centrifydc.so.2
-  - /lib64/libnss_ldap.so.2
-  - /lib64/libnss_sss.so.2
 #  - /run/dbus
 #  - /tmp
