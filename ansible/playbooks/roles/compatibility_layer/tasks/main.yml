@@ -21,6 +21,8 @@
   when: cvmfs_start_transaction
 
 - block:
+  - include_tasks: create_host_symlinks.yml
+
   - include_tasks: add_overlay.yml
 
   - include_tasks: install_packages.yml

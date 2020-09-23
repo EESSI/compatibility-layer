@@ -3,7 +3,7 @@
 
 # Ansible role/playbooks for installing the compatibility layer
 
-This directory contains an Ansible role (`compatibility-layer`) in the subdirectory `roles` which has
+This directory contains an Ansible role (`compatibility_layer`) in the subdirectory `roles` which has
 all functionality for installing the compatibility layer into an existing Gentoo Prefix installation.
 It adds a given overlay to the installation and installs a list of package sets and list of additional packages.
 The playbook `install.yml` will execute this role on a given server. 

@@ -1,0 +1,26 @@
+# Replace a list of files/directories in Gentoo Prefix installation by symlinks to corresponding files/directories
+# on the host in order to solve some common issues.
+---
+
+- name: Check type of original files/directories
+  stat:
+    path: "{{ gentoo_prefix_path }}{{ item }}"
+  with_items: "{{ symlinks_to_host }}"
+  register: orig_types
+
+- name: Remove original files/directories
+  file:
+    path: "{{ gentoo_prefix_path }}{{ item.item }}"
+    state: absent
+  with_items: "{{ orig_types.results }}"
+  when:
+    - item.stat.exists
+    - not item.stat.islnk
+
+- name: Make symlinks
+  file:
+    src: "{{ item }}"
+    dest: "{{ gentoo_prefix_path }}{{ item }}"
+    state: link
+    force: yes
+  with_items: "{{ symlinks_to_host }}"

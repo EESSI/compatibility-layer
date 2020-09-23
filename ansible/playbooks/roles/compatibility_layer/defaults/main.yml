@@ -1,0 +1,53 @@
+# Defaults file for the compatibility layer role.
+---
+custom_overlay_name: eessi
+custom_overlay_source: git
+custom_overlay_url: https://github.com/EESSI/gentoo-overlay.git
+
+cvmfs_start_transaction: False
+cvmfs_publish_transaction: False
+cvmfs_abort_transaction_on_failures: False
+cvmfs_repository: pilot.eessi-hpc.org
+
+gentoo_prefix_path: /cvmfs/pilot.eessi-hpc.org/2020.09/compat/x86_64
+
+package_sets: 
+  - 2020.08
+
+prefix_packages:
+
+# List of locations that should get a symlink $EPREFIX/$LOCATION -> $LOCATION.
+# This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.
+symlinks_to_host:
+  # required to ensure local user groups are known
+  - /etc/group 
+
+  # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
+  - /etc/passwd 
+
+  # required to ensure name-service information is taken from the right source (e.g. ldap)
+  - /etc/nsswitch.conf
+
+  # required to use the DNS resolver from the host (should be done automatically)
+  - /etc/resolv.conf
+
+  # required if Centrify is used in nsswitch.conf
+  - /lib64/libnss_centrifydc.so.2
+
+  # required if LDAP is used in nsswitch.conf
+  - /lib64/libnss_ldap.so.2
+
+  # required if SSSD is used in nsswitch.conf
+  - /lib64/libnss_sss.so.2
+
+#  - /etc/hosts
+#  - /var/lib/munge
+#  - /var/lib/unbound
+#  - /var/lib/VirtualGL
+#  - /var/log/munge
+#  - /var/log/wtmp
+#  - /var/run
+#  - /var/spool
+#  - /var/tmp
+#  - /run/dbus
+#  - /tmp
