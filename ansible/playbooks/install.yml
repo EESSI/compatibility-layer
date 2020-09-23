@@ -8,5 +8,5 @@
     BPREFIX: "{{ gentoo_prefix_path }}"
     LC_ALL: C
   roles:
-    - compatibility-layer
+    - compatibility_layer
   become: True
