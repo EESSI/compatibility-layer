@@ -38,4 +38,8 @@ The playbook can be run using:
 ansible-playbook -i hosts -K install.yml
 ```
 The `-K` option will ask for your sudo password, and you have to supply a valid hosts file (here named `hosts`).
-By default, the playbook will only run on the host listed in the `cvmfsstratum0servers` section of your hosts file.
+By default, the playbook will only run on the host listed in the `cvmfsstratum0servers` section of the supplied `hosts` file. So, your `hosts` file should at least have:
+```
+[cvmfsstratum0servers]
+ip-or-hostname-of-your-stratum0
+```
