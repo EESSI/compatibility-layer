@@ -20,15 +20,16 @@ The playbook `install.yml` will execute this role on a given server.
 Before running the playbook, make sure the following settings are correct, and override them if necessary:
 
 ### Overlay settings
+
 | Variable | Description |
-| --- | --- | --- |
+| --- | --- |
 | custom_overlay_name | Repository name for the custom overlay |
 | custom_overlay_source | Source of the custom overlay |
 | custom_overlay_url | URL to the custom overlay |
 
 ### CVMFS settings
 | Variable | Description |
-| --- | --- | --- |
+| --- | --- |
 | cvmfs_start_transaction | Whether a CVMFS transaction should be start at the start |
 | cvmfs_publish_transaction | Whether a CVMFS transaction should be published at the end |
 | cvmfs_abort_transaction_on_failures | Whether a CVMFS transaction should be aborted on failures |
@@ -36,7 +37,7 @@ Before running the playbook, make sure the following settings are correct, and o
 
 ### Prefix and packages
 | Variable | Description |
-| --- | --- | --- |
+| --- | --- |
 | gentoo_prefix_path | Path to the root of your Gentoo Prefix installation |
 | package_sets | List of package sets to be installed |
 | prefix_packages | List of additional packages to be installed |
