@@ -5,7 +5,14 @@
 
 This directory contains an Ansible role (`compatibility_layer`) in the subdirectory `roles` which has
 all functionality for installing the compatibility layer into an existing Gentoo Prefix installation.
-It adds a given overlay to the installation and installs a list of package sets and list of additional packages.
+It performs the following tasks:
+
+ - make symlinks to some host files in order to fix issues with, for instance, user accounts and groups;
+ - add a given overlay to the installation;
+ - use the Portage configuration files from that overlay, if applicable, by making symlinks to them;
+ - install a given list of package sets;
+ - install a given list of additional packages.
+ 
 The playbook `install.yml` will execute this role on a given server. 
 
 ## Configuration
@@ -13,26 +20,30 @@ The playbook `install.yml` will execute this role on a given server.
 Before running the playbook, make sure the following settings are correct, and override them if necessary:
 
 ### Overlay settings
-| Variable | Description | Default value |
+| Variable | Description |
 | --- | --- | --- |
-| custom_overlay_name | Repository name for the custom overlay | eessi |
-| custom_overlay_source | Source of the custom overlay | git |
-| custom_overlay_url | URL to the custom overlay | https://github.com/EESSI/gentoo-overlay.git |
+| custom_overlay_name | Repository name for the custom overlay |
+| custom_overlay_source | Source of the custom overlay |
+| custom_overlay_url | URL to the custom overlay |
 
 ### CVMFS settings
-| Variable | Description | Default value |
+| Variable | Description |
 | --- | --- | --- |
-| cvmfs_start_transaction | Whether a CVMFS transaction should be start at the start | False |
-| cvmfs_publish_transaction | Whether a CVMFS transaction should be published at the end | False |
-| cvmfs_abort_transaction_on_failures | Whether a CVMFS transaction should be aborted on failures | False |
-| cvmfs_repository | Name of your CVMFS repository (used for the transaction) | pilot.eessi-hpc.org |
+| cvmfs_start_transaction | Whether a CVMFS transaction should be start at the start |
+| cvmfs_publish_transaction | Whether a CVMFS transaction should be published at the end |
+| cvmfs_abort_transaction_on_failures | Whether a CVMFS transaction should be aborted on failures |
+| cvmfs_repository | Name of your CVMFS repository (used for the transaction) |
 
 ### Prefix and packages
-| Variable | Description | Default value |
+| Variable | Description |
 | --- | --- | --- |
-| gentoo_prefix_path | Path to the root of your Gentoo Prefix installation | /cvmfs/pilot.eessi-hpc.org/compat/x86_64 |
-| package_sets | List of package sets to be installed | 2020 |
-| prefix_packages | List of additional packages to be installed | - |
+| gentoo_prefix_path | Path to the root of your Gentoo Prefix installation |
+| package_sets | List of package sets to be installed |
+| prefix_packages | List of additional packages to be installed |
+| python_targets | String consisting of [Gentoo Python targets](https://wiki.gentoo.org/wiki/Project:Python/PYTHON_TARGETS) |
+| symlinks_to_host | List of paths that should get a symlink to the corresponding host path |
+
+For the default values, see the [defaults file](roles/compatibility_layer/defaults/main.yml).
 
 ## Running the playbook 
 
