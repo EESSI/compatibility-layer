@@ -24,6 +24,10 @@
   - include_tasks: create_host_symlinks.yml
 
   - include_tasks: add_overlay.yml
+    args:
+      apply:
+        environment:
+          PYTHON_TARGETS: " {{ python_targets }} "
 
   - include_tasks: install_packages.yml
 
