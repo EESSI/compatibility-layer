@@ -16,6 +16,10 @@ package_sets:
 
 prefix_packages:
 
+# Set this to the same Python version as used during the Gentoo Prefix bootstrap.
+# This ensures that no other Python version gets installed while adding the custom overlay. 
+python_targets: "python3_7"
+
 # List of locations that should get a symlink $EPREFIX/$LOCATION -> $LOCATION.
 # This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.
 symlinks_to_host:
