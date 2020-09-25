@@ -36,16 +36,17 @@
   portage:
     sync: 'yes'
 
-- name: Make sets directory
-  file:
-    path: "{{ gentoo_prefix_path }}/etc/portage/sets"
-    state: directory
-    mode: '0755'
+- name: Find all files and directories in the etc/portage directory of the overlay
+  find:
+    file_type: any
+    paths: "{{ gentoo_prefix_path }}/var/db/repos/{{ custom_overlay_name }}/etc/portage"
+  register: find_configs
 
-- name: Make symlink to all package set files in the custom overlay
+- name: Make symlinks to the portage settings in the custom overlay
   file:
-    src: "{{ gentoo_prefix_path }}/var/db/repos/{{ custom_overlay_name }}/etc/portage/sets/{{ item }}"
-    dest: "{{ gentoo_prefix_path }}/etc/portage/sets/{{ item }}"
+    src: "{{ item.path }}"
+    dest: "{{ gentoo_prefix_path }}/etc/portage/{{ item.path | basename }}"
     state: link
+    force: yes
   with_items:
-    "{{ package_sets }}"
+    "{{ find_configs.files }}"
