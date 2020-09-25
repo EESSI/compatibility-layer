@@ -35,15 +35,18 @@ or simply:
 ./bootstrap-prefix.sif
 ```
 
+If you want to run your own version of the bootstrap script, use:
+```
+singularity exec bootstrap-prefix.sif ./bootstrap-prefix.sh
+```
 Our version of the script allows you to pick a custom snapshot for the Portage tree. This can be done by setting `SNAPSHOT_URL` to
 a URL that points to a directory, and setting `CUSTOM_SNAPSHOT` to the name of a snapshot file (must be a bzip2 archive). For instance:
 ```
 env SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT="portage-20200909.tar.bz2" ./bootstrap-prefix.sif
 ```
-
-If you want to run your own version of the bootstrap script, use:
+If you want to limit the supported/installed Python version(s), you can set the environment variable `PYTHON_TARGETS` before starting the bootstrap script. By only including a Python 3 version, you can prevent Python 2 from being installed, e.g.:
 ```
-singularity exec bootstrap-prefix.sif ./bootstrap-prefix.sh
+env PYTHON_TARGETS="python3_7" SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT="portage-20200909.tar.bz2" ./bootstrap-prefix.sif
 ```
 
 After starting the bootstrap have a long coffee...
