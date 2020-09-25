@@ -17,7 +17,7 @@ The playbook `install.yml` will execute this role on a given server.
 
 ## Configuration
 
-Before running the playbook, make sure the following settings are correct, and override them if necessary:
+Before running the playbook, make sure the following settings are correct, and override them if necessary. For the default values, see the [defaults file](roles/compatibility_layer/defaults/main.yml).
 
 ### Overlay settings
 
@@ -43,8 +43,6 @@ Before running the playbook, make sure the following settings are correct, and o
 | prefix_packages | List of additional packages to be installed |
 | python_targets | String consisting of [Gentoo Python targets](https://wiki.gentoo.org/wiki/Project:Python/PYTHON_TARGETS) |
 | symlinks_to_host | List of paths that should get a symlink to the corresponding host path |
-
-For the default values, see the [defaults file](roles/compatibility_layer/defaults/main.yml).
 
 ## Running the playbook 
 
