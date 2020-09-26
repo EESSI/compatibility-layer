@@ -73,7 +73,7 @@ ${EPREFIX}/startprefix
 ```
 Ensure that the configuration directory for repositories exists:
 ```
-mkdir ${EPREFIX}/etc/portage/repos.conf
+mkdir -p ${EPREFIX}/etc/portage/repos.conf
 ```
 If you used `${PYTHON_TARGETS}` during the bootstrap, be sure to set it to the same value now, e.g.:
 ```
