@@ -68,7 +68,7 @@ This playbook will install the [EESSI Gentoo overlay](https://github.com/EESSI/g
 #### Manually (Option 2)
 First, set `EPREFIX` to the path containing your Gentoo Prefix installation, and start the prefix:
 ```
-export EPREFIX=path/to/your/prefix
+export EPREFIX=/path/to/your/prefix
 ${EPREFIX}/startprefix
 ```
 Ensure that the configuration directory for repositories exists:
