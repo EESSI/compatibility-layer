@@ -66,25 +66,25 @@ The installation of the EESSI-specific parts can be automatically executed by ru
 This playbook will install the [EESSI Gentoo overlay](https://github.com/EESSI/gentoo-overlay) and a set of packages, including `Lmod` and `archspec`. See the `README` in the `ansible/playbooks` folder for more details.
 
 #### Manually (Option 2)
-To add the overlay: 
-
-Start the prefix
-```
-startprefix
-```
-Ensure the configuration directory exists, with ${EPREFIX} the path to your prefix installation.
+First, set `EPREFIX` to the path containing your Gentoo Prefix installation, and start the prefix:
 ```
 export EPREFIX=path/to/your/prefix
+${EPREFIX}/startprefix
+```
+Ensure that the configuration directory for repositories exists:
+```
 mkdir ${EPREFIX}/etc/portage/repos.conf
 ```
-Configure the overlay. 
+If you used `${PYTHON_TARGETS}` during the bootstrap, be sure to set it to the same value now, e.g.:
+```
+export PYTHON_TARGETS="python3_7"
+```
+
+Next, configure and sync the overlay:
 ```
 emerge eselect-repository
 eselect repository add eessi git https://github.com/EESSI/gentoo-overlay.git
-```
-Sync the overlay
-```
-emerge --sync
+emerge --sync eessi
 ```
 
 After synchronizing the overlay, add the EESSI package set(s) that you would like to install, e.g. for set `2020.08`:
