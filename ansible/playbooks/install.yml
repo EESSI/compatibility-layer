@@ -3,7 +3,7 @@
 - name: Install compatibility layer
   hosts: cvmfsstratum0servers
   environment:
-    PATH: 
+    PATH:
        "{{ gentoo_prefix_path }}/usr/sbin\
        :{{ gentoo_prefix_path }}/usr/bin\
        :{{ gentoo_prefix_path }}/sbin\
