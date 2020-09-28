@@ -57,6 +57,9 @@ Once the bootstrap is completed, run the script to replace some paths with symli
 scripts/prefix-symlink-host-paths.sh
 ```
 
+In order to generate the right locales for your installation, see [this item](https://wiki.gentoo.org/wiki/Project:Prefix/FAQ#Add_an_en_US.UTF-8_locale)
+of the Gentoo Prefix FAQ.
+
 ### Adding the EESSI overlay and packages
 Additional packages are added in the EESSI overlay, which is based on ComputeCanada.
 You can add them manually or in an automated way by using Ansible, being Ansible the preferred way. Below you can find the two options explained.
