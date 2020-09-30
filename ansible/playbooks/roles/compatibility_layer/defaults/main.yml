@@ -11,6 +11,9 @@ cvmfs_repository: pilot.eessi-hpc.org
 
 gentoo_prefix_path: /cvmfs/pilot.eessi-hpc.org/2020.09/compat/x86_64
 
+prefix_locales:
+  - en_US.UTF-8 UTF-8
+
 package_sets: 
   - 2020.08
 

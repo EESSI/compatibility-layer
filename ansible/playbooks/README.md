@@ -39,6 +39,7 @@ Before running the playbook, make sure the following settings are correct, and o
 | Variable | Description |
 | --- | --- |
 | gentoo_prefix_path | Path to the root of your Gentoo Prefix installation |
+|prefix_locales|List of locales to be generated|
 | package_sets | List of package sets to be installed |
 | prefix_packages | List of additional packages to be installed |
 | python_targets | String consisting of [Gentoo Python targets](https://wiki.gentoo.org/wiki/Project:Python/PYTHON_TARGETS) |

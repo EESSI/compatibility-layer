@@ -1,0 +1,11 @@
+# General configuration of the Prefix installation,
+# for instance locale support.
+---
+
+- name: Add locales to configuration file
+  lineinfile:
+    path: "{{ gentoo_prefix_path }}/etc/locale.gen"
+    line: "{{ item }}"
+    state: present
+  with_items: "{{ prefix_locales }}"
+  notify: Generate locales

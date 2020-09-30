@@ -1,0 +1,5 @@
+# Handlers for this role
+---
+
+- name: Generate locales
+  command: locale-gen
