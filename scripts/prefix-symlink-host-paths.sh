@@ -35,7 +35,7 @@ paths=(
 
 for path in ${paths[@]}; do
     echo ">> checking $path ..."
-    ls -ld ${EPREFIX}$path | grep " -> $path" > /dev/null
+    (ls -ld ${EPREFIX}$path | grep " -> $path") > /dev/null 2>&1
     ec=$?
     if [ $ec -ne 0 ]; then
         echo_yellow ">> [CHANGE] ${EPREFIX}$path is *not* a symlink to $path, fixing that..."
