@@ -13,13 +13,7 @@ An alternative would be the [NixOS](https://nixos.org/).
 The bootstrap process will need a clean environment with C and C++ compilers (the system version of gcc and g++ will do) as well as the `make` command. It also is very sensitive to 
 the environment, so setup a user with unset `CFFLAGS`, `CFLAGS`, `LDFLAGS`, `PKG_CONFIG_PATH` and the always harmful `LD_LIBRARY_PATH` variables.
 
-EESSI provides a Singularity container for this.
-
-### Building the Singularity container
-The provided Singularity definition file can be used to build a container with a clean environment:
-```
-sudo singularity build bootstrap-prefix.sif singularity-bootstrap-prefix.def
-```
+EESSI provides a Docker container for this, which can be run via Singularity.
 
 ### Bootstrapping Gentoo Prefix
 Gentoo Prefix provides a bootstrap script to build the prefix, see [Gentoo Prefix Bootstrap](https://wiki.gentoo.org/wiki/Project:Prefix/Bootstrap).
@@ -28,25 +22,21 @@ and made some modifications. See issue [#8](https://github.com/EESSI/compatibili
 
 You can run our version of the bootstrap script (see `bootstrap-prefix.sh`) inside the Singularity container by executing:
 ```
-singularity run bootstrap-prefix.sif
-```
-or simply:
-```
-./bootstrap-prefix.sif
+singularity run docker://eessi/bootstrap-prefix:centos8-$(uname -m)
 ```
 
 If you want to run your own version of the bootstrap script, use:
 ```
-singularity exec bootstrap-prefix.sif ./bootstrap-prefix.sh
+singularity exec docker://eessi/bootstrap-prefix:centos8-$(uname -m) ./bootstrap-prefix.sh
 ```
 Our version of the script allows you to pick a custom snapshot for the Portage tree. This can be done by setting `SNAPSHOT_URL` to
 a URL that points to a directory, and setting `CUSTOM_SNAPSHOT` to the name of a snapshot file (must be a bzip2 archive). For instance:
 ```
-env SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT="portage-20200909.tar.bz2" ./bootstrap-prefix.sif
+env SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT="portage-20200909.tar.bz2" docker://eessi/bootstrap-prefix:centos8-$(uname -m)
 ```
 If you want to limit the supported/installed Python version(s), you can set the environment variable `PYTHON_TARGETS` before starting the bootstrap script. By only including a Python 3 version, you can prevent Python 2 from being installed, e.g.:
 ```
-env PYTHON_TARGETS="python3_7" SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT="portage-20200909.tar.bz2" ./bootstrap-prefix.sif
+env PYTHON_TARGETS="python3_7" SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT="portage-20200909.tar.bz2" docker://eessi/bootstrap-prefix:centos8-$(uname -m)
 ```
 
 After starting the bootstrap have a long coffee...
