@@ -1,0 +1,11 @@
+FROM docker.io/library/centos:8.2.2004
+
+COPY bootstrap-prefix.sh /usr/local/bin/bootstrap-prefix.sh
+
+RUN dnf install -y gcc gcc-c++ make diffutils gmp-devel
+RUN chmod 755 /usr/local/bin/bootstrap-prefix.sh
+
+ENV LC_ALL=C
+ENV PATH=/usr/local/bin:$PATH
+
+ENTRYPOINT ["/usr/local/bin/bootstrap-prefix.sh"]
