@@ -222,6 +222,21 @@ configure_toolchain() {
 			local ccvers="$( (unset CHOST; gcc --version 2>/dev/null) )"
 			local mycc=
 			case "${ccvers}" in
+				*"Apple clang version "*)
+					vers=${ccvers#*Apple clang version }
+					vers=${vers% (clang-*}
+					# this is Clang, recent enough to compile recent clang
+					mycc=clang
+					compiler_stage1+="
+						${llvm_deps}
+						sys-devel/llvm
+						sys-devel/clang
+						sys-libs/libcxxabi
+						sys-libs/libcxx"
+					CC=clang
+					CXX=clang++
+					linker=sys-devel/binutils-apple
+					;;
 				*"Apple LLVM version "*)
 					vers=${ccvers#*Apple LLVM version }
 					vers=${vers% (clang-*}
@@ -364,13 +379,6 @@ bootstrap_setup() {
 				echo "USE=\"\${USE} ${MAKE_CONF_ADDITIONAL_USE}\""
 			[[ ${OFFLINE_MODE} ]] && \
 				echo 'FETCHCOMMAND="bash -c \"echo I need \${FILE} from \${URI} in \${DISTDIR}; read\""'
-			if [[ ${compiler_type} == clang ]] ; then
-				local ptrgs=$(sed -n 's/^PYTHON_TARGETS="\([^"]\+\)".*$/\1/' \
-					"${PORTDIR}"/profiles/prefix/make.conf)
-				ptrgs=${ptrgs/-python2_7/}
-				echo "# python2 is required by sys-devel/clang-6"
-				echo "PYTHON_TARGETS=\"python2_7 ${ptrgs}\""
-			fi
 		} > "${ROOT}"/etc/portage/make.conf
 	fi
 
@@ -1343,6 +1351,8 @@ bootstrap_stage1() {
 	# best.
 
 	# See comments in do_tree().
+	local portroot=${PORTDIR%/*}
+	mkdir -p "${ROOT}"/tmp/${portroot#${ROOT}/}
 	for x in lib sbin bin; do
 		mkdir -p "${ROOT}"/tmp/usr/${x}
 		[[ -e ${ROOT}/tmp/${x} ]] || ( cd "${ROOT}"/tmp && ln -s usr/${x} )
@@ -2689,8 +2699,15 @@ EOF
 			EPREFIX=
 			continue
 		fi
-		if [[ $(stat -c '%U/%G' "${EPREFIX}"/.canihaswrite) != \
-			$(stat -c '%U/%G' "${EPREFIX}") ]] ;
+		# GNU and BSD variants of stat take different arguments (and
+		# format specifiers are not equivalent)
+		case "${CHOST}" in
+			*-darwin* | *-freebsd*) STAT='stat -f %u/%g' ;;
+			*)                      STAT='stat -c %U/%G' ;;
+		esac
+
+		if [[ $(${STAT} "${EPREFIX}"/.canihaswrite) != \
+			$(${STAT} "${EPREFIX}") ]] ;
 		then
 			echo
 			echo "The $EPREFIX directory has different ownership than expected."
