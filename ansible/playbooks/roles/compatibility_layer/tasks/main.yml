@@ -8,6 +8,9 @@
     path: "{{ gentoo_prefix_path }}/usr/bin/emerge"
   register: emerge
 
+- include_tasks: install_prefix.yml
+  when: not emerge.stat.exists
+
 - name: Fail if the given Prefix path does not have emerge
   fail:
     msg: |

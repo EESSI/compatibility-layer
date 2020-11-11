@@ -49,11 +49,11 @@ Before running the playbook, make sure the following settings are correct, and o
 
 The playbook can be run using:
 ```
-ansible-playbook -i hosts -K install.yml
+ansible-playbook -i hosts -b install.yml
 ```
-The `-K` option will ask for your sudo password, and you have to supply a valid hosts file (here named `hosts`).
+The `-b` option will assume you can become room without a sudo password, and you have to supply a valid hosts file (here named `hosts`).
 By default, the playbook will only run on the host listed in the `cvmfsstratum0servers` section of the supplied `hosts` file. So, your `hosts` file should at least have:
 ```
 [cvmfsstratum0servers]
-ip-or-hostname-of-your-stratum0
+ip-or-hostname-of-your-stratum0 eessi_host_arch=x86_64
 ```

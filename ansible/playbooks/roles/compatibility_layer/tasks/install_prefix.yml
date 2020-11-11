@@ -1,0 +1,53 @@
+# Install a specified list of sets and packages.
+---
+- name: "Install EPEL"
+  yum:
+    name:
+      - https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+    disable_gpg_check: yes
+    state: present
+  tags:
+    - build_prefix
+
+- name: "Install other requirements (singularity et al)"
+  yum:
+    name:
+      - singularity
+    state: present
+  tags:
+    - build_prefix
+
+- name: "Get the username running the deployment (not root)"
+  become: false
+  shell: who | grep -v root | awk '{print $1}' | uniq
+  register: username_on_host
+  tags:
+    - build_prefix
+
+- name: "Create Gentoo prefix path and log directory -- {{ gentoo_prefix_path }} and  {{ eessi_log_dir }}"
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+    owner: "{{ username_on_host.stdout }}"
+    group: "{{ username_on_host.stdout }}"
+  with_items:
+    - "{{ gentoo_prefix_path }}"
+    - "{{ eessi_log_dir }}"
+  tags:
+    - build_prefix
+
+- name: "Give {{ username_on_host.stdout }} recursive user and group ownership of /cvmfs"
+  file:
+    dest: "cvmfs"
+    owner: "{{ username_on_host.stdout }}"
+    group: "{{ username_on_host.stdout }}"
+    recurse: yes
+  tags:
+    - build_prefix
+
+- name: "Install Gentoo prefix via {{ prefix_install }}"
+  become: false  
+  shell: "{{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )'"
+  tags:
+    - build_prefix

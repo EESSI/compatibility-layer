@@ -9,7 +9,17 @@ cvmfs_publish_transaction: False
 cvmfs_abort_transaction_on_failures: False
 cvmfs_repository: pilot.eessi-hpc.org
 
-gentoo_prefix_path: /cvmfs/pilot.eessi-hpc.org/2020.10/compat/x86_64
+gentoo_prefix_path: /cvmfs/pilot.eessi-hpc.org/2020.10/compat/{{ eessi_host_arch }}
+
+# How to build the prefix
+prefix_singularity_command: "singularity run -B{{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
+prefix_source: "docker://eessi/bootstrap-prefix:centos8-{{ eessi_host_arch }}"
+prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
+prefix_install: "{{ prefix_singularity_command}} {{ prefix_source }} {{ prefix_source_options }}"
+
+# Logging
+eessi_log_dir: "/tmp/eessi-logs/"
+prefix_build_log: "{{ eessi_log_dir }}prefix-build.log"
 
 prefix_locales:
   - en_US.UTF-8 UTF-8
