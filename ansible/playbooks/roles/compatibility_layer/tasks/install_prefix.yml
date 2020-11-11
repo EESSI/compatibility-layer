@@ -49,7 +49,7 @@
     - build_prefix
 
 - name: "Install Gentoo prefix via {{ prefix_install }}"
-  become: false  
+  become: false
   shell: set -o pipefail && "{{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )'"
   changed_when: True
   tags:
