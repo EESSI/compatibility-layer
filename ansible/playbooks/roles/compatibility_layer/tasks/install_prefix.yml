@@ -19,8 +19,9 @@
 
 - name: "Get the username running the deployment (not root)"
   become: false
-  shell: who | grep -v root | awk '{print $1}' | uniq
+  shell: set -o pipefail && who | grep -v root | awk '{print $1}' | uniq
   register: username_on_host
+  changed_when: True
   tags:
     - build_prefix
 
@@ -31,6 +32,7 @@
     recurse: yes
     owner: "{{ username_on_host.stdout }}"
     group: "{{ username_on_host.stdout }}"
+    mode: "0755"
   with_items:
     - "{{ gentoo_prefix_path }}"
     - "{{ eessi_log_dir }}"
@@ -48,6 +50,7 @@
 
 - name: "Install Gentoo prefix via {{ prefix_install }}"
   become: false  
-  shell: "{{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )'"
+  shell: set -o pipefail && "{{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )'"
+  changed_when: True
   tags:
     - build_prefix
