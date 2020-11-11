@@ -31,8 +31,9 @@
   - include_tasks: add_overlay.yml
     args:
       apply:
+        become: False
         environment:
-          PYTHON_TARGETS: " {{ python_targets }} "
+          PYTHON_TARGETS: "{{ python_targets }}"
 
   - include_tasks: install_packages.yml
 
