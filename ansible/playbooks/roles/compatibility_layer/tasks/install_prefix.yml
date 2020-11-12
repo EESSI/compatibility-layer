@@ -41,7 +41,7 @@
 
 - name: "Give {{ username_on_host.stdout }} recursive user and group ownership of /cvmfs"
   file:
-    dest: "cvmfs"
+    dest: "/cvmfs"
     owner: "{{ username_on_host.stdout }}"
     group: "{{ username_on_host.stdout }}"
     recurse: yes
