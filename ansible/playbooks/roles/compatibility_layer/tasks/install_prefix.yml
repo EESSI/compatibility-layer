@@ -9,7 +9,7 @@
   tags:
     - build_prefix
 
-- name: "Install other requirements (singularity et al)"
+- name: "Install other requirements (Singularity et al.)"
   yum:
     name:
       - singularity
