@@ -25,7 +25,7 @@
   tags:
     - build_prefix
 
-- name: "Create Gentoo prefix path and log directory -- {{ gentoo_prefix_path }} and  {{ eessi_log_dir }}"
+- name: "Create Gentoo prefix path and log directory -- {{ gentoo_prefix_path }} and {{ eessi_log_dir }}"
   file:
     path: "{{ item }}"
     state: directory
@@ -50,7 +50,7 @@
 
 - name: "Install Gentoo prefix via {{ prefix_install }}"
   become: false
-  shell: set -o pipefail && ( {{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )' )
+  shell: set -o pipefail && ( SINGULARITYENV_USE_CPU_CORES={{ ansible_processor_vcpus }} {{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )' )
   changed_when: True
   tags:
     - build_prefix
