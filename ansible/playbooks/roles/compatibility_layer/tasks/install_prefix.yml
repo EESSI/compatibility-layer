@@ -50,7 +50,7 @@
 
 - name: "Install Gentoo prefix via {{ prefix_install }}"
   become: false
-  shell: set -o pipefail && ( SINGULARITYENV_USE_CPU_CORES={{ ansible_processor_vcpus }} {{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )' )
+  shell: set -o pipefail && ( {{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )' )
   changed_when: True
   tags:
     - build_prefix

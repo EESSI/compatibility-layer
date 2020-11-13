@@ -17,7 +17,7 @@ gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/{{ eessi_overlay_version }}/co
 prefix_singularity_command: "singularity run -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
 prefix_source: "docker://eessi/bootstrap-prefix:centos8-{{ eessi_host_arch }}"
 prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
-prefix_install: "{{ prefix_singularity_command }} {{ prefix_source }} {{ prefix_source_options }}"
+prefix_install: "SINGULARITYENV_USE_CPU_CORES={{ ansible_processor_vcpus }} {{ prefix_singularity_command }} {{ prefix_source }} {{ prefix_source_options }}"
 
 # Logging
 eessi_log_dir: "/tmp/eessi-logs"
