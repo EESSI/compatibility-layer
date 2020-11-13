@@ -1,6 +1,6 @@
 # Install a specified list of sets and packages.
 ---
-- name: Install package set {{package_sets}}
+- name: Install package set {{ package_sets }}
   portage:
     package: "@{{ item }}"
     state: present
