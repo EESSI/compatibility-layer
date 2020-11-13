@@ -51,9 +51,11 @@ The playbook can be run using:
 ```
 ansible-playbook -i hosts -b install.yml
 ```
-The `-b` option will assume you can become root without a sudo password, and you have to supply a valid hosts file (here named `hosts`).
+The `-b` option will assume you can become root without a sudo password; if you do need to provide a password, also include `-K`. Furthermore, you have to supply a valid hosts file (here named `hosts`).
 By default, the playbook will only run on the host listed in the `cvmfsstratum0servers` section of the supplied `hosts` file. So, your `hosts` file should at least have:
 ```
 [cvmfsstratum0servers]
 ip-or-hostname-of-your-stratum0 eessi_host_arch=x86_64
 ```
+
+The eessi_host_arch corresponds to the architecture of the machine that executes the playbook and for which this compatibility layer has to be built, e.g. `x86_64`, `aarch64`, or `ppc64le`.

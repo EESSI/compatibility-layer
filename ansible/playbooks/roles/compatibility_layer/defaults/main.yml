@@ -1,5 +1,7 @@
 # Defaults file for the compatibility layer role.
 ---
+eessi_overlay_version: "2020.10"
+
 custom_overlay_name: eessi
 custom_overlay_source: git
 custom_overlay_url: https://github.com/EESSI/gentoo-overlay.git
@@ -9,23 +11,24 @@ cvmfs_publish_transaction: False
 cvmfs_abort_transaction_on_failures: False
 cvmfs_repository: pilot.eessi-hpc.org
 
-gentoo_prefix_path: /cvmfs/pilot.eessi-hpc.org/2020.10/compat/{{ eessi_host_arch }}
+gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/{{ eessi_overlay_version }}/compat/{{ eessi_host_arch }}
 
 # How to build the prefix
-prefix_singularity_command: "singularity run -B{{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
+prefix_singularity_command: "singularity run -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
 prefix_source: "docker://eessi/bootstrap-prefix:centos8-{{ eessi_host_arch }}"
 prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
-prefix_install: "{{ prefix_singularity_command}} {{ prefix_source }} {{ prefix_source_options }}"
+prefix_install: "{{ prefix_singularity_command }} {{ prefix_source }} {{ prefix_source_options }}"
 
 # Logging
-eessi_log_dir: "/tmp/eessi-logs/"
-prefix_build_log: "{{ eessi_log_dir }}prefix-build.log"
+eessi_log_dir: "/tmp/eessi-logs"
+prefix_build_log: "{{ eessi_log_dir }}/prefix-build.log"
+emerge_log: "{{ gentoo_prefix_path }}/var/log/emerge.log"
 
 prefix_locales:
   - en_US.UTF-8 UTF-8
 
 package_sets: 
-  - "2020.10"
+  - "{{ eessi_overlay_version }}"
 
 prefix_packages:
 

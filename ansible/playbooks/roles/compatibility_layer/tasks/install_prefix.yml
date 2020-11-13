@@ -1,4 +1,4 @@
-# Install a specified list of sets and packages.
+# Install Gentoo Prefix.
 ---
 - name: "Install EPEL"
   yum:
@@ -50,7 +50,7 @@
 
 - name: "Install Gentoo prefix via {{ prefix_install }}"
   become: false
-  shell: set -o pipefail && "{{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )'"
+  shell: set -o pipefail && ( {{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )' )
   changed_when: True
   tags:
     - build_prefix
