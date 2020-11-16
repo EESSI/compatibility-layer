@@ -126,3 +126,12 @@ cd /usr/src ; ln -s kernels/4.20.0-1.el7.elrepo.x86_64 linux
 startprefix
 emerge --oneshot sys-apps/portage
 ```
+
+# License
+
+The software in this repository is distributed under the terms of the
+[GNU General Public License v2.0](https://opensource.org/licenses/GPL-2.0).
+
+See [LICENSE](https://github.com/EESSI/filesystem-layer/blob/master/LICENSE) for more information.
+
+SPDX-License-Identifier: GPL-2.0-only
