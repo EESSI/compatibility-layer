@@ -15,7 +15,8 @@ prefix_locales:
   - en_US.UTF-8 UTF-8
 
 package_sets: 
-  - "2020.10"
+  - "2020.11"
+  - "2020.11-{{ eessi_host_arch }}"
 
 prefix_packages:
 
