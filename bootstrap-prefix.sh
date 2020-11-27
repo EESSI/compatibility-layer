@@ -178,49 +178,55 @@ configure_toolchain() {
 
 	CC=gcc
 	CXX=g++
-	llvm_deps="
-		app-arch/libarchive
-		app-crypt/rhash
-		dev-util/cmake
-		dev-util/ninja"
-	case ${CHOST} in
-		powerpc-*darwin*)
-			compiler_stage1="sys-apps/darwin-miscutils sys-libs/csu"
+
+	case ${CHOST}:${DARWIN_USE_GCC} in
+		powerpc-*darwin*|*:1)
+			einfo "Triggering Darwin with GCC toolchain"
+			compiler_stage1+=" sys-apps/darwin-miscutils sys-libs/csu"
 			local ccvers="$( (unset CHOST; gcc --version 2>/dev/null) )"
-			local mycc=
 			case "${ccvers}" in
 				*"(GCC) 4.2.1 "*)
 					linker=sys-devel/binutils-apple
-					mycc=gcc
 					;;
 				*"(GCC) 4.0.1 "*)
 					linker="=sys-devel/binutils-apple-3.2"
+					# upgrade to 4.2.1 first
 					compiler_stage1+="
-						${gcc_deps}
-						sys-devel/gcc-config
 						sys-devel/gcc-apple
 						sys-devel/binutils-apple"
-					mycc=gcc
 					;;
 				*"(Gentoo "*)
 					# probably the result of a bootstrap in progress
-					linker=sys-devel/binutils-apple
-					mycc=gcc
+					[[ ${DARWIN_USE_GCC} == 1 ]] \
+						&& linker=sys-devel/native-cctools \
+						|| linker=sys-devel/binutils-apple
+					;;
+				*"Apple clang version "*|*"Apple LLVM version "*)
+					# gcc cannot build (recent) binutils-apple due to
+					# missing blocks support, so use Xcode provided
+					# linker/assembler
+					linker=sys-devel/native-cctools
 					;;
 				*)
-					eerror "unknown compiler"
+					eerror "unknown compiler: ${ccvers}"
 					return 1
 					;;
 			esac
-			compiler="${gcc_deps} sys-devel/gcc-config sys-devel/gcc"
+			compiler_stage1+=" sys-devel/gcc"
 			;;
 		*-darwin*)
+			einfo "Triggering Darwin with LLVM/Clang toolchain"
 			# for compilers choice, see bug:
 			# https://bugs.gentoo.org/show_bug.cgi?id=538366
 			compiler_stage1="sys-apps/darwin-miscutils sys-libs/csu"
 			compiler_type="clang"
 			local ccvers="$( (unset CHOST; gcc --version 2>/dev/null) )"
 			local mycc=
+			local llvm_deps="
+				app-arch/libarchive
+				app-crypt/rhash
+				dev-util/cmake
+				dev-util/ninja"
 			case "${ccvers}" in
 				*"Apple clang version "*)
 					vers=${ccvers#*Apple clang version }
@@ -414,14 +420,14 @@ bootstrap_setup() {
 			rev=${CHOST##*darwin}
 			profile="prefix/darwin/macos/10.$((rev - 4))/x86"
 			;;
-		x86_64-apple-darwin19)
-			# handle newer releases on the last profile we have headers
-			# and stuff for (https://opensource.apple.com/)
-			profile="prefix/darwin/macos/10.14/x64"
-			;;
-		x86_64-apple-darwin9|x86_64-apple-darwin1[012345678])
+		x86_64-apple-darwin9|x86_64-apple-darwin1[0123456789])
 			rev=${CHOST##*darwin}
 			profile="prefix/darwin/macos/10.$((rev - 4))/x64"
+			;;
+		x86_64-apple-darwin2[0123456789])
+			# Big Sur is 11.0
+			rev=${CHOST##*darwin}
+			profile="prefix/darwin/macos/11.$((rev - 20))/x64"
 			;;
 		i*86-pc-linux-gnu)
 			profile=${profile_linux/ARCH/x86}
@@ -496,6 +502,19 @@ bootstrap_setup() {
 			exit 1
 			;;
 	esac
+
+	if [[ ${DARWIN_USE_GCC} == 1 ]] ; then
+		# setup MacOSX.sdk symlink for GCC, this should probably be
+		# managed using an eselect module in the future
+		rm -f "${ROOT}"/MacOSX.sdk
+		local SDKPATH=$(xcrun --show-sdk-path --sdk macosx)
+		( cd "${ROOT}" && ln -s "${SDKPATH}" MacOSX.sdk )
+		einfo "using system sources from ${SDKPATH}"
+
+		# amend profile, to use gcc one
+		profile="${profile}/gcc"
+	fi
+
 	[[ -n ${PROFILE_BASE}${PROFILE_VARIANT} ]] &&
 	profile=${PROFILE_BASE:-prefix}/${profile#prefix/}${PROFILE_VARIANT:+/${PROFILE_VARIANT}}
 	if [[ -n ${profile} && ! -e ${ROOT}/etc/portage/make.profile ]] ; then
@@ -576,7 +595,7 @@ do_tree() {
 bootstrap_tree() {
 	# RAP uses the latest gentoo main repo snapshot to bootstrap.
 	is-rap && LATEST_TREE_YES=1
-	local PV="20200607"
+	local PV="20201126"
 	if [[ -n ${CUSTOM_SNAPSHOT} ]]; then
 		do_tree "${SNAPSHOT_URL}" "${CUSTOM_SNAPSHOT}"
 	elif [[ -n ${LATEST_TREE_YES} ]]; then
@@ -644,8 +663,8 @@ bootstrap_portage() {
 	# STABLE_PV that is known to work. Intended for power users only.
 	## It is critical that STABLE_PV is the lastest (non-masked) version that is
 	## included in the snapshot for bootstrap_tree.
-	STABLE_PV="2.3.100"
-	[[ ${TESTING_PV} == latest ]] && TESTING_PV="2.3.100"
+	STABLE_PV="3.0.10.1"
+	[[ ${TESTING_PV} == latest ]] && TESTING_PV="3.0.10.1"
 	PV="${TESTING_PV:-${STABLE_PV}}"
 	A=prefix-portage-${PV}.tar.bz2
 	einfo "Bootstrapping ${A%-*}"
@@ -840,6 +859,10 @@ bootstrap_gnu() {
 		# doesn't match
 		sed -i -e '/_GL_WARN_ON_USE (gets/d' lib/stdio.in.h lib/stdio.h
 
+		# macOS 10.13 have an issue with %n, which crashes m4
+		efetch "http://rsync.prefix.bitzolder.nl/sys-devel/m4/files/m4-1.4.18-darwin17-printf-n.patch" || return 1
+		patch -p1 < "${DISTDIR}"/m4-1.4.18-darwin17-printf-n.patch || return 1
+
 		# Bug 715880
 		efetch http://dev.gentoo.org/~heroxbd/m4-1.4.18-glibc228.patch || return 1
 		patch -p1 < "${DISTDIR}"/m4-1.4.18-glibc228.patch || return 1
@@ -946,7 +969,7 @@ bootstrap_gnu() {
 
 PYTHONMAJMIN=3.7   # keep this number in line with PV below for stage1,2
 bootstrap_python() {
-	PV=3.7.7
+	PV=3.7.8
 	A=Python-${PV}.tar.xz
 	patch=true
 
@@ -1264,7 +1287,7 @@ bootstrap_patch() {
 }
 
 bootstrap_gawk() {
-	bootstrap_gnu gawk 4.0.1 || bootstrap_gnu gawk 4.0.0 || \
+	bootstrap_gnu gawk 5.0.1 || bootstrap_gnu gawk 4.0.1 || \
 		bootstrap_gnu gawk 3.1.8
 }
 
@@ -1277,6 +1300,7 @@ bootstrap_texinfo() {
 }
 
 bootstrap_bash() {
+	bootstrap_gnu bash 5.1-rc3 ||
 	bootstrap_gnu bash 4.3 ||
 	bootstrap_gnu bash 4.2
 }
@@ -1288,10 +1312,7 @@ bootstrap_bison() {
 }
 
 bootstrap_m4() {
-	bootstrap_gnu m4 1.4.18 ||
-	bootstrap_gnu m4 1.4.17 ||
-	bootstrap_gnu m4 1.4.16 ||
-	bootstrap_gnu m4 1.4.15
+	bootstrap_gnu m4 1.4.18 # version is patched, so beware
 }
 
 bootstrap_gzip() {
@@ -1366,28 +1387,42 @@ bootstrap_stage1() {
 	# packages following (e.g. zlib builds 64-bits)
 
 	# don't rely on $MAKE, if make == gmake packages that call 'make' fail
-	[[ $(make --version 2>&1) == *GNU" Make "4* ]] \
+	[[ -x ${ROOT}/tmp/usr/bin/make ]] \
+		|| [[ $(make --version 2>&1) == *GNU" Make "4* ]] \
 		|| (bootstrap_make) || return 1
 	[[ ${OFFLINE_MODE} ]] || [[ -x ${ROOT}/tmp/usr/bin/openssl ]] \
 		|| (bootstrap_libressl) # do not fail if this fails, we'll try without
 	[[ ${OFFLINE_MODE} ]] || type -P wget > /dev/null \
 		|| (bootstrap_wget) || return 1
-	[[ $(sed --version 2>&1) == *GNU* ]] || (bootstrap_sed) || return 1
+	[[ -x ${ROOT}/tmp/usr/bin/sed ]] \
+		|| [[ $(sed --version 2>&1) == *GNU* ]] \
+		|| (bootstrap_sed) || return 1
 	type -P xz > /dev/null || (bootstrap_xz) || return 1
 	type -P bzip2 > /dev/null || (bootstrap_bzip2) || return 1
-	[[ $(patch --version 2>&1) == *"patch 2."[6-9]*GNU* ]] \
+	[[ -x ${ROOT}/tmp/usr/bin/patch ]] \
+		|| [[ $(patch --version 2>&1) == *"patch 2."[6-9]*GNU* ]] \
 		|| (bootstrap_patch) || return 1
-	[[ $(m4 --version 2>&1) == *GNU*1.4.1?* ]] || (bootstrap_m4) || return 1
+	[[ -x ${ROOT}/tmp/usr/bin/m4 ]] \
+		|| [[ $(m4 --version 2>&1) == *GNU*1.4.1?* ]] \
+		|| (bootstrap_m4) || return 1
 	[[ -x ${ROOT}/tmp/usr/bin/bison ]] \
 		|| [[ $(bison --version 2>&1) == *GNU" "Bison") "2.[3-7]* ]] \
 		|| [[ $(bison --version 2>&1) == *GNU" "Bison") "[3-9]* ]] \
 		|| (bootstrap_bison) || return 1
-	[[ $(uniq --version 2>&1) == *"(GNU coreutils) "[6789]* ]] \
+	[[ -x ${ROOT}/tmp/usr/bin/uniq ]] \
+		|| [[ $(uniq --version 2>&1) == *"(GNU coreutils) "[6789]* ]] \
 		|| (bootstrap_coreutils) || return 1
-	[[ $(find --version 2>&1) == *GNU* ]] || (bootstrap_findutils) || return 1
-	[[ $(tar --version 2>&1) == *GNU* ]] || (bootstrap_tar) || return 1
-	[[ $(grep --version 2>&1) == *GNU* ]] || (bootstrap_grep) || return 1
-	[[ $(awk --version < /dev/null 2>&1) == *GNU" Awk "[456789]* ]] \
+	[[ -x ${ROOT}/tmp/usr/bin/find ]] \
+		|| [[ $(find --version 2>&1) == *GNU* ]] \
+		|| (bootstrap_findutils) || return 1
+	[[ -x ${ROOT}/tmp/usr/bin/tar ]] \
+		|| [[ $(tar --version 2>&1) == *GNU* ]] \
+		|| (bootstrap_tar) || return 1
+	[[ -x ${ROOT}/tmp/usr/bin/grep ]] \
+		|| [[ $(grep --version 2>&1) == *GNU* ]] \
+		|| (bootstrap_grep) || return 1
+	[[ -x ${ROOT}/tmp/usr/bin/gawk ]] \
+		|| [[ $(awk --version < /dev/null 2>&1) == *GNU" Awk "[456789]* ]] \
 		|| bootstrap_gawk || return 1
 	# always build our own bash, for we don't know what devilish thing
 	# we're working with now, bug #650284
@@ -1702,6 +1737,12 @@ bootstrap_stage2() {
 	# use at this stage (host compiler)
 	[[ ${CHOST} == *-solaris* ]] && echo "=dev-libs/libffi-3.3_rc0" \
 		>> "${ROOT}"/tmp/etc/portage/package.mask
+
+	# unlock GCC on Darwin for DARWIN_USE_GCC bootstraps
+	if [[ ${DARWIN_USE_GCC} == 1 ]] ; then
+		rm -f "${ROOT}"/tmp/MacOSX.sdk
+		( cd "${ROOT}"/tmp && ln -s ../MacOSX.sdk )
+	fi
 
 	# cmake has some external dependencies which require autoconf, etc.
 	# unless we only build the buildtool, bug #603012
@@ -2436,20 +2477,17 @@ EOF
 	fi
 
 	if type -P xcode-select > /dev/null ; then
-		if [[ ! -d /usr/include ]] ; then
-			# bug #512032
-			cat << EOF
+		if [[ -d /usr/include ]] ; then
+			# if we have /usr/include we're on an older system
+			if [[ ${CHOST} == powerpc* ]]; then
+				# ancient Xcode (3.0/3.1)
+				cat << EOF
 
-You don't have /usr/include, this thwarts me to build stuff.
-Please execute:
-  xcode-select --install
-or install /usr/include in another way and try running me again.
+Ok, this is an old system, let's just try and see what happens.
 EOF
-			exit 1
-		fi
-		if [[ $(xcode-select -p) != */CommandLineTools ]] ; then
-			# to an extent, bug #564814 and bug #562800
-			cat << EOF
+			elif [[ $(xcode-select -p) != */CommandLineTools ]] ; then
+				# to an extent, bug #564814 and bug #562800
+				cat << EOF
 
 Your xcode-select is not set to CommandLineTools.  This prevents builds
 from succeeding.  Switch to command line tools for the bootstrap to
@@ -2457,14 +2495,17 @@ continue.  Please execute:
   xcode-select -s /Library/Developer/CommandLineTools
 and try running me again.
 EOF
-			if ! xcode-select -p > /dev/null && [[ ${CHOST} == powerpc* ]]; then
-				# ancient Xcode (3.0/3.1)
+			fi
+		else
+			# let's see if we have an xcode install
+			if [[ ! -e $(xcrun -f gcc 2>/dev/null) ]] ; then
 				cat << EOF
 
-Ok, this is an old system, let's just try and see what happens.
+You don't have Xcode installed, or xcode-select isn't pointing to a
+valid install.  Try resetting it using:
+  sudo xcode-select -r
+and try running me again.
 EOF
-			else
-				exit 1
 			fi
 		fi
 	fi
@@ -3041,6 +3082,19 @@ case ${CHOST} in
 	*)
 		MAKE=make
 	;;
+esac
+
+# handle GCC install path on recent Darwin
+case ${CHOST} in
+	*-darwin*)
+		# normalise value of DARWIN_USE_GCC
+		case ${DARWIN_USE_GCC} in
+			yes|true|1)  DARWIN_USE_GCC=1  ;;
+		esac
+		;;
+	*)
+		unset DARWIN_USE_GCC
+		;;
 esac
 
 # deal with a problem on OSX with Python's locales
