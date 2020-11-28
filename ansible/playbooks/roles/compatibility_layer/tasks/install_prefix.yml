@@ -16,14 +16,14 @@
     state: present
   tags:
     - build_prefix
-    
+
 - name: "Get the username running the deployment (not root)"
   shell: set -o pipefail && who | grep -v root | awk '{print $1}' | uniq
   become: no
   register: username_on_host
   changed_when: True
   tags:
-    - build_prefix  
+    - build_prefix
 
 - name: "Create Gentoo prefix path and log directory -- {{ gentoo_prefix_path }} and {{ eessi_log_dir }}"
   file:
