@@ -5,25 +5,27 @@
     package: "@{{ item }}"
     state: present
   with_items: "{{ package_sets }}"
+  become: no
   tags:
     - set
-  become: yes
 
 - name: Install additional packages
   portage:
     package: "{{ item }}"
     state: present
   with_items: "{{ prefix_packages }}"
-  become: yes
+  become: no
 
 - name: "Get the username running the deployment (not root)"
+  command: whoami
+  changed_when: false
   become: no
-  shell: set -o pipefail && who | grep -v root | awk '{print $1}' | uniq
   register: username_on_host
-  changed_when: True
 
 - name: "Fix permissions after installing as portage/root"
+  file:
+    owner: "{{ username_on_host.stdout }}"
+    group: "{{ username_on_host.stdout }}"
+    path: "{{ gentoo_prefix_path }}"
+    recurse: true
   become: yes
-  shell: chown -R {{ username_on_host }}:{{ username_on_host }} {{ gentoo_prefix_path }}
-  register: permissions_changed
-  changed_when: True

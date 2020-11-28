@@ -18,8 +18,8 @@
     - build_prefix
     
 - name: "Get the username running the deployment (not root)"
-  become: no
   shell: set -o pipefail && who | grep -v root | awk '{print $1}' | uniq
+  become: no
   register: username_on_host
   changed_when: True
   tags:
@@ -39,9 +39,9 @@
   tags:
     - build_prefix
 
-- name: "Give {{ username_on_host.stdout }} recursive user and group ownership of /cvmfs"
+- name: "Give {{ username_on_host.stdout }} recursive user and group ownership of {{ gentoo_prefix_path }}"
   file:
-    dest: "/cvmfs"
+    dest: "{{ gentoo_prefix_path }}"
     owner: "{{ username_on_host.stdout }}"
     group: "{{ username_on_host.stdout }}"
     recurse: yes
@@ -49,8 +49,8 @@
     - build_prefix
 
 - name: "Install Gentoo prefix via {{ prefix_install }}"
-  become: false
   shell: set -o pipefail && ( {{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )' )
+  become: no
   changed_when: True
   tags:
     - build_prefix
