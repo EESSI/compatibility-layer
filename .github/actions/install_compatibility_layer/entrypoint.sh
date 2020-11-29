@@ -2,7 +2,7 @@
 
 cat << EOF > hosts
 [cvmfsstratum0servers]
-127.0.0.1 eessi_host_arch=x86_64
+127.0.0.1 eessi_host_arch=$(uname -m)
 EOF
 
 ansible-playbook --connection=local --inventory=hosts -e ansible_python_interpreter=python3 -e gentoo_prefix_path=$1 ${GITHUB_WORKSPACE}/ansible/playbooks/install.yml
