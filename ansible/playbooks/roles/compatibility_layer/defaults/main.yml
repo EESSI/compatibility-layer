@@ -1,6 +1,6 @@
 # Defaults file for the compatibility layer role.
 ---
-eessi_overlay_version: "2020.11"
+eessi_version: "2020.11"
 
 custom_overlay_name: eessi
 custom_overlay_source: git
@@ -11,7 +11,7 @@ cvmfs_publish_transaction: False
 cvmfs_abort_transaction_on_failures: False
 cvmfs_repository: pilot.eessi-hpc.org
 
-gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/{{ eessi_overlay_version }}/compat/{{ eessi_host_arch }}
+gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/{{ eessi_version }}/compat/{{ eessi_host_arch }}
 
 # How to build the prefix
 prefix_singularity_command: "singularity run -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
@@ -28,7 +28,7 @@ prefix_locales:
   - en_US.UTF-8 UTF-8
 
 package_sets: 
-  - "{{ eessi_overlay_version }}"
+  - "{{ eessi_version }}"
 
 prefix_packages:
 
