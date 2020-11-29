@@ -1,6 +1,6 @@
 # Defaults file for the compatibility layer role.
 ---
-eessi_overlay_version: "2020.10"
+eessi_overlay_version: "2020.11"
 
 custom_overlay_name: eessi
 custom_overlay_source: git
