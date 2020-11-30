@@ -4,16 +4,16 @@
 # Ansible role/playbooks for installing the compatibility layer
 
 This directory contains an Ansible role (`compatibility_layer`) in the subdirectory `roles` which has
-all functionality for installing the compatibility layer into an existing Gentoo Prefix installation.
-It performs the following tasks:
+all functionality for installing the EESSI compatibility layer. It performs the following tasks:
 
+ - install Gentoo Prefix, if this has not been done yet;
  - make symlinks to some host paths in order to fix issues with, for instance, user accounts and groups;
  - add a given overlay to the installation;
  - use the Portage configuration files from that overlay, if applicable, by making symlinks to them;
  - install a given list of package sets;
  - install a given list of additional packages.
  
-The playbook `install.yml` will execute this role on a given server. 
+The playbook `install.yml` will execute this role on a given server. Currently, only Linux distributions based on RHEL 8 are supported on the installation host.
 
 ## Configuration
 
