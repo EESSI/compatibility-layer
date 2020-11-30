@@ -1,8 +1,16 @@
 # Main task which:
-# - checks the given path for a Prefix installation,
-# - starts (and publishes at the end) a CVMFS transaction, if requested,
-# - calls the tasks for adding the overlay and installation of sets and packages.
+# - checks the given path for a Prefix installation, and installs it if necessary;
+# - starts (and publishes at the end) a CVMFS transaction, if requested;
+# - calls the tasks for adding the overlay and installation of sets and packages;
+# - does some fixes and other modifications in the Prefix installation (e.g. setting the locale).
 ---
+
+- name: Fail if host OS is not supported
+  fail:
+    msg: "Error: the operating system of the installation host is {{ ansible_os_family }} {{ ansible_distribution_version }}.
+         This Ansible role currently only supports Linux distributions based on RHEL 8."
+  when: not(ansible_os_family == "RedHat" and ansible_distribution_major_version is version("8", "=="))
+
 - name: Check if a Prefix installation is found at the specified location
   stat:
     path: "{{ gentoo_prefix_path }}/usr/bin/emerge"
