@@ -13,7 +13,8 @@ all functionality for installing the EESSI compatibility layer. It performs the 
  - install a given list of package sets;
  - install a given list of additional packages.
  
-The playbook `install.yml` will execute this role on a given server. Currently, only Linux distributions based on RHEL 8 are supported on the installation host.
+The playbook `install.yml` will execute this role on a given server. 
+Note that if you want the role to install Gentoo Prefix, this particular task currently only supports Linux distributions based on RHEL 8 on the installation host.
 
 ## Configuration
 
