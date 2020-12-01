@@ -32,11 +32,11 @@ singularity exec docker://eessi/bootstrap-prefix:centos8-$(uname -m) ./bootstrap
 Our version of the script allows you to pick a custom snapshot for the Portage tree. This can be done by setting `SNAPSHOT_URL` to
 a URL that points to a directory, and setting `CUSTOM_SNAPSHOT` to the name of a snapshot file (must be a bzip2 archive). For instance:
 ```
-env SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT="portage-20201028.tar.bz2" singularity run docker://eessi/bootstrap-prefix:centos8-$(uname -m)
+env SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT="portage-20201126.tar.bz2" singularity run docker://eessi/bootstrap-prefix:centos8-$(uname -m)
 ```
 If you want to limit the supported/installed Python version(s), you can set the environment variable `PYTHON_TARGETS` before starting the bootstrap script. By only including a Python 3 version, you can prevent Python 2 from being installed, e.g.:
 ```
-env PYTHON_TARGETS="python3_7" SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT="portage-20201028.tar.bz2" singularity run docker://eessi/bootstrap-prefix:centos8-$(uname -m)
+env PYTHON_TARGETS="python3_7" SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT="portage-20201126.tar.bz2" singularity run docker://eessi/bootstrap-prefix:centos8-$(uname -m)
 ```
 
 After starting the bootstrap have a long coffee...
