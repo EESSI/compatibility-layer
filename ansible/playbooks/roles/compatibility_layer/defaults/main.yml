@@ -15,8 +15,8 @@ prefix_locales:
   - en_US.UTF-8 UTF-8
 
 package_sets: 
-  - "{{ eessi_version }}"
-  - "{{ eessi_version }}-{{ eessi_host_arch }}"
+  - "eessi-{{ eessi_version }}"
+  - "eessi-{{ eessi_version }}-{{ eessi_host_os}}-{{ eessi_host_arch }}"
 
 prefix_packages:
 
