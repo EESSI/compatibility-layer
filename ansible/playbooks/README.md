@@ -70,7 +70,8 @@ The `-b` option will assume you can become root without a sudo password; if you 
 By default, the playbook will only run on the host listed in the `cvmfsstratum0servers` section of the supplied `hosts` file. So, your `hosts` file should at least have:
 ```
 [cvmfsstratum0servers]
-ip-or-hostname-of-your-stratum0 eessi_host_arch=x86_64
+ip-or-hostname-of-your-stratum0 eessi_host_arch=x86_64 eessi_host_os
 ```
 
-The eessi_host_arch corresponds to the architecture of the machine that executes the playbook and for which this compatibility layer has to be built, e.g. `x86_64`, `aarch64`, or `ppc64le`.
+The `eessi_host_arch` corresponds to the architecture of the machine that executes the playbook and for which this compatibility layer has to be built, e.g. `x86_64`, `aarch64`, or `ppc64le`.
+Similarly, `eessi_host_os` should refer to the operating system of the machine, and should be set to either `linux` or `macos`.

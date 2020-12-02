@@ -11,7 +11,7 @@ cvmfs_publish_transaction: False
 cvmfs_abort_transaction_on_failures: False
 cvmfs_repository: pilot.eessi-hpc.org
 
-gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/{{ eessi_version }}/compat/{{ eessi_host_arch }}
+gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}
 
 # How to build the prefix
 prefix_snapshot_url: http://cvmfs-s0.eessi-hpc.org/snapshots
