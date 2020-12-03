@@ -1,10 +1,11 @@
 # Install a specified list of sets and packages.
 ---
-- name: Install package set
+- name: Install package set {{ package_sets }}
   portage:
     package: "@{{ item }}"
     state: present
   with_items: "{{ package_sets }}"
+  become: no
   tags:
     - set
 
@@ -13,3 +14,18 @@
     package: "{{ item }}"
     state: present
   with_items: "{{ prefix_packages }}"
+  become: no
+
+- name: "Get the username running the deployment (not root)"
+  command: whoami
+  changed_when: false
+  become: no
+  register: username_on_host
+
+- name: "Fix permissions after installing as portage/root"
+  file:
+    owner: "{{ username_on_host.stdout }}"
+    group: "{{ username_on_host.stdout }}"
+    path: "{{ gentoo_prefix_path }}"
+    recurse: true
+  become: yes
