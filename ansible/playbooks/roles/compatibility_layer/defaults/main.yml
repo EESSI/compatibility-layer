@@ -1,5 +1,7 @@
 # Defaults file for the compatibility layer role.
 ---
+eessi_version: "2020.11"
+
 custom_overlay_name: eessi
 custom_overlay_source: git
 custom_overlay_url: https://github.com/EESSI/gentoo-overlay.git
@@ -9,7 +11,26 @@ cvmfs_publish_transaction: False
 cvmfs_abort_transaction_on_failures: False
 cvmfs_repository: pilot.eessi-hpc.org
 
-gentoo_prefix_path: /cvmfs/pilot.eessi-hpc.org/2020.10/compat/x86_64
+gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}
+
+# How to build the prefix
+prefix_snapshot_url: http://cvmfs-s0.eessi-hpc.org/snapshots
+prefix_snapshot: portage-20201126.tar.bz2
+prefix_python_targets: python3_7
+prefix_singularity_command: "singularity run -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
+prefix_source: "docker://eessi/bootstrap-prefix:centos8-{{ eessi_host_arch }}"
+prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
+prefix_install: >-
+    SINGULARITYENV_USE_CPU_CORES={{ ansible_processor_vcpus }}
+    SINGULARITYENV_PYTHON_TARGETS="{{ prefix_python_targets }}"
+    SINGULARITYENV_SNAPSHOT_URL="{{ prefix_snapshot_url }}"
+    SINGULARITYENV_CUSTOM_SNAPSHOT="{{ prefix_snapshot }}"
+    {{ prefix_singularity_command }} {{ prefix_source }} {{ prefix_source_options }}
+
+# Logging
+eessi_log_dir: "/tmp/eessi-logs"
+prefix_build_log: "{{ eessi_log_dir }}/prefix-build.log"
+emerge_log: "{{ gentoo_prefix_path }}/var/log/emerge.log"
 
 prefix_locales:
   - en_US.UTF-8 UTF-8
@@ -20,10 +41,6 @@ package_sets:
   - "eessi-{{ eessi_version }}-{{ eessi_host_os}}-{{ eessi_host_arch }}"
 
 prefix_packages:
-
-# Set this to the same Python version as used during the Gentoo Prefix bootstrap.
-# This ensures that no other Python version gets installed while adding the custom overlay. 
-python_targets: "python3_7"
 
 # List of locations that should get a symlink $EPREFIX/$LOCATION -> $LOCATION.
 # This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.

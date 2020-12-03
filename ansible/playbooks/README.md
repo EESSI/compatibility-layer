@@ -4,9 +4,9 @@
 # Ansible role/playbooks for installing the compatibility layer
 
 This directory contains an Ansible role (`compatibility_layer`) in the subdirectory `roles` which has
-all functionality for installing the compatibility layer into an existing Gentoo Prefix installation.
-It performs the following tasks:
+all functionality for installing the EESSI compatibility layer. It performs the following tasks:
 
+ - install Gentoo Prefix, if this has not been done yet;
  - make symlinks to some host paths in order to fix issues with, for instance, user accounts and groups;
  - add a given overlay to the installation;
  - use the Portage configuration files from that overlay, if applicable, by making symlinks to them;
@@ -14,6 +14,7 @@ It performs the following tasks:
  - install a given list of additional packages.
  
 The playbook `install.yml` will execute this role on a given server. 
+Note that if you want the role to install Gentoo Prefix, this particular task currently only supports Linux distributions based on RHEL 8 on the installation host.
 
 ## Configuration
 
@@ -38,22 +39,39 @@ Before running the playbook, make sure the following settings are correct, and o
 ### Prefix and packages
 | Variable | Description |
 | --- | --- |
+| eessi_version | Compatibility layer version, which will, by default, be included in the `gentoo_prefix_path` and be used to install the right `package_sets` |
 | gentoo_prefix_path | Path to the root of your Gentoo Prefix installation |
-|prefix_locales|List of locales to be generated|
+| prefix_snapshot_url | Directory (served over http(s)) containing snapshot files |
+| prefix_snapshot | Name of the Portage snapshot file for the Prefix installation |
+| prefix_python_targets | String consisting of [Gentoo Python targets](https://wiki.gentoo.org/wiki/Project:Python/PYTHON_TARGETS) Python targets used for the Prefix installation |
+| prefix_singularity_command | Singularity command for launching the container with the bootstrap script |
+| prefix_source | Singularity container path used for the Prefix installtion |
+| prefix_source_options | Arguments to be passed to the Prefix bootstrap script |
+| prefix_install | Prefix installation command |
+| prefix_locales | List of locales to be generated |
 | package_sets | List of package sets to be installed |
 | prefix_packages | List of additional packages to be installed |
-| python_targets | String consisting of [Gentoo Python targets](https://wiki.gentoo.org/wiki/Project:Python/PYTHON_TARGETS) |
 | symlinks_to_host | List of paths that should get a symlink to the corresponding host path |
+
+### Logging
+| Variable | Description |
+| --- | --- |
+| eessi_log_dir | Directory for storing the log files |
+| prefix_build_log | Path to the Prefix installation log file |
+| emerge_log | Path to the Emerge log file |
 
 ## Running the playbook 
 
 The playbook can be run using:
 ```
-ansible-playbook -i hosts -K install.yml
+ansible-playbook -i hosts -b install.yml
 ```
-The `-K` option will ask for your sudo password, and you have to supply a valid hosts file (here named `hosts`).
+The `-b` option will assume you can become root without a sudo password; if you do need to provide a password, also include `-K`. Furthermore, you have to supply a valid hosts file (here named `hosts`).
 By default, the playbook will only run on the host listed in the `cvmfsstratum0servers` section of the supplied `hosts` file. So, your `hosts` file should at least have:
 ```
 [cvmfsstratum0servers]
-ip-or-hostname-of-your-stratum0
+ip-or-hostname-of-your-stratum0 eessi_host_arch=x86_64 eessi_host_os
 ```
+
+The `eessi_host_arch` corresponds to the architecture of the machine that executes the playbook and for which this compatibility layer has to be built, e.g. `x86_64`, `aarch64`, or `ppc64le`.
+Similarly, `eessi_host_os` should refer to the operating system of the machine, and should be set to either `linux` or `macos`.

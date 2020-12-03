@@ -1,19 +1,16 @@
 # Main task which:
-# - checks the given path for a Prefix installation,
-# - starts (and publishes at the end) a CVMFS transaction, if requested,
-# - calls the tasks for adding the overlay and installation of sets and packages.
+# - checks the given path for a Prefix installation, and installs it if necessary;
+# - starts (and publishes at the end) a CVMFS transaction, if requested;
+# - calls the tasks for adding the overlay and installation of sets and packages;
+# - does some fixes and other modifications in the Prefix installation (e.g. setting the locale).
 ---
+
 - name: Check if a Prefix installation is found at the specified location
   stat:
     path: "{{ gentoo_prefix_path }}/usr/bin/emerge"
   register: emerge
 
-- name: Fail if the given Prefix path does not have emerge
-  fail:
-    msg: |
-         The given Gentoo Prefix path does not seem to be valid,
-         because the emerge command cannot be found in {{ gentoo_prefix_path }}/usr/bin.
-         Please check it and fix (the path to) the Gentoo Prefix installation.
+- include_tasks: install_prefix.yml
   when: not emerge.stat.exists
 
 - name: Start transaction
@@ -28,8 +25,9 @@
   - include_tasks: add_overlay.yml
     args:
       apply:
+        become: False
         environment:
-          PYTHON_TARGETS: " {{ python_targets }} "
+          PYTHON_TARGETS: "{{ prefix_python_targets }}"
 
   - include_tasks: install_packages.yml
 
