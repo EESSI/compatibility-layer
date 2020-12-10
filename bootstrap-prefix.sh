@@ -440,10 +440,13 @@ bootstrap_setup() {
 			profile=${profile_linux/ARCH/ia64}
 			;;
 		powerpc-unknown-linux-gnu)
-			profile=${profile_linux/ARCH/powerpc/ppc}
+			profile=${profile_linux/ARCH/ppc}
 			;;
 		powerpc64-unknown-linux-gnu)
-			profile=${profile_linux/ARCH/powerpc/ppc64}
+			profile=${profile_linux/ARCH/ppc64}
+			;;
+		powerpc64le-unknown-linux-gnu)
+			profile=${profile_linux/ARCH/ppc64le}
 			;;
 		aarch64-unknown-linux-gnu)
 			profile=${profile_linux/ARCH/arm64}
@@ -595,13 +598,11 @@ do_tree() {
 bootstrap_tree() {
 	# RAP uses the latest gentoo main repo snapshot to bootstrap.
 	is-rap && LATEST_TREE_YES=1
-	local PV="20201126"
-	if [[ -n ${CUSTOM_SNAPSHOT} ]]; then
-		do_tree "${SNAPSHOT_URL}" "${CUSTOM_SNAPSHOT}"
-	elif [[ -n ${LATEST_TREE_YES} ]]; then
-		do_tree "${SNAPSHOT_URL}" portage-latest.tar.bz2
+	local PV="20201209"
+	if is-rap ; then
+		do_tree "${CUSTOM_SNAPSHOT_URL:-$SNAPSHOT_URL}" portage-${CUSTOM_SNAPSHOT_VERSION:-latest}.tar.bz2
 	else
-		do_tree http://dev.gentoo.org/~grobian/distfiles prefix-overlay-${PV}.tar.bz2
+		do_tree "${CUSTOM_SNAPSHOT_URL:-http://dev.gentoo.org/~grobian/distfiles}" prefix-overlay-${CUSTOM_SNAPSHOT_VERSION:-$PV}.tar.bz2
 	fi
 	local ret=$?
 	if [[ -n ${TREE_FROM_SRC} ]]; then
@@ -663,8 +664,8 @@ bootstrap_portage() {
 	# STABLE_PV that is known to work. Intended for power users only.
 	## It is critical that STABLE_PV is the lastest (non-masked) version that is
 	## included in the snapshot for bootstrap_tree.
-	STABLE_PV="3.0.10.1"
-	[[ ${TESTING_PV} == latest ]] && TESTING_PV="3.0.10.1"
+	STABLE_PV="3.0.12"
+	[[ ${TESTING_PV} == latest ]] && TESTING_PV="3.0.12"
 	PV="${TESTING_PV:-${STABLE_PV}}"
 	A=prefix-portage-${PV}.tar.bz2
 	einfo "Bootstrapping ${A%-*}"
@@ -967,9 +968,9 @@ bootstrap_gnu() {
 	einfo "${PN}-${PV} successfully bootstrapped"
 }
 
-PYTHONMAJMIN=3.7   # keep this number in line with PV below for stage1,2
+PYTHONMAJMIN=3.8   # keep this number in line with PV below for stage1,2
 bootstrap_python() {
-	PV=3.7.8
+	PV=3.8.5
 	A=Python-${PV}.tar.xz
 	patch=true
 
@@ -1574,6 +1575,7 @@ do_emerge_pkgs() {
 			-pcre
 			-python
 			-qmanifest -qtegrity
+			-readline
 			bootstrap
 			clang
 			internal-glib
@@ -1617,7 +1619,7 @@ do_emerge_pkgs() {
 			PORTAGE_SYNC_STALE=0 \
 			FEATURES="-news ${FEATURES}" \
 			USE="${myuse[*]}" \
-			emerge -v --oneshot --root-deps ${opts} "${pkg}" 
+			emerge --color n -v --oneshot --root-deps ${opts} "${pkg}"
 		)
 		[[ $? -eq 0 ]] || return 1
 
@@ -2101,7 +2103,7 @@ bootstrap_stage3() {
 		# snapshot beforehand
 		emerge-webrsync --keep || return 1
 	else
-		emerge --sync || emerge-webrsync || return 1
+		emerge --color n --sync || emerge-webrsync || return 1
 	fi
 
 	# avoid installing git or encryption just for fun while completing @system
@@ -2113,11 +2115,11 @@ bootstrap_stage3() {
 	# very well on Darwin (-DGNUSTEP_BASE_VERSION hack)
 	einfo "running emerge -u system"
 	CPPFLAGS="-DGNUSTEP_BASE_VERSION" \
-	CFLAGS= CXXFLAGS= emerge -u system || return 1
+	CFLAGS= CXXFLAGS= emerge --color n -u system || return 1
 
 	# remove anything that we don't need (compilers most likely)
 	einfo "running emerge --depclean"
-	emerge --depclean
+	emerge --color n --depclean
 
 	# "wipe" mtimedb such that the resume list is proper after this stage
 	# (--depclean may fail, which is ok)
@@ -3086,10 +3088,15 @@ esac
 
 # handle GCC install path on recent Darwin
 case ${CHOST} in
+	powerpc-*darwin*)
+		unset DARWIN_USE_GCC  # there is no choice here, don't trigger SDK path
+		;;
 	*-darwin*)
 		# normalise value of DARWIN_USE_GCC
 		case ${DARWIN_USE_GCC} in
 			yes|true|1)  DARWIN_USE_GCC=1  ;;
+			no|false|0)  DARWIN_USE_GCC=0  ;;
+			*)           DARWIN_USE_GCC=1  ;;   # default to GCC build
 		esac
 		;;
 	*)
