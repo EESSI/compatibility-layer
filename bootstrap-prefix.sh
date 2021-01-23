@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
-# Copyright 2006-2020 Gentoo Authors; Distributed under the GPL v2
+# Copyright 2006-2021 Gentoo Authors; Distributed under the GPL v2
 
 trap 'exit 1' TERM KILL INT QUIT ABRT
-
-# some basic output functions
-eerror() { echo "!!! $*" 1>&2; }
-einfo() { echo "* $*"; }
 
 # RAP (libc) mode is triggered on Linux kernel and glibc.
 is-rap() { [[ ${PREFIX_DISABLE_RAP} != "yes" && ${CHOST} = *linux-gnu* ]]; }
@@ -13,12 +9,20 @@ rapx() { is-rap && echo $1 || echo $2; }
 
 ## Functions Start Here
 
-v() {
-	echo "$@"
-	"$@"
+estatus() {
+	# this can give some garbage in the logs, but it shouldn't be too
+	# disturbing -- if it works, it makes it easy to see where we are in
+	# the bootstrap from the terminal status line (usually the window
+	# name)
+	printf '\033]2;'"$*"'\007'
 }
 
+eerror() { estatus $*; echo "!!! $*" 1>&2; }
+einfo() { echo "* $*"; }
+v() { echo "$@"; "$@"; }
+
 econf() {
+	estatus "stage1: configuring ${PWD##*/}"
 	v ${CONFIG_SHELL} ./configure \
 		--host=${CHOST} \
 		--prefix="${ROOT}"/tmp/usr \
@@ -31,13 +35,20 @@ econf() {
 		"$@" || return 1
 }
 
+emake() {
+	[[ $* == *install* ]] \
+		&& estatus "stage1: installing ${PWD##*/}" \
+		|| estatus "stage1: building ${PWD##*/}"
+	v $MAKE ${MAKEOPTS} "$@" || return 1
+}
+
 efetch() {
 	if [[ ! -e ${DISTDIR}/${1##*/} ]] ; then
 	  	if [[ ${OFFLINE_MODE} ]]; then
 		  echo "I need ${1##*/} from $1 in $DISTDIR, can you give it to me?"
 		  read
 		  [[ -e ${DISTDIR}/${1##*/} ]] && return 0
-		  #Give fetch a try 
+		  # Give fetch a try
 		fi
 
 		if [[ -z ${FETCH_COMMAND} ]] ; then
@@ -65,6 +76,7 @@ efetch() {
 
 		mkdir -p "${DISTDIR}" >& /dev/null
 		einfo "Fetching ${1##*/}"
+		estatus "stage1: fetching ${1##*/}"
 		pushd "${DISTDIR}" > /dev/null
 
 		# try for mirrors first, fall back to distfiles, then try given location
@@ -98,16 +110,10 @@ configure_cflags() {
 		*-darwin*)
 			export LDFLAGS="-Wl,-search_paths_first -L${ROOT}/tmp/usr/lib"
 			;;
-		*-solaris* | *-irix*)
+		*-solaris*)
 			export LDFLAGS="-L${ROOT}/tmp/usr/lib -R${ROOT}/tmp/usr/lib"
 			;;
-		*-*-aix*)
-			# The bootstrap compiler unlikely has runtime linking
-			# enabled already, but elibtoolize switches to the
-			# "lib.so(shr.o)" sharedlib variant.
-			export LDFLAGS="-Wl,-brtl -L${ROOT}/tmp/usr/lib"
-			;;
-		i586-pc-interix* | i586-pc-winnt* | *-pc-cygwin*)
+		i586-pc-winnt* | *-pc-cygwin*)
 			export LDFLAGS="-L${ROOT}/tmp/usr/lib"
 			;;
 		*)
@@ -180,31 +186,27 @@ configure_toolchain() {
 	CXX=g++
 
 	case ${CHOST}:${DARWIN_USE_GCC} in
-		powerpc-*darwin*|*:1)
+		*darwin*:1)
 			einfo "Triggering Darwin with GCC toolchain"
-			compiler_stage1+=" sys-apps/darwin-miscutils sys-libs/csu"
-			local ccvers="$( (unset CHOST; gcc --version 2>/dev/null) )"
+			compiler_stage1+=" sys-apps/darwin-miscutils"
+			local ccvers="$(unset CHOST; /usr/bin/gcc --version 2>/dev/null)"
 			case "${ccvers}" in
 				*"(GCC) 4.2.1 "*)
-					linker=sys-devel/binutils-apple
+					linker="=sys-devel/binutils-apple-3.2.6"
 					;;
 				*"(GCC) 4.0.1 "*)
-					linker="=sys-devel/binutils-apple-3.2"
+					linker="=sys-devel/binutils-apple-3.2.6"
 					# upgrade to 4.2.1 first
 					compiler_stage1+="
 						sys-devel/gcc-apple
-						sys-devel/binutils-apple"
-					;;
-				*"(Gentoo "*)
-					# probably the result of a bootstrap in progress
-					[[ ${DARWIN_USE_GCC} == 1 ]] \
-						&& linker=sys-devel/native-cctools \
-						|| linker=sys-devel/binutils-apple
+						=sys-devel/binutils-apple-3.2.6"
 					;;
 				*"Apple clang version "*|*"Apple LLVM version "*)
-					# gcc cannot build (recent) binutils-apple due to
-					# missing blocks support, so use Xcode provided
-					# linker/assembler
+					# recent binutils-apple are hard to build (C++11
+					# features, and cmake buildsystem) so avoid going
+					# there, the system ld is good enough to bring us to
+					# stage3, after which system set will take care of
+					# the rest
 					linker=sys-devel/native-cctools
 					;;
 				*)
@@ -218,96 +220,35 @@ configure_toolchain() {
 			einfo "Triggering Darwin with LLVM/Clang toolchain"
 			# for compilers choice, see bug:
 			# https://bugs.gentoo.org/show_bug.cgi?id=538366
-			compiler_stage1="sys-apps/darwin-miscutils sys-libs/csu"
+			compiler_stage1="sys-apps/darwin-miscutils"
 			compiler_type="clang"
-			local ccvers="$( (unset CHOST; gcc --version 2>/dev/null) )"
-			local mycc=
-			local llvm_deps="
-				app-arch/libarchive
-				app-crypt/rhash
-				dev-util/cmake
-				dev-util/ninja"
+			local ccvers="$(unset CHOST; /usr/bin/gcc --version 2>/dev/null)"
+			local llvm_deps="dev-util/ninja"
 			case "${ccvers}" in
-				*"Apple clang version "*)
-					vers=${ccvers#*Apple clang version }
-					vers=${vers% (clang-*}
+				*"Apple clang version "*|*"Apple LLVM version "*)
 					# this is Clang, recent enough to compile recent clang
-					mycc=clang
 					compiler_stage1+="
 						${llvm_deps}
+						sys-libs/libcxxabi
+						sys-libs/libcxx
 						sys-devel/llvm
 						sys-devel/clang
-						sys-libs/libcxxabi
-						sys-libs/libcxx"
+					"
 					CC=clang
 					CXX=clang++
-					linker=sys-devel/binutils-apple
-					;;
-				*"Apple LLVM version "*)
-					vers=${ccvers#*Apple LLVM version }
-					vers=${vers% (clang-*}
-					# let's assume that >=llvm-3.6 is able to compile
-					# libcxx, so select the matching Apple versions, see
-					# https://gist.github.com/yamaya/2924292
-					case ${vers} in
-						[345]"."*|"6.0"*)
-							# bleh, old (<llvm-3.6)
-							mycc=gcc
-							;;
-						*)
-							# newish, try direct bootstrap to recent
-							mycc=clang
-							compiler_stage1+="
-								${llvm_deps}
-								sys-devel/llvm
-								sys-devel/clang
-								sys-libs/libcxxabi
-								sys-libs/libcxx"
-							;;
-					esac
-					CC=clang
-					CXX=clang++
-					linker=sys-devel/binutils-apple
-					;;
-				*"(GCC) 4.2.1 "*)
-					linker=sys-devel/binutils-apple
-					mycc=gcc
-					;;
-				*"(GCC) 4.0.1 "*)
-					# need gcc-4.2.1 to compile llvm
-					linker="=sys-devel/binutils-apple-3.2"
-					compiler_stage1+="
-						${gcc_deps}
-						sys-devel/gcc-config
-						sys-devel/gcc-apple
-						sys-devel/binutils-apple"
-					mycc=gcc
+					# avoid going through hoops and deps for
+					# binutils-apple, rely on the host-installed ld to
+					# build a compiler, we'll pull in binutils-apple
+					# from system set
+					linker=sys-devel/native-cctools
 					;;
 				*)
-					eerror "unknown compiler"
+					eerror "unknown/unsupported compiler"
 					return 1
 					;;
 			esac
 
-			if [[ ${mycc} == gcc ]] ; then
-				# The deps for 3.6+ are too high (cmake, ninja, python) so
-				# we have to install this with an intermediate
-				# unfortunately, gmp needs c++, thus libcxx, so have to drag
-				# it in early (gmp is necessary for >3.5)
-				# we always have to bootstrap with 3.4 for else we'd need
-				# libcxx, which only compiles with clang
-				local cdep="3.5.9999"
-				compiler_stage1+="
-					dev-libs/libffi
-					<sys-devel/llvm-${cdep}
-					<sys-libs/libcxx-headers-${cdep}
-					<sys-libs/libcxxabi-${cdep}
-					<sys-libs/libcxx-${cdep}
-					<sys-devel/clang-${cdep}"
-			fi
-
 			compiler="
-				sys-libs/csu
 				dev-libs/libffi
 				${llvm_deps}
 				sys-libs/libcxxabi
@@ -321,7 +262,7 @@ configure_toolchain() {
 			# TODO: target clang toolchain someday?
 			;;
 		*-solaris*)
-			local ccvers="$( (unset CHOST; gcc --version 2>/dev/null) )"
+			local ccvers="$(unset CHOST; gcc --version 2>/dev/null)"
 			case "${ccvers}" in
 				*"gcc (GCC) 3.4.3"*)
 					# host compiler doesn't cope with the asm introduced
@@ -330,11 +271,18 @@ configure_toolchain() {
 					compiler_stage1=${compiler_stage1/" dev-libs/mpfr "/" <dev-libs/mpfr-4 "}
 					;;
 			esac
+			local nmout=$(nm -B 2>&1)
+			case "${nmout}" in
+				*/dev/null*)  :                            ;;  # apparently GNU
+				*)            export NM="$(type -P nm) -p" ;;  # Solaris nm
+			esac
 			;;
-		*-*-aix*)
-			linker=sys-devel/native-cctools
+		*-linux*)
+			is-rap && einfo "Triggering Linux RAP bootstrap"
 			;;
 	esac
+
+	return
 }
 
 bootstrap_setup() {
@@ -401,26 +349,15 @@ bootstrap_setup() {
 	fi
 
 	case ${CHOST} in
-		powerpc-apple-darwin7)
-			profile="prefix/darwin/macos/10.3"
-			;;
-		powerpc-apple-darwin[89])
+		powerpc-apple-darwin9)
 			rev=${CHOST##*darwin}
 			profile="prefix/darwin/macos/10.$((rev - 4))/ppc"
 			;;
-		powerpc64-apple-darwin[89])
-			rev=${CHOST##*darwin}
-			profile="prefix/darwin/macos/10.$((rev - 4))/ppc64"
-			;;
-		i*86-apple-darwin[89])
+		i*86-apple-darwin1[578])
 			rev=${CHOST##*darwin}
 			profile="prefix/darwin/macos/10.$((rev - 4))/x86"
 			;;
-		i*86-apple-darwin1[012345678])
-			rev=${CHOST##*darwin}
-			profile="prefix/darwin/macos/10.$((rev - 4))/x86"
-			;;
-		x86_64-apple-darwin9|x86_64-apple-darwin1[0123456789])
+		x86_64-apple-darwin1[5789])
 			rev=${CHOST##*darwin}
 			profile="prefix/darwin/macos/10.$((rev - 4))/x64"
 			;;
@@ -429,15 +366,16 @@ bootstrap_setup() {
 			rev=${CHOST##*darwin}
 			profile="prefix/darwin/macos/11.$((rev - 20))/x64"
 			;;
+		arm64-apple-darwin2[0123456789])
+			rev=${CHOST##*darwin}
+			profile="prefix/darwin/macos/11.$((rev - 20))/arm64"
+			;;
 		i*86-pc-linux-gnu)
 			profile=${profile_linux/ARCH/x86}
 			;;
 		x86_64-pc-linux-gnu)
 			profile=${profile_linux/ARCH/amd64}
 			profile=${profile/17.0/17.1/no-multilib}
-			;;
-		ia64-pc-linux-gnu)
-			profile=${profile_linux/ARCH/ia64}
 			;;
 		powerpc-unknown-linux-gnu)
 			profile=${profile_linux/ARCH/ppc}
@@ -454,24 +392,6 @@ bootstrap_setup() {
 		armv7l-pc-linux-gnu)
 			profile=${profile_linux/ARCH/arm}
 			;;
-		sparc-sun-solaris2.9)
-			profile="prefix/sunos/solaris/5.9/sparc"
-			;;
-		sparcv9-sun-solaris2.9)
-			profile="prefix/sunos/solaris/5.9/sparc64"
-			;;
-		i386-pc-solaris2.10)
-			profile="prefix/sunos/solaris/5.10/x86"
-			;;
-		x86_64-pc-solaris2.10)
-			profile="prefix/sunos/solaris/5.10/x64"
-			;;
-		sparc-sun-solaris2.10)
-			profile="prefix/sunos/solaris/5.10/sparc"
-			;;
-		sparcv9-sun-solaris2.10)
-			profile="prefix/sunos/solaris/5.10/sparc64"
-			;;
 		i386-pc-solaris2.11)
 			profile="prefix/sunos/solaris/5.11/x86"
 			;;
@@ -484,17 +404,8 @@ bootstrap_setup() {
 		sparcv9-sun-solaris2.11)
 			profile="prefix/sunos/solaris/5.11/sparc64"
 			;;
-		powerpc-ibm-aix*)
-			profile="prefix/aix/${CHOST#powerpc-ibm-aix}/ppc"
-			;;
-		i586-pc-interix*)
-			profile="prefix/windows/interix/${CHOST#i586-pc-interix}/x86"
-			;;
 		i586-pc-winnt*)
 			profile="prefix/windows/winnt/${CHOST#i586-pc-winnt}/x86"
-			;;
-		i686-pc-cygwin*)
-			profile="prefix/windows/cygwin/x86"
 			;;
 		x86_64-pc-cygwin*)
 			profile="prefix/windows/cygwin/x64"
@@ -506,14 +417,21 @@ bootstrap_setup() {
 			;;
 	esac
 
-	if [[ ${DARWIN_USE_GCC} == 1 ]] ; then
+	if [[ ${CHOST} == *-darwin* ]] ; then
 		# setup MacOSX.sdk symlink for GCC, this should probably be
 		# managed using an eselect module in the future
 		rm -f "${ROOT}"/MacOSX.sdk
 		local SDKPATH=$(xcrun --show-sdk-path --sdk macosx)
+		if [[ ! -e ${SDKPATH} ]] ; then
+			SDKPATH=$(xcodebuild -showsdks | sort -nr \
+				| grep -o "macosx.*" | head -n1)
+			SDKPATH=$(xcode-select -print-path)/SDKs/MacOSX${SDKPATH#macosx}.sdk
+		fi
 		( cd "${ROOT}" && ln -s "${SDKPATH}" MacOSX.sdk )
 		einfo "using system sources from ${SDKPATH}"
+	fi
 
+	if [[ ${DARWIN_USE_GCC} == 1 ]] ; then
 		# amend profile, to use gcc one
 		profile="${profile}/gcc"
 	fi
@@ -535,10 +453,21 @@ bootstrap_setup() {
 	# Use package.use to disable in the portage tree to be shared between
 	# stage2 and stage3. The hack will be undone during tree sync in stage3.
 	cat >> "${ROOT}"/etc/portage/make.profile/package.use <<-EOF
+	# disable bootstrapping libcxx* with libunwind
+	sys-libs/libcxxabi -libunwind
+	sys-libs/libcxx -libunwind
 	# Most binary Linux distributions seem to fancy toolchains that
 	# do not do c++ support (need to install a separate package).
 	sys-libs/ncurses -cxx
 	sys-devel/binutils -cxx
+	EOF
+
+	# On Darwin we might need this to bootstrap the compiler, since
+	# bootstrapping the linker (binutils-apple) requires a c++11
+	# compiler amongst other things
+	cat >> "${ROOT}"/etc/portage/make.profile/package.unmask <<-EOF
+	# For Darwin bootstraps
+	sys-devel/native-cctools
 	EOF
 
 	# Strange enough, -cxx causes wrong libtool config on Cygwin,
@@ -589,6 +518,7 @@ do_tree() {
 		fi
 		[[ -e ${PORTDIR} ]] || mkdir -p ${PORTDIR}
 		einfo "Unpacking, this may take a while"
+		estatus "stage1: unpacking Portage tree"
 		bzip2 -dc ${DISTDIR}/$2 | \
 			tar -xf - -C ${PORTDIR} --strip-components=1 || return 1
 		touch ${PORTDIR}/.unpacked
@@ -597,15 +527,19 @@ do_tree() {
 
 bootstrap_tree() {
 	# RAP uses the latest gentoo main repo snapshot to bootstrap.
-	is-rap && LATEST_TREE_YES=1
-	local PV="20201209"
-	if is-rap ; then
-		do_tree "${CUSTOM_SNAPSHOT_URL:-$SNAPSHOT_URL}" portage-${CUSTOM_SNAPSHOT_VERSION:-latest}.tar.bz2
-	else
-		do_tree "${CUSTOM_SNAPSHOT_URL:-http://dev.gentoo.org/~grobian/distfiles}" prefix-overlay-${CUSTOM_SNAPSHOT_VERSION:-$PV}.tar.bz2
-	fi
+        is-rap && LATEST_TREE_YES=1
+        local PV="20201126"
+        if [[ -n ${CUSTOM_SNAPSHOT} ]]; then
+                do_tree "${SNAPSHOT_URL}" "${CUSTOM_SNAPSHOT}"
+        elif [[ -n ${LATEST_TREE_YES} ]]; then
+                do_tree "${SNAPSHOT_URL}" portage-latest.tar.bz2
+        else
+                do_tree http://dev.gentoo.org/~grobian/distfiles prefix-overlay-${PV}.tar.bz2
+        fi
+
 	local ret=$?
 	if [[ -n ${TREE_FROM_SRC} ]]; then
+		estatus "stage1: rsyncing Portage tree"
 		rsync -av --delete \
 			--exclude=.unpacked \
 			--exclude=distfiles \
@@ -616,7 +550,7 @@ bootstrap_tree() {
 }
 
 bootstrap_startscript() {
-	local theshell=$(echo "${SHELL##*/}" | cut -f1 -d' ')
+	local theshell=${SHELL##*/}
 	if [[ ${theshell} == "sh" ]] ; then
 		einfo "sh is a generic shell, using bash instead"
 		theshell="bash"
@@ -664,15 +598,15 @@ bootstrap_portage() {
 	# STABLE_PV that is known to work. Intended for power users only.
 	## It is critical that STABLE_PV is the lastest (non-masked) version that is
 	## included in the snapshot for bootstrap_tree.
-	STABLE_PV="3.0.12"
-	[[ ${TESTING_PV} == latest ]] && TESTING_PV="3.0.12"
+	STABLE_PV="3.0.12.0.2"
+	[[ ${TESTING_PV} == latest ]] && TESTING_PV="3.0.12.0.2"
 	PV="${TESTING_PV:-${STABLE_PV}}"
 	A=prefix-portage-${PV}.tar.bz2
-	einfo "Bootstrapping ${A%-*}"
+	einfo "Bootstrapping ${A%.tar.*}"
 		
 	efetch ${DISTFILES_URL}/${A} || return 1
 
-	einfo "Unpacking ${A%-*}"
+	einfo "Unpacking ${A%.tar.*}"
 	export S="${PORTAGE_TMPDIR}"/portage-${PV}
 	ptmp=${S}
 	rm -rf "${S}" >& /dev/null
@@ -681,6 +615,8 @@ bootstrap_portage() {
 	bzip2 -dc "${DISTDIR}/${A}" | tar -xf - || return 1
 	S="${S}/prefix-portage-${PV}"
 	cd "${S}"
+
+	fix_config_sub
 
 	# disable ipc
 	sed -e "s:_enable_ipc_daemon = True:_enable_ipc_daemon = False:" \
@@ -701,17 +637,17 @@ bootstrap_portage() {
 	[[ -x ${ROOT}/tmp/bin/sh ]] || ln -s bash "${ROOT}"/tmp/bin/sh || return 1
 	export PORTAGE_BASH="${ROOT}"/tmp/bin/bash
 
-	einfo "Compiling ${A%-*}"
+	einfo "Compiling ${A%.tar.*}"
 	econf \
 		--with-offset-prefix="${ROOT}"/tmp \
 		--with-portage-user="`id -un`" \
 		--with-portage-group="`id -gn`" \
 		--with-extra-path="${PATH}" \
 		|| return 1
-	$MAKE ${MAKEOPTS} || return 1
+	emake || return 1
 
- 	einfo "Installing ${A%-*}"
-	$MAKE install || return 1
+	einfo "Installing ${A%.tar.*}"
+	emake install || return 1
 
 	cd "${ROOT}"
 	rm -Rf ${ptmp} >& /dev/null
@@ -735,7 +671,21 @@ bootstrap_portage() {
 		sed -i -e "s,gentoo_prefix,$(<"${PORTDIR}"/profiles/repo_name)," "${ROOT}"/tmp/usr/share/portage/config/repos.conf || return 1
 	fi
 
-	einfo "${A%-*} successfully bootstrapped"
+	einfo "${A%.tar.*} successfully bootstrapped"
+}
+
+fix_config_sub() {
+	# macOS Big Sur (11.x, darwin20) supports Apple Silicon (arm64),
+	# which config.sub doesn't understand about.  It is, however, Apple
+	# who seem to use arm64-apple-darwin20 CHOST triplets, so patch that
+	# for various versions of autoconf
+	if [[ ${CHOST} == arm64-apple-darwin* ]] ; then
+		# Apple Silicon doesn't use aarch64, but arm64
+		find . -name "config.sub" | \
+			xargs sed -i -e 's/ arm\(-\*\)* / arm\1 | arm64\1 /'
+		find . -name "config.sub" | \
+			xargs sed -i -e 's/ aarch64 / aarch64 | arm64 /'
+	fi
 }
 
 bootstrap_simple() {
@@ -743,11 +693,11 @@ bootstrap_simple() {
 	PN=$1
 	PV=$2
 	A=${PN}-${PV}.tar.${3:-gz}
-	einfo "Bootstrapping ${A%-*}"
+	einfo "Bootstrapping ${A%.tar.*}"
 
 	efetch ${4:-${DISTFILES_G_O}/distfiles}/${A} || return 1
 
-	einfo "Unpacking ${A%-*}"
+	einfo "Unpacking ${A%.tar.*}"
 	S="${PORTAGE_TMPDIR}/${PN}-${PV}"
 	rm -rf "${S}"
 	mkdir -p "${S}"
@@ -761,24 +711,26 @@ bootstrap_simple() {
 	S="${S}"/${PN}-${PV}
 	cd "${S}"
 
+	fix_config_sub
+
 	# for libressl, only provide static lib, such that wget (above)
 	# links it in and we don't have to bother about RPATH or something
 	if [[ ${PN} == "libressl" ]] ; then
 		myconf="${myconf} --enable-static --disable-shared"
 	fi
 
-	einfo "Compiling ${A%-*}"
+	einfo "Compiling ${A%.tar.*}"
 	if [[ -x configure ]] ; then
 		econf ${myconf} || return 1
 	fi
-	v $MAKE || return 1
+	emake || return 1
 
-	einfo "Installing ${A%-*}"
-	v $MAKE PREFIX="${ROOT}"/tmp/usr install || return 1
+	einfo "Installing ${A%.tar.*}"
+	emake PREFIX="${ROOT}"/tmp/usr install || return 1
 
 	cd "${ROOT}"
 	rm -Rf "${S}"
-	einfo "${PN}-${PV} successfully bootstrapped"
+	einfo "${A%.tar.*} successfully bootstrapped"
 }
 
 bootstrap_gnu() {
@@ -786,7 +738,7 @@ bootstrap_gnu() {
 	PN=$1
 	PV=$2
 
-	einfo "Bootstrapping ${PN}"
+	einfo "Bootstrapping ${A%.tar.*}"
 
 	for t in tar.xz tar.bz2 tar.gz tar ; do
 		A=${PN}-${PV}.${t}
@@ -805,7 +757,7 @@ bootstrap_gnu() {
 		URL=${GNU_URL}/${PN}/${A}
 		efetch ${URL} || continue
 
-		einfo "Unpacking ${A%-*}"
+		einfo "Unpacking ${A%.tar.*}"
 		S="${PORTAGE_TMPDIR}/${PN}-${PV}"
 		rm -rf "${S}"
 		mkdir -p "${S}"
@@ -827,6 +779,22 @@ bootstrap_gnu() {
 	S="${S}"/${PN}-${PV}
 	[[ -d ${S} ]] || return 1
 	cd "${S}" || return 1
+
+	# Tar upstream bug #59755 for broken build on macOS:
+	# https://savannah.gnu.org/bugs/index.php?59755
+	if [[ ${PN}-${PV} == "tar-1.32" ]] ; then
+		local tar_patch_file="tar-1.32-check-sys-ioctl-header-configure.patch"
+		local tar_patch_id="file_id=50554"
+		local tar_patch_url="https://file.savannah.gnu.org/file/${tar_patch_file}?${tar_patch_id}"
+		efetch "${tar_patch_url}" || return 1
+		# If fetched from upstream url instead of mirror, filename will
+		# have a suffix. Remove suffix by copy, not move, to not
+		# trigger refetch on repeated invocations of this script.
+		if [[ -f "${DISTDIR}/${tar_patch_file}?${tar_patch_id}" ]]; then
+			cp ${DISTDIR}/${tar_patch_file}{?${tar_patch_id},} || return 1
+		fi
+		patch -p1 < ${DISTDIR}/${tar_patch_file} || return 1
+	fi
 
 	if [[ ${PN}-${PV} == "bash-4.3" && ${CHOST} == *-cygwin* ]] ; then
 		local p patchopts
@@ -869,25 +837,16 @@ bootstrap_gnu() {
 		patch -p1 < "${DISTDIR}"/m4-1.4.18-glibc228.patch || return 1
 	fi
 
+	fix_config_sub
+
 	if [[ ${PN} == "grep" ]] ; then
 		# Solaris and OSX don't like it when --disable-nls is set,
 		# so just don't set it at all.
 		# Solaris 11 has a messed up prce installation.  We don't need
 		# it anyway, so just disable it
 		myconf="${myconf} --disable-perl-regexp"
-		# Except interix really needs it for grep.
-		[[ $CHOST == *interix* ]] && myconf="${myconf} --disable-nls"
 	fi
 
-	# AIX doesn't like --enable-nls in general during bootstrap
-	[[ $CHOST == *-aix* ]] && myconf="${myconf} --disable-nls"
-	# AIX 7.1 has fstatat(), but broken without APAR IV23716:
-	[[ $CHOST == *-aix7* ]] && export ac_cv_func_fstatat=no
-	# AIX lacks /dev/fd/*, bash uses (blocking) named pipes instead
-	[[ ${PN} == "bash" ]] && sed -i -e 's/|O_NONBLOCK//' subst.c
-	# but portage's multijob needs more unique pipe names
-	[[ ${PN},${CHOST} == bash,*-aix* ]] &&
-	export CPPFLAGS="${CPPFLAGS}${CPPFLAGS:+ }-DUSE_MKTEMP"
 	# pod2man may be too old (not understanding --utf8) but we don't
 	# care about manpages at this stage
 	export ac_cv_path_POD2MAN=no
@@ -945,63 +904,60 @@ bootstrap_gnu() {
 		(i?86-*-*)
 			export CFLAGS="-m32"
 			;;
+		(arm64-*-darwin*)
+			sed -i -e 's/aarch64\*-\*-\*/arm64*-*-*|&/' \
+				configure configure.host
+			;;
 		esac
 	fi
 
-	einfo "Compiling ${PN}"
+	einfo "Compiling ${A%.tar.*}"
 	econf ${myconf} || return 1
 	if [[ ${PN} == "make" && $(type -t $MAKE) != "file" ]]; then
+		estatus "stage1: building ${A%.tar.*}"
 		v ./build.sh || return 1
 	else
-		v $MAKE ${MAKEOPTS} || return 1
+		emake || return 1
 	fi
 
-	einfo "Installing ${PN}"
+	einfo "Installing ${A%.tar.*}"
 	if [[ ${PN} == "make" && $(type -t $MAKE) != "file" ]]; then
+		estatus "stage1: installing ${A%.tar.*}"
 		v ./make install MAKE="${S}/make" || return 1
 	else
-		v $MAKE install || return 1
+		emake install || return 1
 	fi
 
 	cd "${ROOT}"
 	rm -Rf "${S}"
-	einfo "${PN}-${PV} successfully bootstrapped"
+	einfo "${A%.tar.*} successfully bootstrapped"
 }
 
 PYTHONMAJMIN=3.8   # keep this number in line with PV below for stage1,2
 bootstrap_python() {
-	PV=3.8.5
+	PV=3.8.6
 	A=Python-${PV}.tar.xz
-	patch=true
-
-	einfo "Bootstrapping ${A%-*}"
+	einfo "Bootstrapping ${A%.tar.*}"
 
 	# don't really want to put this on the mirror, since they are
 	# non-vanilla sources, bit specific for us
 	efetch ${DISTFILES_URL}/${A} || return 1
 
-	einfo "Unpacking ${A%%-*}"
+	einfo "Unpacking ${A%.tar.*}"
 	export S="${PORTAGE_TMPDIR}/python-${PV}"
 	rm -rf "${S}"
 	mkdir -p "${S}"
 	cd "${S}"
 	case ${A} in
-	*bz2) bzip2 -dc "${DISTDIR}"/${A} | tar -xf - ;;
-	*xz) xz -dc "${DISTDIR}"/${A} | tar -xf - ;;
-	*) einfo "Don't know to unpack ${A}" ;;
+		*bz2) bzip2 -dc "${DISTDIR}"/${A} | tar -xf - ;;
+		*xz)  xz -dc "${DISTDIR}"/${A} | tar -xf -    ;;
+		*)    einfo "Don't know to unpack ${A}"       ;;
 	esac
 	[[ ${PIPESTATUS[*]} == '0 0' ]] || return 1
 	S="${S}"/Python-${PV}
 	cd "${S}"
 	rm -rf Modules/_ctypes/libffi* || return 1
 	rm -rf Modules/zlib || return 1
-
-	if ${patch}; then
-		# This patch is critical and needs to be applied even
-		# when using the otherwise unpatched sources.
-		efetch "http://dev.gentoo.org/~grobian/distfiles/python-3.6-02_all_disable_modules_and_ssl.patch"
-		patch -p0 < "${DISTDIR}"/python-3.6-02_all_disable_modules_and_ssl.patch
-	fi
 
 	case ${CHOST} in
 	(*-*-cygwin*)
@@ -1044,8 +1000,27 @@ bootstrap_python() {
 		sed -i \
 			-e 's/KQUEUE/KQUEUE_DISABLED/' \
 			configure
+		# fixup thread id detection
+		efetch "http://dev.gentoo.org/~grobian/distfiles/python-3.8.6-darwin9.patch"
+		patch -p1 < "${DISTDIR}"/python-3.8.6-darwin9.patch
+		;;
+	(arm64-*-darwin*)
+		# Teach Python a new trick (arm64)
+		sed -i \
+			-e "/Unexpected output of 'arch' on OSX/d" \
+			configure
 		;;
 	esac
+
+	case ${CHOST} in
+	(*-darwin*)
+		# avoid triggering compiled out system proxy retrieval code (_scproxy)
+		sed -i -e '/sys.platform/s/darwin/disabled-darwin/' \
+			Lib/urllib/request.py
+		;;
+	esac
+
+	fix_config_sub
 
 	local myconf=""
 
@@ -1059,11 +1034,6 @@ bootstrap_python() {
 	esac
 
 	case $CHOST in
-		*-*-aix*)
-			# Python stubbornly insists on using cc_r to compile.  We
-			# know better, so force it to listen to us
-			myconf="${myconf} --with-gcc=yes"
-		;;
 		*-*-cygwin*)
 			# --disable-shared would link modules against "python.exe"
 			# so renaming to "pythonX.Y.exe" will break them.
@@ -1108,11 +1078,9 @@ bootstrap_python() {
 	# just make sure Python won't find it
 	export HOME="${S}"
 
-	export PYTHON_DISABLE_MODULES="_bsddb bsddb bsddb185 bz2 crypt _ctypes_test _curses _curses_panel dbm _elementtree gdbm _locale nis pyexpat readline _sqlite3 _tkinter"
-	export PYTHON_DISABLE_SSL=1
 	export OPT="${CFLAGS}"
 
-	einfo "Compiling ${A%-*}"
+	einfo "Compiling ${A%.tar.*}"
 
 	# some ancient versions of hg fail with "hg id -i", so help
 	# configure to not find them using HAS_HG
@@ -1126,10 +1094,10 @@ bootstrap_python() {
 		--disable-shared \
 		--libdir="${ROOT}"/tmp/usr/lib \
 		${myconf} || return 1
-	$MAKE ${MAKEOPTS} || return 1
+	emake || return 1
 
-	einfo "Installing ${A%-*}"
-	$MAKE -k install || echo "??? Python failed to install *sigh* continuing anyway"
+	einfo "Installing ${A%.tar.*}"
+	emake -k install || echo "??? Python failed to install *sigh* continuing anyway"
 	cd "${ROOT}"/tmp/usr/bin
 	ln -sf python${PV%.*} python
 	cd "${ROOT}"/tmp/usr/lib
@@ -1137,7 +1105,58 @@ bootstrap_python() {
 	# http://forums.gentoo.org/viewtopic-p-6890526.html
 	rm -f libpython${PV%.*}.a
 
-	einfo "${A%-*} bootstrapped"
+	einfo "${A%.tar.*} bootstrapped"
+}
+
+bootstrap_cmake_core() {
+	PV=${1:-3.16.5}
+	A=cmake-${PV}.tar.gz
+
+	einfo "Bootstrapping ${A%.tar.*}"
+
+	efetch https://github.com/Kitware/CMake/releases/download/v${PV}/${A} \
+		|| return 1
+
+	einfo "Unpacking ${A%.tar.*}"
+	export S="${PORTAGE_TMPDIR}/cmake-${PV}"
+	rm -rf "${S}"
+	mkdir -p "${S}"
+	cd "${S}"
+	gzip -dc "${DISTDIR}"/${A} | tar -xf - || return 1
+	S="${S}"/cmake-${PV}
+	cd "${S}"
+
+	# don't set a POSIX standard, system headers don't like that, #757426
+	sed -i -e 's/^#if !defined(_WIN32) && !defined(__sun)/& \&\& !defined(__APPLE__)/' \
+		Source/cmLoadCommandCommand.cxx \
+		Source/cmStandardLexer.h \
+		Source/cmSystemTools.cxx \
+		Source/cmTimestamp.cxx
+
+	einfo "Bootstrapping ${A%.tar.*}"
+	estatus "stage1: configuring ${A%.tar.*}"
+	./bootstrap --prefix="${ROOT}"/tmp/usr || return 1
+
+	einfo "Compiling ${A%.tar.*}"
+	emake || return 1
+
+	einfo "Installing ${A%.tar.*}"
+	emake install || return 1
+
+	# we need sysroot crap to build cmake itself, but it makes trouble
+	# lateron, so kill it in the installed version
+	ver=${A%-*} ; ver=${ver%.*}
+	sed -i -e '/cmake_gnu_set_sysroot_flag/d' \
+		"${ROOT}"/tmp/usr/share/${ver}/Modules/Platform/Apple-GNU-*.cmake || die
+	# disable isysroot usage with clang as well
+	sed -i -e '/_SYSROOT_FLAG/d' \
+		"${ROOT}"/tmp/usr/share/${ver}/Modules/Platform/Apple-Clang.cmake || die
+
+	einfo "${A%.tar.*} bootstrapped"
+}
+
+bootstrap_cmake() {
+	bootstrap_cmake_core 3.16.5 || bootstrap_cmake_core 3.0.2
 }
 
 bootstrap_zlib_core() {
@@ -1145,11 +1164,11 @@ bootstrap_zlib_core() {
 	PV="${1:-1.2.8}"
 	A=zlib-${PV}.tar.gz
 
-	einfo "Bootstrapping ${A%-*}"
+	einfo "Bootstrapping ${A%.tar.*}"
 
 	efetch ${DISTFILES_G_O}/distfiles/${A} || return 1
 
-	einfo "Unpacking ${A%%-*}"
+	einfo "Unpacking ${A%.tar.*}"
 	export S="${PORTAGE_TMPDIR}/zlib-${PV}"
 	rm -rf "${S}"
 	mkdir -p "${S}"
@@ -1197,12 +1216,13 @@ bootstrap_zlib_core() {
 		ln -sf libz.dll.a "${ROOT}"/tmp/usr/lib/libz.dll
 	fi
 
-	einfo "Compiling ${A%-*}"
+	einfo "Compiling ${A%.tar.*}"
 	CHOST= ${CONFIG_SHELL} ./configure --prefix="${ROOT}"/tmp/usr || return 1
-	$MAKE "${makeopts[@]}" || return 1
+	MAKEOPTS=
+	emake "${makeopts[@]}" || return 1
 
-	einfo "Installing ${A%-*}"
-	$MAKE "${makeopts[@]}" -j1 install || return 1
+	einfo "Installing ${A%.tar.*}"
+	emake "${makeopts[@]}" -j1 install || return 1
 
 	# this lib causes issues when emerging python again on Solaris
 	# because the tmp lib path is in the library search path there
@@ -1212,15 +1232,7 @@ bootstrap_zlib_core() {
 		rm -Rf "${x}"
 	done
 
-	if [[ ${CHOST} == *-aix* ]]; then
-		# No aix-soname support, but symlinks when built with gcc. This breaks
-		# later on when aix-soname is added within Prefix, where the lib.so.1
-		# is an archive then, while finding this one first due to possible
-		# rpath ordering issues.
-		rm -f "${ROOT}"/tmp/usr/lib/libz.so.1
-	fi
-
-	einfo "${A%-*} bootstrapped"
+	einfo "${A%.tar.*} bootstrapped"
 }
 
 bootstrap_zlib() {
@@ -1230,6 +1242,7 @@ bootstrap_zlib() {
 }
 
 bootstrap_libffi() {
+	bootstrap_gnu libffi 3.3 || \
 	bootstrap_gnu libffi 3.2.1
 }
 
@@ -1267,7 +1280,7 @@ bootstrap_coreutils() {
 }
 
 bootstrap_tar() {
-	bootstrap_gnu tar 1.26
+	bootstrap_gnu tar 1.32 || bootstrap_gnu tar 1.26
 }
 
 bootstrap_make() {
@@ -1301,7 +1314,7 @@ bootstrap_texinfo() {
 }
 
 bootstrap_bash() {
-	bootstrap_gnu bash 5.1-rc3 ||
+	bootstrap_gnu bash 5.1 ||
 	bootstrap_gnu bash 4.3 ||
 	bootstrap_gnu bash 4.2
 }
@@ -1434,16 +1447,6 @@ bootstrap_stage1() {
 	# be identified as stage1-installed like in bug #615410.
 	mkdir -p "${ROOT}"/tmp/usr/local/bin
 	case ${CHOST} in
-		*-*-aix*)
-			# sys-devel/native-cctools installs the wrapper below,
-			# but we need it early or gmp breaks
-			{
-				echo '#!/bin/sh'
-				echo 'test ${#TMPDIR} -le 85 || TMPDIR=/tmp export TMPDIR'
-				echo 'exec /usr/ccs/bin/nm ${1+"$@"}'
-			} > "${ROOT}"/tmp/usr/local/bin/nm
-			chmod 755 "${ROOT}"/tmp/usr/local/bin/nm
-			;;
 		*-darwin*)
 			# Recent Mac OS X have a nice popup to install java when
 			# it's called without being installed, this doesn't stop the
@@ -1509,6 +1512,12 @@ bootstrap_stage1() {
 	# too vital to rely on a host-provided one
 	[[ -x ${ROOT}/tmp/usr/bin/python ]] || (bootstrap_python) || return 1
 
+	# cmake for llvm/clang toolchain on macOS
+	[[ -e ${ROOT}/tmp/usr/bin/cmake ]] \
+		|| [[ ${CHOST} != *-darwin* ]] \
+		|| [[ ${DARWIN_USE_GCC} == 1 ]] \
+		|| (bootstrap_cmake) || return 1
+
 	# checks itself if things need to be done still
 	(bootstrap_tree) || return 1
 
@@ -1521,6 +1530,7 @@ bootstrap_stage1() {
 	[[ -e ${ROOT}/tmp/usr/bin/emerge ]] || (bootstrap_portage) || return 1
 	prepare_portage
 
+	estatus "stage1 finished"
 	einfo "stage1 successfully finished"
 }
 
@@ -1610,6 +1620,7 @@ do_emerge_pkgs() {
 		# defaults).
 		echo "USE=${myuse[*]} PKG=${pkg}"
 		(
+			estatus "${STAGE}: emerge ${pkg}"
 			unset CFLAGS CXXFLAGS
 			[[ -n ${OVERRIDE_CFLAGS} ]] \
 				&& export CFLAGS=${OVERRIDE_CFLAGS}
@@ -1652,6 +1663,7 @@ bootstrap_stage2() {
 
 	emerge_pkgs() {
 		EPREFIX="${ROOT}"/tmp \
+		STAGE=stage2 \
 		do_emerge_pkgs "$@"
 	}
 
@@ -1712,9 +1724,9 @@ bootstrap_stage2() {
 
 	# Build a basic compiler and portage dependencies in $ROOT/tmp.
 	pkgs=(
+		sys-devel/gnuconfig
 		sys-apps/gentoo-functions
 		app-portage/elt-patches
-		$([[ ${CHOST} == *-aix* ]] && echo dev-libs/libiconv ) # bash dependency
 		$([[ ${CHOST} == *-cygwin* ]] && echo dev-libs/libiconv ) # bash dependency
 		sys-libs/ncurses
 		sys-libs/readline
@@ -1740,8 +1752,8 @@ bootstrap_stage2() {
 	[[ ${CHOST} == *-solaris* ]] && echo "=dev-libs/libffi-3.3_rc0" \
 		>> "${ROOT}"/tmp/etc/portage/package.mask
 
-	# unlock GCC on Darwin for DARWIN_USE_GCC bootstraps
-	if [[ ${DARWIN_USE_GCC} == 1 ]] ; then
+	# provide active SDK link on Darwin
+	if [[ ${CHOST} == *-darwin* ]] ; then
 		rm -f "${ROOT}"/tmp/MacOSX.sdk
 		( cd "${ROOT}"/tmp && ln -s ../MacOSX.sdk )
 	fi
@@ -1801,6 +1813,7 @@ bootstrap_stage2() {
 		cp "${ROOT}"/tmp/usr/${CHOST}/lib/gcc/* "${ROOT}"/usr/${CHOST}/lib/gcc
 	fi
 
+	estatus "stage2 finished"
 	einfo "stage2 successfully finished"
 }
 
@@ -1847,7 +1860,8 @@ bootstrap_stage3() {
 	}
 
 	export CONFIG_SHELL="${ROOT}"/tmp/bin/bash
-	export CPPFLAGS="-isystem ${ROOT}/usr/include"
+	[[ ${compiler_type} == gcc ]] && \
+		export CPPFLAGS="-isystem ${ROOT}/usr/include"
 	export LDFLAGS="-L${ROOT}/usr/$(get_libdir)"
 	[[ ${CHOST} == *-darwin* ]] || \
 		LDFLAGS+=" -Wl,-rpath=${ROOT}/usr/$(get_libdir)"
@@ -1864,10 +1878,11 @@ bootstrap_stage3() {
 		# (CBUILD, BDEPEND) and with the system being built
 		# (CHOST, RDEPEND).  To correctly bootstrap stage3,
 		# PORTAGE_OVERRIDE_EPREFIX as BROOT is needed.
-		PREROOTPATH="${ROOT}"$(echo /{,tmp/}{usr/,}{,lib/llvm/{10,9,8,7,6,5}/}{s,}bin | sed "s, ,:${ROOT},g") \
+		PREROOTPATH="${ROOT}"$(echo /{,tmp/}{usr/,}{,lib/llvm/{12,11,10}/}{s,}bin | sed "s, ,:${ROOT},g") \
 		EPREFIX="${ROOT}" PORTAGE_TMPDIR="${PORTAGE_TMPDIR}" \
 		FEATURES="${FEATURES} force-prefix" \
 		EMERGE_LOG_DIR="${ROOT}"/var/log \
+		STAGE=stage3 \
 		do_emerge_pkgs "$@"
 	}
 
@@ -1965,8 +1980,8 @@ bootstrap_stage3() {
 
 		# avoid circular deps with sys-libs/pam, bug#712020
 		pkgs=(
-				sys-apps/attr
-				sys-libs/libcap
+			sys-apps/attr
+			sys-libs/libcap
 		)
 		BOOTSTRAP_RAP=yes \
 		USE="${USE} -pam" \
@@ -2006,19 +2021,6 @@ bootstrap_stage3() {
 	# in addition, avoid collisions
 	rm -Rf "${ROOT}"/tmp/usr/lib/python${PYTHONMAJMIN}/site-packages/clang
 
-	# llvm-3.5 doesn't find C++11 headers/lib by default, make it so
-	if [[ ${CHOST} == *-darwin9 ]] ; then
-		export OVERRIDE_CXXFLAGS="-I${ROOT}/tmp/usr/include/c++/v1 -fPIC"
-		# -fPIC is here because we need it, but the toolchain doesn't
-		# default to it (like for x86_64)
-		export OVERRIDE_CFLAGS="-fPIC"
-		# replace GCC's libstdc++ with libcxx (super hack!)
-		( cd "${ROOT}"/tmp/usr/lib/gcc/${CHOST}/4.2.1 \
-			&& ! test -e libstdc++.6.0.9.dylib-gcc \
-			&& mv libstdc++.6.0.9.dylib{,-gcc} \
-			&& ln -s ../../../libc++.1.dylib libstdc++.6.0.9.dylib )
-	fi
-
 	# try to get ourself out of the mudd, bug #575324
 	EXTRA_ECONF="--disable-compiler-version-checks $(rapx '--disable-lto --disable-bootstrap')" \
 	GCC_MAKE_TARGET=$(rapx all) \
@@ -2029,13 +2031,6 @@ bootstrap_stage3() {
 
 	# now we have the compiler right there
 	unset CXX CPPFLAGS LDFLAGS
-
-	# On Darwin we have llvm-3.5 at this point, which provides nm.
-	# However for some reason this nm doesn't quite get it on newer
-	# platforms at least, resulting in bugs like #598336.  To cater for
-	# that, get rid of this nm and rely on the host one at this stage
-	[[ ${CHOST} == *-darwin* ]] && \
-		rm -f "${ROOT}"{,/tmp}/usr/bin/{,${CHOST}-}nm
 
 	rm -f "${ROOT}"/etc/ld.so.conf.d/stage2.conf
 
@@ -2094,6 +2089,7 @@ bootstrap_stage3() {
 	hash -r
 
 	# Update the portage tree.
+	estatus "stage3: updating Portage tree"
 	treedate=$(date -f "${PORTDIR}"/metadata/timestamp +%s)
 	nowdate=$(date +%s)
 	[[ ( ! -e ${PORTDIR}/.unpacked ) && \
@@ -2114,17 +2110,20 @@ bootstrap_stage3() {
 	# still with an old llvm that may not understand the system headers
 	# very well on Darwin (-DGNUSTEP_BASE_VERSION hack)
 	einfo "running emerge -u system"
+	estatus "stage3: emerge -u system"
 	CPPFLAGS="-DGNUSTEP_BASE_VERSION" \
-	CFLAGS= CXXFLAGS= emerge --color n -u system || return 1
+	CFLAGS= CXXFLAGS= emerge --color n -u -v system || return 1
 
 	# remove anything that we don't need (compilers most likely)
 	einfo "running emerge --depclean"
+	estatus "stage3: emerge --depclean"
 	emerge --color n --depclean
 
 	# "wipe" mtimedb such that the resume list is proper after this stage
 	# (--depclean may fail, which is ok)
 	sed -i -e 's/resume/cleared/' "${ROOT}"/var/cache/edb/mtimedb
 
+	estatus "stage3 finished"
 	einfo "stage3 successfully finished"
 }
 
@@ -2519,7 +2518,6 @@ EOF
 		*-freebsd*)    ncpu=$(/sbin/sysctl -n hw.ncpu)                     ;;
 		*-solaris*)    ncpu=$(/usr/sbin/psrinfo | wc -l)                   ;;
 		*-linux-gnu*)  ncpu=$(cat /proc/cpuinfo | grep processor | wc -l)  ;;
-		*-aix*)        ncpu=$(/usr/sbin/bindprocessor -q | cut -d: -f2 | wc -w) ;;
 		*)             ncpu=1                                              ;;
 	esac
 	# get rid of excess spaces (at least Solaris wc does)
@@ -2581,6 +2579,7 @@ EOF
 		*86*-darwin9|*86*-darwin1[012345])
 			# PPC/Darwin only works in 32-bits mode, so this is Intel
 			# only, and only starting from Leopard (10.5, darwin9)
+			# with Big Sur (11.0, darwin20) we have x64 or arm64 only
 			candomultilib=yes
 			t64=x86_64-${CHOST#*-}
 			t32=i686-${CHOST#*-}
@@ -2840,7 +2839,7 @@ EOF
 	export CHOST=$(portageq envvar CHOST)
 
 	# after stage1 and stage2 we should have a bash of our own, which
-	# is preferably over the host-provided one, because we know it can
+	# is preferable over the host-provided one, because we know it can
 	# deal with the bash-constructs we use in stage3 and onwards
 	hash -r
 
@@ -2920,11 +2919,11 @@ EOF
 
 	[[ ${STOP_BOOTSTRAP_AFTER} == stage3 ]] && exit 0
 
-	local cmd="emerge -e system"
+	local cmd="emerge -v -e system"
 	if [[ -e ${EPREFIX}/var/cache/edb/mtimedb ]] && \
 		grep -q resume "${EPREFIX}"/var/cache/edb/mtimedb ;
 	then
-		cmd="emerge --resume"
+		cmd="emerge -v --resume"
 	fi
 	einfo "running ${cmd}"
 	if ${cmd} ; then
@@ -3011,9 +3010,14 @@ if [[ -z ${CHOST} ]]; then
 				;;
 			Darwin)
 				rev="`uname -r | cut -d'.' -f 1`"
-				if [[ ${rev} -ge 11 ]] ; then
+				if [[ ${rev} -ge 11 && ${rev} -le 19 ]] ; then
 					# Lion and up are 64-bits default (and 64-bits CPUs)
 					CHOST="x86_64-apple-darwin$rev"
+				elif [[ ${rev} -ge 20 ]] ; then
+					# uname -p returns arm, -m returns arm64 on this
+					# release while on Darwin 9 -m returns something
+					# like "PowerPC Machine", hence the distinction
+					CHOST="`uname -m`-apple-darwin$rev"
 				else
 					CHOST="`uname -p`-apple-darwin$rev"
 				fi
@@ -3025,20 +3029,6 @@ if [[ -z ${CHOST} ]]; then
 					;;
 					sparc)
 						CHOST="sparc-sun-solaris`uname -r | sed 's|5|2|'`"
-					;;
-				esac
-				;;
-			AIX)
-				# GNU coreutils uname sucks, it doesn't know what
-				# processor it is using on AIX.  We mimick GNU CHOST
-				# guessing here, instead of what IBM uses itself.
-				CHOST="`/usr/bin/uname -p`-ibm-aix`oslevel`"
-				;;
-			Interix)
-				case `uname -m` in
-					x86) CHOST="i586-pc-interix`uname -r`" ;;
-					*) eerror "Can't deal with interix `uname -m` (yet)"
-					   exit 1
 					;;
 				esac
 				;;
@@ -3073,14 +3063,6 @@ case ${CHOST} in
 			MAKE=make
 		fi
 	;;
-	*-sgi-irix*)
-		MAKE=gmake
-	;;
-	*-aix*)
-		MAKE=make
-		# We do run in bash here, no? It is ways faster than /bin/sh.
-		: ${CONFIG_SHELL:=${BASH}}
-		;;
 	*)
 		MAKE=make
 	;;
@@ -3089,7 +3071,10 @@ esac
 # handle GCC install path on recent Darwin
 case ${CHOST} in
 	powerpc-*darwin*)
-		unset DARWIN_USE_GCC  # there is no choice here, don't trigger SDK path
+		DARWIN_USE_GCC=1  # must use GCC, Clang is impossible
+		;;
+	arm64-*darwin*)
+		DARWIN_USE_GCC=0  # cannot use GCC yet (needs silicon support)
 		;;
 	*-darwin*)
 		# normalise value of DARWIN_USE_GCC
