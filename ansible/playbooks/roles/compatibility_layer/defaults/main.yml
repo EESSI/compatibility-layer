@@ -2,9 +2,13 @@
 ---
 eessi_version: "2020.12"
 
-custom_overlay_name: eessi
-custom_overlay_source: git
-custom_overlay_url: https://github.com/EESSI/gentoo-overlay.git
+custom_overlays:
+  eessi:
+    source: git
+    url: https://github.com/EESSI/gentoo-overlay.git
+  science:
+    source: git
+    url: git://git.gentoo.org/proj/sci.git
 
 cvmfs_start_transaction: False
 cvmfs_publish_transaction: False
