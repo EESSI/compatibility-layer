@@ -43,8 +43,9 @@
 
 - name: Add custom overlay configuration
   command:
-    cmd: "eselect repository add {{ custom_overlay_name }} {{ custom_overlay_source }} {{ custom_overlay_url }}"
-  when: custom_overlay_name not in repositories_installed.stdout
+    cmd: "eselect repository add {{ item.key }} {{ item.value.source }} {{ item.value.url }}"
+  when: item.key not in repositories_installed.stdout
+  loop: "{{ custom_overlays | dict2items }}"
 
 - name: Sync the repositories
   portage:
