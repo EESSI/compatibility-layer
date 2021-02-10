@@ -6,7 +6,7 @@ custom_overlays:
   - name: eessi
     source: git
     url: https://github.com/EESSI/gentoo-overlay.git
-    eclass-override: yes
+    eclass-overrides: yes
   - name: science
     source: git
     url: git://git.gentoo.org/proj/sci.git

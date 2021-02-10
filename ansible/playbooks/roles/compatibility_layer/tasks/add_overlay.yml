@@ -54,8 +54,8 @@
     content: |
       [DEFAULT]
       eclass-overrides = {{
-        custom_overlays | selectattr('override', 'defined') |
-        selectattr('override', 'equalto', True) | map(attribute='name') | join(' ')
+        custom_overlays | selectattr('eclass-overrides', 'defined') |
+        selectattr('eclass-overrides', 'equalto', True) | map(attribute='name') | join(' ')
       }}
 
 - name: Sync the repositories
