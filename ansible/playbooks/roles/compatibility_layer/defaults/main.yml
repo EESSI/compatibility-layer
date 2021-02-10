@@ -15,7 +15,7 @@ gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/{{ eessi_version }}/compat/{{ 
 
 # How to build the prefix
 prefix_snapshot_url: http://cvmfs-s0.eessi-hpc.org/snapshots
-prefix_snapshot: portage-20201126.tar.bz2
+prefix_snapshot_version: 20210121
 prefix_python_targets: python3_8
 prefix_singularity_command: "singularity run -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
 prefix_source: "docker://eessi/bootstrap-prefix:centos8-{{ eessi_host_arch }}"
@@ -23,8 +23,8 @@ prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
 prefix_install: >-
     SINGULARITYENV_USE_CPU_CORES={{ ansible_processor_vcpus }}
     SINGULARITYENV_PYTHON_TARGETS="{{ prefix_python_targets }}"
-    SINGULARITYENV_SNAPSHOT_URL="{{ prefix_snapshot_url }}"
-    SINGULARITYENV_CUSTOM_SNAPSHOT="{{ prefix_snapshot }}"
+    SINGULARITYENV_CUSTOM_SNAPSHOT_URL="{{ prefix_snapshot_url }}"
+    SINGULARITYENV_CUSTOM_SNAPSHOT_VERSION="{{ prefix_snapshot_version }}"
     {{ prefix_singularity_command }} {{ prefix_source }} {{ prefix_source_options }}
 
 # Logging
