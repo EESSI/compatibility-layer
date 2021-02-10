@@ -76,5 +76,5 @@
     state: link
     force: yes
   with_items:
-    "{{ find_configs.files }}"
+    "{{ find_configs.results | rejectattr('files', 'equalto', []) | map(attribute='files') | list }}"
 
