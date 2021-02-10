@@ -43,8 +43,8 @@
 
 - name: Add custom overlay configuration
   command:
-    cmd: "eselect repository add {{ item.key }} {{ item.value.source }} {{ item.value.url }}"
-  when: item.key not in repositories_installed.stdout
+    cmd: "eselect repository add {{ item.name }} {{ item.value.source }} {{ item.value.url }}"
+  when: item.name not in repositories_installed.stdout
   loop: "{{ custom_overlays }}"
 
 - name: Make configuration file with overlays that can override eclasses
@@ -53,7 +53,7 @@
     mode: "0644"
     content: |
       [DEFAULT]
-      eclass-overrides = {{ custom_overlays_new | selectattr('override', 'defined') | selectattr('override', 'equalto', True) | map(attribute='name') | join(' ') }}
+      eclass-overrides = {{ custom_overlays | selectattr('override', 'defined') | selectattr('override', 'equalto', True) | map(attribute='name') | join(' ') }}
 
 - name: Sync the repositories
   portage:
@@ -62,8 +62,8 @@
 - name: Find all files and directories in the etc/portage directory of the overlay
   find:
     file_type: any
-    paths: "{{ gentoo_prefix_path }}/var/db/repos/{{ item.key }}/etc/portage"
-  loop: "{{ custom_overlays | dict2items }}"
+    paths: "{{ gentoo_prefix_path }}/var/db/repos/{{ item.name }}/etc/portage"
+  loop: "{{ custom_overlays }}"
   register: find_configs
 
 - name: Make symlinks to the portage settings in the custom overlay
