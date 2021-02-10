@@ -45,7 +45,7 @@
   command:
     cmd: "eselect repository add {{ item.key }} {{ item.value.source }} {{ item.value.url }}"
   when: item.key not in repositories_installed.stdout
-  loop: "{{ custom_overlays | dict2items }}"
+  loop: "{{ custom_overlays }}"
 
 - name: Sync the repositories
   portage:
