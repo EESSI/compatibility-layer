@@ -47,6 +47,14 @@
   when: item.key not in repositories_installed.stdout
   loop: "{{ custom_overlays }}"
 
+- name: Make configuration file with overlays that can override eclasses
+  copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/repos.conf/eclass-overrides.conf"
+    mode: "0644"
+    content: |
+      [DEFAULT]
+      eclass-overrides = {{ custom_overlays_new | selectattr('override', 'defined') | selectattr('override', 'equalto', True) | map(attribute='name') | join(' ') }}
+
 - name: Sync the repositories
   portage:
     sync: 'yes'
@@ -66,3 +74,4 @@
     force: yes
   with_items:
     "{{ find_configs.files }}"
+
