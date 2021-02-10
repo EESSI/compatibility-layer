@@ -53,7 +53,10 @@
     mode: "0644"
     content: |
       [DEFAULT]
-      eclass-overrides = {{ custom_overlays | selectattr('override', 'defined') | selectattr('override', 'equalto', True) | map(attribute='name') | join(' ') }}
+      eclass-overrides = {{
+        custom_overlays | selectattr('override', 'defined') |
+        selectattr('override', 'equalto', True) | map(attribute='name') | join(' ')
+      }}
 
 - name: Sync the repositories
   portage:
