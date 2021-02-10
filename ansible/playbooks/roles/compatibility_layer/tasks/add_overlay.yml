@@ -43,7 +43,7 @@
 
 - name: Add custom overlay configuration
   command:
-    cmd: "eselect repository add {{ item.name }} {{ item.value.source }} {{ item.value.url }}"
+    cmd: "eselect repository add {{ item.name }} {{ item.source }} {{ item.url }}"
   when: item.name not in repositories_installed.stdout
   loop: "{{ custom_overlays }}"
 
