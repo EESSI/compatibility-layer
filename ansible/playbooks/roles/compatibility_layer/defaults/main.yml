@@ -7,9 +7,6 @@ custom_overlays:
     source: git
     url: https://github.com/EESSI/gentoo-overlay.git
     eclass-overrides: yes
-  - name: science
-    source: git
-    url: git://git.gentoo.org/proj/sci.git
 
 cvmfs_start_transaction: False
 cvmfs_publish_transaction: False
