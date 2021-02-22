@@ -132,6 +132,6 @@ emerge --oneshot sys-apps/portage
 The software in this repository is distributed under the terms of the
 [GNU General Public License v2.0](https://opensource.org/licenses/GPL-2.0).
 
-See [LICENSE](https://github.com/EESSI/filesystem-layer/blob/master/LICENSE) for more information.
+See [LICENSE](https://github.com/EESSI/compatibility-layer/blob/main/LICENSE) for more information.
 
 SPDX-License-Identifier: GPL-2.0-only
