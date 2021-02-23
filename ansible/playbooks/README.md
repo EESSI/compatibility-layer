@@ -24,9 +24,7 @@ Before running the playbook, make sure the following settings are correct, and o
 
 | Variable | Description |
 | --- | --- |
-| custom_overlay_name | Repository name for the custom overlay |
-| custom_overlay_source | Source of the custom overlay |
-| custom_overlay_url | URL to the custom overlay |
+| custom_overlays | List of dictionaries of custom overlays that will be added. The dictionaries should have keys `name`, `source` and `url`, and optionally `eclass-override`. |
 
 ### CVMFS settings
 | Variable | Description |

@@ -1,10 +1,12 @@
 # Defaults file for the compatibility layer role.
 ---
-eessi_version: "2020.12"
+eessi_version: "2021.02"
 
-custom_overlay_name: eessi
-custom_overlay_source: git
-custom_overlay_url: https://github.com/EESSI/gentoo-overlay.git
+custom_overlays:
+  - name: eessi
+    source: git
+    url: https://github.com/EESSI/gentoo-overlay.git
+    eclass-overrides: yes
 
 cvmfs_start_transaction: False
 cvmfs_publish_transaction: False
@@ -35,9 +37,8 @@ emerge_log: "{{ gentoo_prefix_path }}/var/log/emerge.log"
 prefix_locales:
   - en_US.UTF-8 UTF-8
 
-# By default, we install the base set and an architecture-specific set
+# By default, we install an architecture-specific set
 package_sets: 
-  - "eessi-{{ eessi_version }}"
   - "eessi-{{ eessi_version }}-{{ eessi_host_os}}-{{ eessi_host_arch }}"
 
 prefix_packages:
