@@ -470,6 +470,11 @@ bootstrap_setup() {
 	sys-devel/native-cctools
 	EOF
 
+	[[ ${CHOST} == arm64-*-darwin* ]] &&
+	cat >> "${ROOT}"/etc/portage/package.accept_keywords <<-EOF
+	=sys-devel/gcc-11_pre20200206 **
+	EOF
+
 	# Strange enough, -cxx causes wrong libtool config on Cygwin,
 	# but we require a C++ compiler there anyway - so just use it.
 	[[ ${CHOST} == *-cygwin* ]] ||
@@ -527,13 +532,13 @@ do_tree() {
 
 bootstrap_tree() {
 	# RAP uses the latest gentoo main repo snapshot to bootstrap.
-        is-rap && LATEST_TREE_YES=1
-        local PV="20201126"
+	is-rap && LATEST_TREE_YES=1
+	local PV="20210213"
 	if is-rap ; then
 		do_tree "${CUSTOM_SNAPSHOT_URL:-$SNAPSHOT_URL}" portage-${CUSTOM_SNAPSHOT_VERSION:-latest}.tar.bz2
 	else
 		do_tree "${CUSTOM_SNAPSHOT_URL:-http://dev.gentoo.org/~grobian/distfiles}" prefix-overlay-${CUSTOM_SNAPSHOT_VERSION:-$PV}.tar.bz2
-
+	fi
 	local ret=$?
 	if [[ -n ${TREE_FROM_SRC} ]]; then
 		estatus "stage1: rsyncing Portage tree"
@@ -547,7 +552,7 @@ bootstrap_tree() {
 }
 
 bootstrap_startscript() {
-	local theshell=${SHELL##*/}
+	local theshell=$(echo "${SHELL##*/}" | cut -f1 -d' ')
 	if [[ ${theshell} == "sh" ]] ; then
 		einfo "sh is a generic shell, using bash instead"
 		theshell="bash"
@@ -1341,6 +1346,8 @@ bootstrap_bzip2() {
 }
 
 bootstrap_libressl() {
+	bootstrap_simple libressl 3.2.4 gz \
+		https://ftp.openbsd.org/pub/OpenBSD/LibreSSL || \
 	bootstrap_simple libressl 2.8.3 gz \
 		https://ftp.openbsd.org/pub/OpenBSD/LibreSSL
 }
@@ -3070,9 +3077,9 @@ case ${CHOST} in
 	powerpc-*darwin*)
 		DARWIN_USE_GCC=1  # must use GCC, Clang is impossible
 		;;
-	arm64-*darwin*)
-		DARWIN_USE_GCC=0  # cannot use GCC yet (needs silicon support)
-		;;
+#	arm64-*darwin*)
+#		DARWIN_USE_GCC=0  # cannot use GCC yet (needs silicon support)
+#		;;
 	*-darwin*)
 		# normalise value of DARWIN_USE_GCC
 		case ${DARWIN_USE_GCC} in
