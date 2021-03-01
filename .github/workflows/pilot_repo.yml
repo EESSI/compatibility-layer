@@ -30,6 +30,9 @@ jobs:
               EESSI_ARCH: ${{matrix.EESSI_ARCH}}
               EESSI_VERSION: ${{matrix.EESSI_VERSION}}
           run: |
+              # check which Stratum 1 we're connected to
+              cvmfs_config stat -v pilot.eessi-hpc.org
+
               ls /cvmfs/pilot.eessi-hpc.org/${EESSI_VERSION}/compat/linux/${EESSI_ARCH}/startprefix
               if [ "${EESSI_ARCH}" == "x86_64" ]; then
                   /cvmfs/pilot.eessi-hpc.org/${EESSI_VERSION}/compat/linux/${EESSI_ARCH}/startprefix
