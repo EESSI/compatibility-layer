@@ -15,9 +15,6 @@ jobs:
         - ppc64le
         - x86_64
     steps:
-        - name: Check out software-layer repository
-          uses: actions/checkout@v2
-
         - name: Mount EESSI CernVM-FS pilot repository
           uses: cvmfs-contrib/github-action-cvmfs@main
           with:
@@ -38,5 +35,6 @@ jobs:
 
               ls /cvmfs/pilot.eessi-hpc.org/${EESSI_VERSION}/compat/linux/${EESSI_ARCH}/startprefix
               if [ "${EESSI_ARCH}" == "x86_64" ]; then
-                  /cvmfs/pilot.eessi-hpc.org/${EESSI_VERSION}/compat/linux/${EESSI_ARCH}/startprefix
+                # enter Prefix environment, list installed packages, and exit
+                /cvmfs/pilot.eessi-hpc.org/${EESSI_VERSION}/compat/linux/${EESSI_ARCH}/startprefix <<< "qlist -IRv; exit"
               fi
