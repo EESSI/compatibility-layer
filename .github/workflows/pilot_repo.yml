@@ -1,0 +1,40 @@
+# documentation: https://help.github.com/en/articles/workflow-syntax-for-github-actions
+name: Tests for EESSI pilot repo
+on: [push, pull_request]
+jobs:
+  pilot_repo:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        EESSI_VERSION:
+        - 2020.12
+        - 2021.02
+        EESSI_ARCH:
+        - aarch64
+        - ppc64le
+        - x86_64
+    steps:
+        - name: Mount EESSI CernVM-FS pilot repository
+          uses: cvmfs-contrib/github-action-cvmfs@main
+          with:
+              cvmfs_config_package: https://github.com/EESSI/filesystem-layer/releases/download/v0.2.3/cvmfs-config-eessi_0.2.3_all.deb
+              cvmfs_http_proxy: DIRECT
+              cvmfs_repositories: pilot.eessi-hpc.org
+
+        - name: Check compat layer in EESSI pilot repository
+          env:
+              EESSI_ARCH: ${{matrix.EESSI_ARCH}}
+              EESSI_VERSION: ${{matrix.EESSI_VERSION}}
+          run: |
+              # trigger automount
+              ls /cvmfs/pilot.eessi-hpc.org
+
+              # check which Stratum 1 we're connected to
+              cvmfs_config stat -v pilot.eessi-hpc.org
+
+              ls /cvmfs/pilot.eessi-hpc.org/${EESSI_VERSION}/compat/linux/${EESSI_ARCH}/startprefix
+              if [ "${EESSI_ARCH}" == "x86_64" ]; then
+                # enter Prefix environment, list installed packages, and exit
+                /cvmfs/pilot.eessi-hpc.org/${EESSI_VERSION}/compat/linux/${EESSI_ARCH}/startprefix <<< "qlist -IRv; exit"
+              fi
