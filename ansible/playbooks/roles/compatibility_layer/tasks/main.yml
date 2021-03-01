@@ -7,11 +7,11 @@
 
 - name: Check if a Prefix installation is found at the specified location
   stat:
-    path: "{{ gentoo_prefix_path }}/usr/bin/emerge"
-  register: emerge
+    path: "{{ gentoo_prefix_path }}/startprefix"
+  register: startprefix
 
 - include_tasks: install_prefix.yml
-  when: not emerge.stat.exists
+  when: not startprefix.stat.exists
 
 - name: Start transaction
   command: "cvmfs_server transaction {{ cvmfs_repository }}"
