@@ -16,7 +16,7 @@ jobs:
         - x86_64
     steps:
         - name: Install QEMU
-          if: env.EESSI_ARCH != 'x86_64'
+          if: matrix.EESSI_ARCH != 'x86_64'
           run: |
               sudo apt-get update
               sudo apt-get install qemu-user
