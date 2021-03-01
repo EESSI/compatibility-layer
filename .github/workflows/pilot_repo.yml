@@ -32,8 +32,6 @@ jobs:
         - name: Check compat layer in EESSI pilot repository
           env:
               EPREFIX: /cvmfs/pilot.eessi-hpc.org/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
-              EESSI_ARCH: ${{matrix.EESSI_ARCH}}
-              EESSI_VERSION: ${{matrix.EESSI_VERSION}}
           run: |
               # trigger automount
               echo '>> ls /cvmfs/pilot.eessi-hpc.org'
