@@ -15,6 +15,12 @@ jobs:
         - ppc64le
         - x86_64
     steps:
+        - name: Install QEMU
+          if: env.EESSI_ARCH != 'x86_64'
+          run: |
+              sudo apt-get update
+              sudo apt-get install qemu-user
+
         - name: Mount EESSI CernVM-FS pilot repository
           uses: cvmfs-contrib/github-action-cvmfs@main
           with:
@@ -24,17 +30,22 @@ jobs:
 
         - name: Check compat layer in EESSI pilot repository
           env:
+              EPREFIX: /cvmfs/pilot.eessi-hpc.org/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
               EESSI_ARCH: ${{matrix.EESSI_ARCH}}
               EESSI_VERSION: ${{matrix.EESSI_VERSION}}
           run: |
               # trigger automount
+              echo '>> ls /cvmfs/pilot.eessi-hpc.org'
               ls /cvmfs/pilot.eessi-hpc.org
 
               # check which Stratum 1 we're connected to
+              echo '>> cvmfs_config stat -v pilot.eessi-hpc.org'
               cvmfs_config stat -v pilot.eessi-hpc.org
 
-              ls /cvmfs/pilot.eessi-hpc.org/${EESSI_VERSION}/compat/linux/${EESSI_ARCH}/startprefix
-              if [ "${EESSI_ARCH}" == "x86_64" ]; then
-                # enter Prefix environment, list installed packages, and exit
-                /cvmfs/pilot.eessi-hpc.org/${EESSI_VERSION}/compat/linux/${EESSI_ARCH}/startprefix <<< "qlist -IRv; exit"
-              fi
+              echo '>> ls ${EPREFIX}/startprefix'
+              ls ${EPREFIX}/startprefix
+
+              # enter Prefix environment, list installed packages, and exit
+              # this magically works, even for non-x86_64 architectures, thanks to QEMU \o/
+              echo '>> ${EPREFIX}/startprefix <<< "which bash; qlist -IRv; exit"'
+              ${EPREFIX}/startprefix <<< "which bash; qlist -IRv; exit"
