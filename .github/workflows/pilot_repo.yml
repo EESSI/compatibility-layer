@@ -30,6 +30,9 @@ jobs:
               EESSI_ARCH: ${{matrix.EESSI_ARCH}}
               EESSI_VERSION: ${{matrix.EESSI_VERSION}}
           run: |
+              # trigger automount
+              ls /cvmfs/pilot.eessi-hpc.org
+
               # check which Stratum 1 we're connected to
               cvmfs_config stat -v pilot.eessi-hpc.org
 
