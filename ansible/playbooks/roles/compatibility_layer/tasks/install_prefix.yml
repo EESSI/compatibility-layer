@@ -48,7 +48,7 @@
     - build_prefix
 
 - name: "Check for sufficient disk space in {{ gentoo_prefix_path }}"
-    shell: "df {{ gentoo_prefix_path }} --output\=avail | tail -1"
+    shell: "df {{ gentoo_prefix_path }} --output=avail | tail -1"
     register: prefix_path_free_space
   tags:
     - build_prefix
