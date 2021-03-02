@@ -6,6 +6,7 @@
     noreplace: no
     oneshot: yes
   become: no
+  when: eessi_host_os == "linux"
 
 - name: Install package set {{ package_sets }}
   portage:
