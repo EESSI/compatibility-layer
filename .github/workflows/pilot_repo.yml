@@ -57,4 +57,4 @@ jobs:
         - name: Run BATS test suite
           env:
               EESSI_COMPAT_DIR: /cvmfs/pilot.eessi-hpc.org/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
-          run: bats ./test
+          run: bats ./test/
