@@ -1,5 +1,12 @@
 # Install a specified list of sets and packages.
 ---
+- name: Reinstall glibc with the user-defined-trusted-dirs option
+  portage:
+    package: sys-libs/glibc
+    noreplace: no
+    oneshot: yes
+  become: no
+
 - name: Install package set {{ package_sets }}
   portage:
     package: "@{{ item }}"
