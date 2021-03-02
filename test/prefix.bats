@@ -43,6 +43,7 @@ run_prefix() {
   [ "$status" -eq 0 ]
 }
 
+# TODO: change path for 2021.02
 @test "source Lmod init file and run module avail" {
   run_prefix "source ${EESSI_COMPAT_DIR}/usr/lmod/lmod/init/profile && module avail"
   [ "$status" -eq 0 ]
