@@ -48,3 +48,13 @@ jobs:
               # this magically works, even for non-x86_64 architectures, thanks to QEMU \o/
               echo '>> ${EPREFIX}/startprefix <<< "which bash; qlist -IRv; exit"'
               ${EPREFIX}/startprefix <<< "which bash; qlist -IRv; exit"
+
+        - name: Setup BATS
+          uses: mig4/setup-bats@v1
+          with:
+            bats-version: 1.2.1
+
+        - name: Run BATS test suite
+          env:
+              EESSI_COMPAT_DIR: /cvmfs/pilot.eessi-hpc.org/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
+          run: bats ./test
