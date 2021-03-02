@@ -62,3 +62,13 @@
   changed_when: True
   tags:
     - build_prefix
+
+- name: "Check if startprefix script has been created"
+  stat:
+    path: "{{ gentoo_prefix_path }}/startprefix"
+  register: startprefix
+
+- name: "Fail if startprefix script has not been created"
+  fail:
+    msg: "The resulting Gentoo Prefix installation does not have a startprefix script. Something went wrong!"
+  when: not startprefix.stat.exists
