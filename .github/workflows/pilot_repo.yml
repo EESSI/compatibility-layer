@@ -54,6 +54,9 @@ jobs:
           with:
             bats-version: 1.2.1
 
+        - name: Check out code
+          uses: actions/checkout@v2
+
         - name: Run BATS test suite
           env:
               EESSI_COMPAT_DIR: /cvmfs/pilot.eessi-hpc.org/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
