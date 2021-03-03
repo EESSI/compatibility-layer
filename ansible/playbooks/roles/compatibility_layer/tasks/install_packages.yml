@@ -13,7 +13,7 @@
     oneshot: yes
   become: no
   environment:
-    EXTRA_EMAKE="user-defined-trusted-dirs={{ prefix_user_defined_trusted_dir }}"
+    EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dir }}"
   when: eessi_host_os == "linux" and glibc_reinstalled.rc != 0
 
 - name: Install package set {{ package_sets }}
