@@ -77,18 +77,3 @@
     force: yes
   with_items:
     "{{ find_configs.results | rejectattr('files', 'equalto', []) | map(attribute='files') | list }}"
-
-- name: Check if glibc has already been (re)installed with the user-defined-trusted-dirs option
-  command: "grep {{ prefix_user_defined_trusted_dir }} {{ gentoo_prefix_path }}/usr/lib64/libc.a"
-  register: glibc_reinstalled
-  when: eessi_host_os == "linux"
-
-- name: Reinstall glibc with the user-defined-trusted-dirs option
-  portage:
-    package: sys-libs/glibc
-    noreplace: no
-    oneshot: yes
-  become: no
-  environment:
-    EXTRA_EMAKE="user-defined-trusted-dirs={{ prefix_user_defined_trusted_dir }}"
-  when: eessi_host_os == "linux" and glibc_reinstalled.rc != 0
