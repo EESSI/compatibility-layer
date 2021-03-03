@@ -1,7 +1,7 @@
 # Install a specified list of sets and packages.
 ---
 - name: Check if glibc has already been (re)installed with the user-defined-trusted-dirs option
-  command: "grep {{ prefix_user_defined_trusted_dir }} {{ gentoo_prefix_path }}/usr/lib64/libc.a"
+  shell: "strings {{ gentoo_prefix_path }}/usr/lib64/libc.a | grep {{ prefix_user_defined_trusted_dir }}"
   register: glibc_reinstalled
   when: eessi_host_os == "linux"
   failed_when: glibc_reinstalled.rc >= 2
