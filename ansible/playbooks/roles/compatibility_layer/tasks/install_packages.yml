@@ -4,6 +4,7 @@
   command: "grep {{ prefix_user_defined_trusted_dir }} {{ gentoo_prefix_path }}/usr/lib64/libc.a"
   register: glibc_reinstalled
   when: eessi_host_os == "linux"
+  failed_when: glibc_reinstalled.rc >= 2
 
 - name: Reinstall glibc with the user-defined-trusted-dirs option
   portage:
