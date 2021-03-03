@@ -16,6 +16,7 @@ cvmfs_repository: pilot.eessi-hpc.org
 gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}
 
 # How to build the prefix
+prefix_required_space: 15 GB
 prefix_snapshot_url: http://cvmfs-s0.eessi-hpc.org/snapshots
 prefix_snapshot_version: 20210222
 prefix_python_targets: python3_8
