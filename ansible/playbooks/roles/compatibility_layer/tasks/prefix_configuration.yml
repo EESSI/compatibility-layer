@@ -9,3 +9,13 @@
     state: present
   with_items: "{{ prefix_locales }}"
   notify: Generate locales
+
+- name: Reinstall glibc with the user-defined-trusted-dirs option
+  portage:
+    package: sys-libs/glibc
+    noreplace: no
+    oneshot: yes
+  become: no
+  environment:
+    EXTRA_EMAKE="user-defined-trusted-dirs={{ prefix_user_defined_trusted_dir }}"
+  when: eessi_host_os == "linux"
