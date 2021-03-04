@@ -54,6 +54,9 @@ symlinks_to_host:
   # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
   - /etc/passwd 
 
+  # required to ensure that hosts specified in the host's hosts file can be resolved by tools in the Prefix
+  - /etc/hosts
+
   # required to ensure name-service information is taken from the right source (e.g. ldap)
   - /etc/nsswitch.conf
 
@@ -69,7 +72,6 @@ symlinks_to_host:
   # required if SSSD is used in nsswitch.conf
   - /lib64/libnss_sss.so.2
 
-#  - /etc/hosts
 #  - /var/lib/munge
 #  - /var/lib/unbound
 #  - /var/lib/VirtualGL
