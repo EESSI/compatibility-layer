@@ -1,6 +1,6 @@
 # Defaults file for the compatibility layer role.
 ---
-eessi_version: "2021.02"
+eessi_version: "2021.03"
 
 custom_overlays:
   - name: eessi
