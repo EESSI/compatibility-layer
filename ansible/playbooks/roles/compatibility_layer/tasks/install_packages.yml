@@ -1,19 +1,26 @@
 # Install a specified list of sets and packages.
 ---
-- name: Check if glibc has already been (re)installed with the user-defined-trusted-dirs option
+- name: Find all strings in libc library
   command: "strings {{ gentoo_prefix_path }}/usr/lib64/libc.a"
-  register: glibc_reinstalled
+  register: libc_strings
   when: eessi_host_os == "linux"
 
-- name: Reinstall glibc with the user-defined-trusted-dirs option
+- name: Find user defined trusted dirs in libc strings output
+  set_fact: match='{{ libc_strings.stdout | regex_search("\n" + item + "/?\n") | default('', True) | string | length>0 }}'
+  with_items: "{{ prefix_user_defined_trusted_dirs }}"
+  register: trusted_dirs_in_libc
+
+- name: (re)install glibc with the user-defined-trusted-dirs option
   portage:
     package: sys-libs/glibc
     noreplace: no
     oneshot: yes
   become: no
   environment:
-    EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dir }}"
-  when: eessi_host_os == "linux" and glibc_reinstalled.stdout | regex_search("^" + prefix_user_defined_trusted_dir + "/?$")
+    EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
+  when:
+    - eessi_host_os == "linux"
+    - trusted_dirs_in_libc.results | selectattr('ansible_facts.match', 'equalto', False) | list | length>0
 
 - name: Install package set {{ package_sets }}
   portage:
