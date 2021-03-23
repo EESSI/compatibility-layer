@@ -10,7 +10,7 @@
   with_items: "{{ prefix_user_defined_trusted_dirs }}"
   register: trusted_dirs_in_libc
 
-- name: (re)install glibc with the user-defined-trusted-dirs option
+- name: (Re)install glibc with the user-defined-trusted-dirs option
   portage:
     package: sys-libs/glibc
     noreplace: no
