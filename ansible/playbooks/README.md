@@ -43,7 +43,7 @@ Before running the playbook, make sure the following settings are correct, and o
 | prefix_snapshot_url | Directory (served over http(s)) containing snapshot files |
 | prefix_snapshot_version | Date (`YYYYMMDD`) of the Portage snapshot file for the Prefix installation |
 | prefix_python_targets | String consisting of [Gentoo Python targets](https://wiki.gentoo.org/wiki/Project:Python/PYTHON_TARGETS) Python targets used for the Prefix installation |
-| prefix_user_defined_trusted_dir | Path to the user defined trusted dir for glibc |
+| prefix_user_defined_trusted_dirs | List of paths to the user defined trusted dirs for glibc |
 | prefix_singularity_command | Singularity command for launching the container with the bootstrap script |
 | prefix_source | Singularity container path used for the Prefix installtion |
 | prefix_source_options | Arguments to be passed to the Prefix bootstrap script |
