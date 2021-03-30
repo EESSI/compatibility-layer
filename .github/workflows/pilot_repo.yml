@@ -77,7 +77,12 @@ jobs:
         - name: GitHub Action for pytest
           uses: cclauss/GitHub-Action-for-pytest@master
           with:
-            args: pytest --eessi-version=${{matrix.EESSI_VERSION}} --eessi-arch=${{matrix.EESSI_ARCH}} ${{github.workspace}}/test
+            args: |
+              ls ${{github.workspace}}
+              ls $GITHUB_WORKSPACE
+              ls /github/workspace
+              pwd
+              pytest --eessi-version=${{matrix.EESSI_VERSION}} --eessi-arch=${{matrix.EESSI_ARCH}} ${{github.workspace}}/test
 
 
 #        - name: Run BATS test suite
