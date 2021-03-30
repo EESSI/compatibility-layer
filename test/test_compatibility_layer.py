@@ -53,7 +53,7 @@ def test_eessi_set_installation(eessi_compat_layer_path, eessi_arch, eessi_os, e
     set_path = os.path.join(eessi_compat_layer_path, 'etc', 'portage', 'sets', set_filename)
     with open(set_path, 'r') as setfile:
         packages = setfile.read().strip().split('\n')
-        if package != ['']:
+        if packages != ['']:
             set_packages = [package[1:] if package.startwith('=') else package for package in packages]
 
     installed_packages = run_prefix('qlist -IRv').output
