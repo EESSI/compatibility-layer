@@ -69,6 +69,11 @@ jobs:
         - name: Check out code
           uses: actions/checkout@v2
 
+        - name: debug
+          run: |
+            ls -l ${{github.workspace}}
+            ls -l ${{github.workspace}}/test
+
         - name: GitHub Action for pytest
           uses: cclauss/GitHub-Action-for-pytest@master
           with:
