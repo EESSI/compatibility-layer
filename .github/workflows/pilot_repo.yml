@@ -15,6 +15,8 @@ jobs:
         - aarch64
         - ppc64le
         - x86_64
+        python:
+        - 3.8
     steps:
         - name: Install QEMU
           if: matrix.EESSI_ARCH != 'x86_64'
@@ -49,15 +51,31 @@ jobs:
               echo '>> ${EPREFIX}/startprefix <<< "which bash; qlist -IRv; exit"'
               ${EPREFIX}/startprefix <<< "which bash; qlist -IRv; exit"
 
-        - name: Setup BATS
-          uses: mig4/setup-bats@v1
-          with:
-            bats-version: 1.2.1
+#        - name: set up Python
+#          uses: actions/setup-python@v1
+#          with:
+#            python-version: ${{matrix.python}}
+#            architecture: x64
+
+#        - name: install Python packages
+#          run: |
+#            pip install pytest
+
+#        - name: Setup BATS
+#          uses: mig4/setup-bats@v1
+#          with:
+#            bats-version: 1.2.1
 
         - name: Check out code
           uses: actions/checkout@v2
 
-        - name: Run BATS test suite
-          env:
-              EESSI_COMPAT_DIR: /cvmfs/pilot.eessi-hpc.org/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
-          run: bats -r ${{github.workspace}}/test/
+        - name: GitHub Action for pytest
+          uses: cclauss/GitHub-Action-for-pytest@master
+          with:
+            args: pytest --eessi-version=${{matrix.EESSI_VERSION}} --eessi-arch=${{matrix.EESSI_ARCH}} ./test
+
+
+#        - name: Run BATS test suite
+#          env:
+#              EESSI_COMPAT_DIR: /cvmfs/pilot.eessi-hpc.org/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
+#          run: bats -r ${{github.workspace}}/test/
