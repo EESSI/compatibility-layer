@@ -10,7 +10,7 @@ jobs:
         EESSI_VERSION:
         # note: use string quotes here, to avoid values being interpreted as floating point values...
         - '2020.12'
-        - '2021.02'
+        - '2021.03'
         EESSI_ARCH:
         - aarch64
         - ppc64le
