@@ -17,6 +17,10 @@ jobs:
         - x86_64
         python:
         - 3.8
+        exclude:
+          # We don't have a compatibility layer for pcc64le in 2021.03 yet
+          - EESSI_VERSION: 2021.03
+            EESSI_ARCH: ppc64le
     steps:
         - name: Check out code
           uses: actions/checkout@v2
