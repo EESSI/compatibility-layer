@@ -24,10 +24,15 @@ def test_whoami():
     assert run_prefix('whoami').output == run_local('whoami').output
 
 
-def test_archspec(eessi_compat_layer_path):
+def test_archspec(eessi_compat_layer_path, eessi_arch):
     """Test the archspec installation/command."""
     assert run_prefix('which archspec').output.startswith(eessi_compat_layer_path)
-    assert run_prefix('archspec cpu').exit_code == 0
+    if eessi_arch == 'ppc64le' and os.uname().machine != 'ppc64le':
+        # Running in an emulated ppc64le mode (QEMU), which will confuse archspec (due to an invalid /proc/cpuinfo).
+        # Only run archspec --version in this case.
+        assert run_prefix('archspec --version').exit_code == 0
+    else:
+        assert run_prefix('archspec cpu').exit_code == 0
 
 
 def test_lmod(eessi_compat_layer_path, eessi_version):
