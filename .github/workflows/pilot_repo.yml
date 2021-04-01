@@ -69,4 +69,4 @@ jobs:
             pip install pytest
 
         - name: Run pytest test suite
-          run: pytest --eessi-version=${{matrix.EESSI_VERSION}} --eessi-arch=${{matrix.EESSI_ARCH}} ./test/
+          run: pytest -v --eessi-version=${{matrix.EESSI_VERSION}} --eessi-arch=${{matrix.EESSI_ARCH}} ./test/
