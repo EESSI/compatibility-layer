@@ -10,10 +10,10 @@ jobs:
         EESSI_VERSION:
         # note: use string quotes here, to avoid values being interpreted as floating point values...
         - '2020.12'
-        - '2021.02'
+        - '2021.03'
         EESSI_ARCH:
         - aarch64
-        - ppc64le
+        #- ppc64le
         - x86_64
     steps:
         - name: Install QEMU
@@ -25,7 +25,7 @@ jobs:
         - name: Mount EESSI CernVM-FS pilot repository
           uses: cvmfs-contrib/github-action-cvmfs@main
           with:
-              cvmfs_config_package: https://github.com/EESSI/filesystem-layer/releases/download/v0.2.3/cvmfs-config-eessi_0.2.3_all.deb
+              cvmfs_config_package: https://github.com/EESSI/filesystem-layer/releases/download/latest/cvmfs-config-eessi_latest_all.deb
               cvmfs_http_proxy: DIRECT
               cvmfs_repositories: pilot.eessi-hpc.org
 
