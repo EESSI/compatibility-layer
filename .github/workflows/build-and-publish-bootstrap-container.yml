@@ -3,11 +3,9 @@ on:
   push:
     branches:
       - main
-      - autobuild_bootstrap_container
     paths:
       - Dockerfile.bootstrap-prefix-centos8
       - bootstrap-prefix.sh
-      - .github/workflows/build-and-publish-bootstrap-container.yml
 
   pull_request:
     branches:
@@ -15,7 +13,6 @@ on:
     paths:
       - Dockerfile.bootstrap-prefix-centos8
       - bootstrap-prefix.sh
-      - .github/workflows/build-and-publish-bootstrap-container.yml
  
 jobs:
   build_and_publish:
