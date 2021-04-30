@@ -64,9 +64,9 @@ jobs:
             python-version: ${{matrix.python}}
             architecture: x64
 
-        - name: Install pytest
+        - name: Install ReFrame
           run: |
-            pip install pytest
+            pip install reframe-hpc
 
-        - name: Run pytest test suite
-          run: pytest -v --eessi-version=${{matrix.EESSI_VERSION}} --eessi-arch=${{matrix.EESSI_ARCH}} ./test/
+        - name: Run ReFrame test suite
+          run: reframe -r -v -c ./test/compat_layer.py
