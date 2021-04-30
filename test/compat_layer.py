@@ -8,9 +8,15 @@ class RunInGentooPrefixTestError(rfm.core.exceptions.ReframeError):
 
 
 class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
-    eessi_version = parameter(['2020.12', '2021.03'])
-    eessi_arch = parameter(['aarch64', 'x86_64'])
-    eessi_os = parameter(['linux'])
+    eessi_version = parameter(
+        os.environ.get('EESSI_VERSION', '2020.12,2021.03').split(',')
+    )
+    eessi_arch = parameter(
+        os.environ.get('EESSI_ARCH', 'aarch64,x86_64').split(',')
+    )
+    eessi_os = parameter(
+        os.environ.get('EESSI_OS', 'linux').split(',')
+    )
     eessi_repo_dir = '/cvmfs/pilot.eessi-hpc.org'
 
     def __init__(self):
