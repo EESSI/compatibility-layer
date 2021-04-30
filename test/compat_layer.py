@@ -64,9 +64,7 @@ class ToolsAvailableTest(RunInGentooPrefixTest):
         super().__init__()
         self.descr = 'Verify that some required tools are available'
         self.command = f'which {self.tool}'
-        self.sanity_patterns = sn.all([
-            sn.assert_found(r'%s/.*/%s' % (self.compat_dir, self.tool), self.stdout),
-        ])
+        self.sanity_patterns = sn.assert_found(r'%s/.*/%s' % (self.compat_dir, self.tool), self.stdout)
 
 
 @rfm.simple_test
@@ -75,9 +73,7 @@ class RunEmergeTest(RunInGentooPrefixTest):
         super().__init__()
         self.descr = 'Verify that emerge can be run'
         self.command = 'emerge --version'
-        self.sanity_patterns = sn.all([
-            sn.assert_eq(self.exit_code, 0),
-        ])
+        self.sanity_patterns = sn.assert_eq(self.exit_code, 0)
 
 
 @rfm.simple_test
@@ -86,9 +82,7 @@ class RunEqueryTest(RunInGentooPrefixTest):
         super().__init__()
         self.descr = 'Verify that equiry can be run'
         self.command = 'equery --version'
-        self.sanity_patterns = sn.all([
-            sn.assert_eq(self.exit_code, 0),
-        ])
+        self.sanity_patterns = sn.assert_eq(self.exit_code, 0)
 
 
 @rfm.simple_test
@@ -98,9 +92,7 @@ class ArchspecTest(RunInGentooPrefixTest):
         super().__init__()
         self.descr = 'Verify that archspec can be run'
         self.command = 'archspec cpu'
-        self.sanity_patterns = sn.all([
-            sn.assert_eq(self.exit_code, 0),
-        ])
+        self.sanity_patterns = sn.assert_eq(self.exit_code, 0)
 
 
 @rfm.simple_test
@@ -180,7 +172,7 @@ class SymlinksToHostFilesTest(RunInGentooPrefixTest):
     def __init__(self):
         # the etc/hosts symlink was added in 2021 versions
         self.skip_if(self.symlink_to_host == 'etc/hosts' and self.eessi_version.startswith('2020'))
-        
+
         super().__init__()
         self.descr = 'Verify that all required symlinks to host files have been created.'
         symlink_path = os.path.join(self.compat_dir, self.symlink_to_host)
