@@ -1,4 +1,5 @@
 import os
+import platform
 import reframe as rfm
 import reframe.utility.sanity as sn
 
@@ -12,7 +13,7 @@ class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
         os.environ.get('EESSI_VERSION', '2020.12,2021.03').split(',')
     )
     eessi_arch = parameter(
-        os.environ.get('EESSI_ARCH', 'aarch64,x86_64').split(',')
+        os.environ.get('EESSI_ARCH', platform.machine()).split(',')
     )
     eessi_os = parameter(
         os.environ.get('EESSI_OS', 'linux').split(',')
