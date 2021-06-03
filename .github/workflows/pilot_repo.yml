@@ -67,7 +67,7 @@ jobs:
 
         - name: Install ReFrame
           run: |
-            pip install reframe-hpc
+            pip install reframe-hpc requests
 
         - name: Run ReFrame test suite
           run: |
