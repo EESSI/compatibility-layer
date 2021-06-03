@@ -35,7 +35,7 @@ jobs:
         - name: Mount EESSI CernVM-FS pilot repository
           uses: cvmfs-contrib/github-action-cvmfs@main
           with:
-              cvmfs_config_package: https://github.com/EESSI/filesystem-layer/releases/download/v0.2.3/cvmfs-config-eessi_0.2.3_all.deb
+              cvmfs_config_package: https://github.com/EESSI/filesystem-layer/releases/download/latest/cvmfs-config-eessi_latest_all.deb
               cvmfs_http_proxy: DIRECT
               cvmfs_repositories: pilot.eessi-hpc.org
 

@@ -1,6 +1,6 @@
 # Defaults file for the compatibility layer role.
 ---
-eessi_version: "2021.02"
+eessi_version: "2021.03"
 
 custom_overlays:
   - name: eessi
@@ -16,9 +16,13 @@ cvmfs_repository: pilot.eessi-hpc.org
 gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}
 
 # How to build the prefix
+prefix_required_space: 15 GB
 prefix_snapshot_url: http://cvmfs-s0.eessi-hpc.org/snapshots
-prefix_snapshot_version: 20210222
+prefix_snapshot_version: 20210322
 prefix_python_targets: python3_8
+prefix_user_defined_trusted_dirs:
+  - "/opt/eessi/{{ eessi_version }}/lib"
+  - "/opt/eessi/lib"
 prefix_singularity_command: "singularity run -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
 prefix_source: "docker://eessi/bootstrap-prefix:centos8-{{ eessi_host_arch }}"
 prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
@@ -52,6 +56,9 @@ symlinks_to_host:
   # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
   - /etc/passwd 
 
+  # required to ensure that hosts specified in the host's hosts file can be resolved by tools in the Prefix
+  - /etc/hosts
+
   # required to ensure name-service information is taken from the right source (e.g. ldap)
   - /etc/nsswitch.conf
 
@@ -67,7 +74,6 @@ symlinks_to_host:
   # required if SSSD is used in nsswitch.conf
   - /lib64/libnss_sss.so.2
 
-#  - /etc/hosts
 #  - /var/lib/munge
 #  - /var/lib/unbound
 #  - /var/lib/VirtualGL

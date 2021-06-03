@@ -47,6 +47,20 @@
   tags:
     - build_prefix
 
+- name: "Check for sufficient disk space in {{ gentoo_prefix_path }}"
+  command: "df {{ gentoo_prefix_path }} --output=avail"
+  register: prefix_path_free_space
+  changed_when: True
+  tags:
+    - build_prefix
+
+- name: "Fail if there is not sufficient available disk space in {{ gentoo_prefix_path }}"
+  fail:
+    msg: "The Gentoo Prefix installation directory ({{ gentoo_prefix_path }}) does not have sufficient available disk space ({{ prefix_required_space }})."
+  when: (prefix_path_free_space.stdout_lines|last|float * 1024) is lt (prefix_required_space|human_to_bytes)
+  tags:
+    - build_prefix
+
 - name: "Give {{ username_on_host.stdout }} recursive user and group ownership of {{ gentoo_prefix_path }}"
   file:
     dest: "{{ gentoo_prefix_path }}"

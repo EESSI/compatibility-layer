@@ -77,4 +77,3 @@
     force: yes
   with_items:
     "{{ find_configs.results | rejectattr('files', 'equalto', []) | map(attribute='files') | list }}"
-
