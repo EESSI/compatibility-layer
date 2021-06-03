@@ -9,20 +9,19 @@ jobs:
       matrix:
         EESSI_VERSION:
         # note: use string quotes here, to avoid values being interpreted as floating point values...
-        - '2020.12'
         - '2021.03'
         EESSI_ARCH:
         - aarch64
-        - ppc64le
+        #- ppc64le
         - x86_64
         EESSI_OS:
         - linux
         python:
         - 3.8
-        exclude:
+        #exclude:
           # We don't have a compatibility layer for pcc64le in 2021.03 yet
-          - EESSI_VERSION: 2021.03
-            EESSI_ARCH: ppc64le
+          #- EESSI_VERSION: 2021.03
+          #  EESSI_ARCH: ppc64le
     steps:
         - name: Check out code
           uses: actions/checkout@v2
