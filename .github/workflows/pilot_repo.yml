@@ -9,13 +9,23 @@ jobs:
       matrix:
         EESSI_VERSION:
         # note: use string quotes here, to avoid values being interpreted as floating point values...
-        - '2020.12'
         - '2021.03'
         EESSI_ARCH:
         - aarch64
         #- ppc64le
         - x86_64
+        EESSI_OS:
+        - linux
+        python:
+        - 3.8
+        #exclude:
+          # We don't have a compatibility layer for pcc64le in 2021.03 yet
+          #- EESSI_VERSION: 2021.03
+          #  EESSI_ARCH: ppc64le
     steps:
+        - name: Check out code
+          uses: actions/checkout@v2
+
         - name: Install QEMU
           if: matrix.EESSI_ARCH != 'x86_64'
           run: |
@@ -48,3 +58,20 @@ jobs:
               # this magically works, even for non-x86_64 architectures, thanks to QEMU \o/
               echo '>> ${EPREFIX}/startprefix <<< "which bash; qlist -IRv; exit"'
               ${EPREFIX}/startprefix <<< "which bash; qlist -IRv; exit"
+
+        - name: Set up Python
+          uses: actions/setup-python@v1
+          with:
+            python-version: ${{matrix.python}}
+            architecture: x64
+
+        - name: Install ReFrame
+          run: |
+            pip install reframe-hpc requests
+
+        - name: Run ReFrame test suite
+          run: |
+            export EESSI_ARCH=${{matrix.EESSI_ARCH}}
+            export EESSI_OS=${{matrix.EESSI_OS}}
+            export EESSI_VERSION=${{matrix.EESSI_VERSION}}
+            reframe -r -v -c ./test/compat_layer.py
