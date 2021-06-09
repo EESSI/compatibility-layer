@@ -93,7 +93,7 @@
     - sync_gentoo_projects_xml
     - sync_overlay_cache
 
-- name: Remove the old contents of the Gentoo overlay
+- name: Remove the old Gentoo overlay directory
   file:
     state: absent
     path: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
