@@ -75,6 +75,12 @@
       auto-sync = Yes
       clone-depth = 1
 
+- name: Create repo.postsync.d directory
+  file:
+    path: "{{ gentoo_prefix_path }}/etc/portage/repo.postsync.d"
+    state: directory
+    mode: '0755'
+
 - name: Add post-sync hooks for Gentoo overlay
   template:
     src: "{{ item }}.j2"
