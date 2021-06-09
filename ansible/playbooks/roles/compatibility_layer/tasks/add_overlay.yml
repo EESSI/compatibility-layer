@@ -75,6 +75,18 @@
       auto-sync = Yes
       clone-depth = 1
 
+- name: Add post-sync hooks for Gentoo overlay
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ gentoo_prefix_path }}/etc/portage/repo.postsync.d/{{ item }}"
+  with_items:
+    - sync_gentoo_cache
+    - sync_gentoo_dtd
+    - sync_gentoo_glsa
+    - sync_gentoo_news
+    - sync_gentoo_projects_xml
+    - sync_overlay_cache
+
 - name: Remove the old contents of the Gentoo overlay
   file:
     state: absent
