@@ -66,7 +66,7 @@
       [DEFAULT]
       main-repo = gentoo
       sync-git-pull-extra-opts = --quiet
-      
+
       [gentoo]
       priority  = 1
       location  = {{ gentoo_prefix_path }}/var/db/repos/gentoo
@@ -85,13 +85,14 @@
   template:
     src: "{{ item }}.j2"
     dest: "{{ gentoo_prefix_path }}/etc/portage/repo.postsync.d/{{ item }}"
+    mode: 0755
   with_items:
     - sync_gentoo_cache
     - sync_gentoo_dtd
     - sync_gentoo_glsa
     - sync_gentoo_news
-    - sync_gentoo_projects_xml
-    - sync_overlay_cache
+    #- sync_gentoo_projects_xml
+    #- sync_overlay_cache
 
 - name: Remove the old Gentoo overlay directory
   file:
