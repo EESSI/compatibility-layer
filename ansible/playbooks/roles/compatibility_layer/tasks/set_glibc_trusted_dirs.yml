@@ -26,7 +26,7 @@
   file:
     path: "{{ gentoo_prefix_path }}/etc/portage/env"
     state: directory
-    mode: '0755'
+    mode: 0755
 
 - name: Add env file for glibc to make sure the user-defined-trusted-dirs is always used
   copy:
