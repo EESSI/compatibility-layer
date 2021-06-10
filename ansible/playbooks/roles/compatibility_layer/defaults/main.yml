@@ -64,6 +64,9 @@ symlinks_to_host:
   # required to use the DNS resolver from the host (should be done automatically)
   - /etc/resolv.conf
 
+  # required to pick up the right timezone from the host
+  - /etc/localtime
+
   # required if Centrify is used in nsswitch.conf
   - /lib64/libnss_centrifydc.so.2
 
