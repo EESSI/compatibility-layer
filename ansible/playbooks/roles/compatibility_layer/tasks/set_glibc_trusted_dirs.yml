@@ -17,7 +17,7 @@
     oneshot: yes
   become: no
   environment:
-    EXTRA_EMAKE="user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
+    EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
   when:
     - eessi_host_os == "linux"
     - trusted_dirs_in_libc.results | selectattr('ansible_facts.match', 'equalto', False) | list | length>0
@@ -33,7 +33,7 @@
     dest: "{{ gentoo_prefix_path }}/etc/portage/env/glibc-user-defined-trusted-dirs.conf"
     mode: 0644
     content: |
-      EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
+      EXTRA_EMAKE="user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
 
 - name: Add glibc env file to package.env
   lineinfile:
