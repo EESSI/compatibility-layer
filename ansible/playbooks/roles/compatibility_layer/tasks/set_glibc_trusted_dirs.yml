@@ -31,6 +31,7 @@
 - name: Add env file for glibc to make sure the user-defined-trusted-dirs is always used
   copy:
     dest: "{{ gentoo_prefix_path }}/etc/portage/env/glibc-user-defined-trusted-dirs.conf"
+    mode: 0644
     content: |
       EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
 
