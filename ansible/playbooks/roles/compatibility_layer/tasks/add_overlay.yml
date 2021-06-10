@@ -82,8 +82,8 @@
     mode: '0755'
 
 - name: Add post-sync hooks for Gentoo overlay
-  template:
-    src: "{{ item }}.j2"
+  copy:
+    src: "{{ item }}"
     dest: "{{ gentoo_prefix_path }}/etc/portage/repo.postsync.d/{{ item }}"
     mode: 0755
   with_items:
