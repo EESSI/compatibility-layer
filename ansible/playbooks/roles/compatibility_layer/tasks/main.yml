@@ -27,6 +27,8 @@
         environment:
           PYTHON_TARGETS: "{{ prefix_python_targets }}"
 
+  - include_tasks: set_glibc_trusted_dirs.yml
+
   - include_tasks: install_packages.yml
 
   - include_tasks: create_host_symlinks.yml

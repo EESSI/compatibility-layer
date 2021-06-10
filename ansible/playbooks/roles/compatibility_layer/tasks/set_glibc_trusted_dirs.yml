@@ -1,0 +1,44 @@
+# Make sure that glibc is always compiled with a user-defined-trusted-dirs option
+---
+- name: Find all strings in libc library
+  command: "strings {{ gentoo_prefix_path }}/usr/lib64/libc.a"
+  register: libc_strings
+  when: eessi_host_os == "linux"
+
+- name: Find user defined trusted dirs in libc strings output
+  set_fact: match='{{ libc_strings.stdout | regex_search("\n" + item + "/?\n") | default('', True) | string | length>0 }}'
+  with_items: "{{ prefix_user_defined_trusted_dirs }}"
+  register: trusted_dirs_in_libc
+
+- name: (Re)install glibc with the user-defined-trusted-dirs option
+  portage:
+    package: sys-libs/glibc
+    noreplace: no
+    oneshot: yes
+  become: no
+  environment:
+    EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
+  when:
+    - eessi_host_os == "linux"
+    - trusted_dirs_in_libc.results | selectattr('ansible_facts.match', 'equalto', False) | list | length>0
+
+- name: Create portage env directory
+  file:
+    path: "{{ gentoo_prefix_path }}/etc/portage/env"
+    state: directory
+    mode: '0755'
+
+- name: Add env file for glibc to make sure the user-defined-trusted-dirs is always used
+  copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/env/glibc-user-defined-trusted-dirs.conf"
+    content: |
+      EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
+
+- name: Add glibc env file to package.env
+  lineinfile:
+    path: "{{ gentoo_prefix_path }}/etc/portage/package.env"
+    create: yes
+    mode: 0644
+    line: sys-libs/glibc glibc-user-defined-trusted-dirs.conf
+    state: present
+
