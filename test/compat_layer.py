@@ -194,9 +194,10 @@ class GentooOverlayGitTest(RunInGentooPrefixTest):
         self.descr = 'Verify that the Gentoo overlay is synced using git.'
         self.command = f'emerge --info'
 
+        gentoo_repo_dir = os.path.join(self.compat_dir, 'var', 'db', 'repos', 'gentoo')
         gentoo_git_repo_info = '''gentoo
-    location: /cvmfs/pilot.eessi-hpc.org/2021.06/compat/linux/x86_64/var/db/repos/gentoo
+    location: %s
     sync-type: git
-    sync-uri: https://github.com/gentoo/gentoo.git'''
+    sync-uri: https://github.com/gentoo/gentoo.git''' % gentoo_repo_dir
 
         self.sanity_patterns = sn.assert_found(gentoo_git_repo_info, self.stdout)
