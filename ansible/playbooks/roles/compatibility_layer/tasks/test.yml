@@ -17,6 +17,7 @@
     EESSI_OS: "{{ eessi_host_os }}"
     EESSI_ARCH: "{{ eessi_host_arch }}"
   register: reframe_cmd
+  changed_when: false
   failed_when: reframe_cmd.rc != 0
   tags:
     - test
