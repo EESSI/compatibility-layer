@@ -31,6 +31,10 @@
 
   - include_tasks: create_host_symlinks.yml
 
+  - include_tasks: test.yml
+    tags:
+      - test
+
   - name: Publish transaction
     command: "cvmfs_server publish {{ cvmfs_repository }}"
     when: cvmfs_start_transaction and cvmfs_publish_transaction
