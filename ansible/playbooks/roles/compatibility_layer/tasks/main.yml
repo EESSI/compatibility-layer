@@ -24,8 +24,6 @@
     args:
       apply:
         become: False
-        #environment:
-        #  PYTHON_TARGETS: "{{ prefix_python_targets }}"
 
   - include_tasks: install_packages.yml
 
