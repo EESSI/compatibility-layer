@@ -41,7 +41,7 @@ jobs:
 
       - name: Convert and store repository owner in lowercase
         run: |
-          echo REPOSITORY_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+          echo "REPOSITORY_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Build and push to GitHub Packages
         uses: docker/build-push-action@v2
