@@ -1,6 +1,6 @@
 # Defaults file for the compatibility layer role.
 ---
-eessi_version: "2021.03"
+eessi_version: "2021.06"
 
 custom_overlays:
   - name: eessi
@@ -17,9 +17,8 @@ gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/{{ eessi_version }}/compat/{{ 
 
 # How to build the prefix
 prefix_required_space: 15 GB
-prefix_snapshot_url: http://cvmfs-s0.eessi-hpc.org/snapshots
-prefix_snapshot_version: 20210322
-prefix_python_targets: python3_8
+prefix_snapshot_url: https://eessi-gentoo-snapshot.s3-eu-west-1.amazonaws.com
+prefix_snapshot_version: 20210607
 prefix_user_defined_trusted_dirs:
   - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
 prefix_singularity_command: "singularity run -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
@@ -27,7 +26,6 @@ prefix_source: "docker://ghcr.io/eessi/bootstrap-prefix:centos8"
 prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
 prefix_install: >-
     SINGULARITYENV_USE_CPU_CORES={{ ansible_processor_vcpus }}
-    SINGULARITYENV_PYTHON_TARGETS="{{ prefix_python_targets }}"
     SINGULARITYENV_CUSTOM_SNAPSHOT_URL="{{ prefix_snapshot_url }}"
     SINGULARITYENV_CUSTOM_SNAPSHOT_VERSION="{{ prefix_snapshot_version }}"
     {{ prefix_singularity_command }} {{ prefix_source }} {{ prefix_source_options }}
@@ -63,6 +61,9 @@ symlinks_to_host:
 
   # required to use the DNS resolver from the host (should be done automatically)
   - /etc/resolv.conf
+
+  # required to pick up the right timezone from the host
+  - /etc/localtime
 
   # required if Centrify is used in nsswitch.conf
   - /lib64/libnss_centrifydc.so.2
