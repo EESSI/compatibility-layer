@@ -183,7 +183,7 @@ class SymlinksToHostFilesTest(RunInGentooPrefixTest):
             sn.assert_found(f'\n/{self.symlink_to_host}\n', self.stdout),
         ])
 
-
+        
 @rfm.simple_test
 class GentooOverlayGitTest(RunInGentooPrefixTest):
     def __init__(self):
@@ -201,3 +201,29 @@ class GentooOverlayGitTest(RunInGentooPrefixTest):
     sync-uri: https://github.com/gentoo/gentoo.git''' % gentoo_repo_dir
 
         self.sanity_patterns = sn.assert_found(gentoo_git_repo_info, self.stdout)
+
+        
+@rfm.simple_test
+class GlibcEnvFileTest(RunInGentooPrefixTest):
+    def __init__(self):
+        # the glibc env file was added in 2021.06
+        self.skip_if(self.eessi_version == '2021.03')
+
+        super().__init__()
+        self.descr = 'Verify that the env file for sys-libs/glibc was created and is picked up by emerge.'
+        self.command = 'equery has --package glibc EXTRA_EMAKE'
+
+        trusted_dir = os.path.join(
+            self.eessi_repo_dir,
+            'host_injections',
+            self.eessi_version,
+            'compat',
+            self.eessi_os,
+            self.eessi_arch,
+            'lib'
+        )
+
+        self.sanity_patterns = sn.assert_found(
+            f'user-defined-trusted-dirs={trusted_dir}',
+            self.stdout
+        )

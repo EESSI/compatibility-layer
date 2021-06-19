@@ -7,10 +7,14 @@ on:
     branches: [ main ]
     paths:
     - 'ansible/playbooks/**'
+    - '.github/actions/install_compatibility_layer/**'
+    - '.github/workflows/install_compatibility_layer.yml'
   pull_request:
     branches: [ main ]
     paths:
     - 'ansible/playbooks/**'
+    - '.github/actions/install_compatibility_layer/**'
+    - '.github/workflows/install_compatibility_layer.yml'
 
 jobs:
   install_compat_layer:

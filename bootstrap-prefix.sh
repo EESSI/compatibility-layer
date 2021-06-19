@@ -282,7 +282,7 @@ configure_toolchain() {
 			;;
 	esac
 
-	return
+	return 0
 }
 
 bootstrap_setup() {
@@ -448,6 +448,12 @@ bootstrap_setup() {
 	is-rap && cat >> "${ROOT}"/etc/portage/make.profile/make.defaults <<-'EOF'
 	# For baselayout-prefix in stage2 only.
 	ACCEPT_KEYWORDS="~${ARCH}-linux"
+	EOF
+
+	# bug #788613 avoid gcc-11 during stage 2/3 prior sync/emerge -e
+	is-rap && cat >> "${ROOT}"/etc/portage/make.profile/package.mask <<-EOF
+	# during bootstrap mask, bug #788613
+	>=sys-devel/gcc-11
 	EOF
 
 	# Use package.use to disable in the portage tree to be shared between
@@ -1355,8 +1361,8 @@ bootstrap_libressl() {
 
 bootstrap_stage_host_gentoo() {
 	if ! is-rap ; then
-		einfo "Shortcut only supports prefix-standalone, but we are bootstrapping"
-		einfo "prefix-rpath. Do nothing."
+		einfo "Shortcut only supports prefix-standalone, but we "
+		einfo "are bootstrapping prefix-rpath.  Do nothing."
 		return 0
 	fi
 	
@@ -1447,6 +1453,7 @@ bootstrap_stage1() {
 	# we're working with now, bug #650284
 	[[ -x ${ROOT}/tmp/usr/bin/bash ]] \
 		|| (bootstrap_bash) || return 1
+
 	# Some host tools need to be wrapped to be useful for us.
 	# We put them in tmp/usr/local/bin, to not accidentally
 	# be identified as stage1-installed like in bug #615410.
@@ -1475,10 +1482,14 @@ bootstrap_stage1() {
 				# We need to direct the system gcc to find the system binutils.
 				cat >> "${ROOT}"/tmp/usr/local/bin/gcc <<-EOF
 					#! /bin/sh
-					PATH="${STAGE1_PATH}" export PATH
-					exec "\${0##*/}" "\$@"
+					PATH="${ORIGINAL_PATH}" export PATH
+					exec "$(type -P gcc)" "\$@"
 				EOF
-				cp "${ROOT}"/tmp/usr/local/bin/g{cc,++}
+				cat >> "${ROOT}"/tmp/usr/local/bin/g++ <<-EOF
+					#! /bin/sh
+					PATH="${ORIGINAL_PATH}" export PATH
+					exec "$(type -P g++)" "\$@"
+				EOF
 				chmod 755 "${ROOT}"/tmp/usr/local/bin/g{cc,++}
 			fi
 			;;
@@ -1905,7 +1916,11 @@ bootstrap_stage3() {
 	}
 
 	# pre_emerge_pkgs relies on stage 2 portage.
-	pre_emerge_pkgs() { is-rap && without_stack_emerge_pkgs "$@" || with_stack_emerge_pkgs "$@"; }
+	pre_emerge_pkgs() {
+		is-rap \
+			&& without_stack_emerge_pkgs "$@" \
+			|| with_stack_emerge_pkgs "$@"
+	}
 
 	# Some packages fail to properly depend on sys-apps/texinfo.
 	# We don't really need that package, so we fake it instead,
@@ -2768,7 +2783,6 @@ EOF
 		# location seems ok
 		break
 	done
-	export STAGE1_PATH=${PATH}
 	export PATH="$EPREFIX/usr/bin:$EPREFIX/bin:$EPREFIX/tmp/usr/bin:$EPREFIX/tmp/bin:$EPREFIX/tmp/usr/local/bin:${PATH}"
 
 	cat << EOF
@@ -3078,9 +3092,6 @@ case ${CHOST} in
 	powerpc-*darwin*)
 		DARWIN_USE_GCC=1  # must use GCC, Clang is impossible
 		;;
-#	arm64-*darwin*)
-#		DARWIN_USE_GCC=0  # cannot use GCC yet (needs silicon support)
-#		;;
 	*-darwin*)
 		# normalise value of DARWIN_USE_GCC
 		case ${DARWIN_USE_GCC} in
@@ -3115,6 +3126,9 @@ case ${CHOST}:${LC_ALL}:${LANG} in
 		esac
 	;;
 esac
+
+# save original path, need this before interactive, #788334
+ORIGINAL_PATH="${PATH}"
 
 # Just guessing a prefix is kind of scary.  Hence, to make it a bit less
 # scary, we force the user to give the prefix location here.  This also
