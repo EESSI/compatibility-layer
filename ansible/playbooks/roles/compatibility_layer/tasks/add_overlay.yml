@@ -92,7 +92,6 @@
     - sync_gentoo_glsa
     - sync_gentoo_news
     - sync_overlay_cache
-    #- sync_gentoo_projects_xml
 
 - name: Remove the old Gentoo overlay directory
   file:
