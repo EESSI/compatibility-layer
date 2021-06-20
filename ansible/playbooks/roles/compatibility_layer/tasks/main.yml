@@ -46,4 +46,4 @@
 
     - name: Exit because of failure
       fail:
-        msg: Task {{ ansible_failed_task }} failed, with result {{ansible_failed_result}}.
+        msg: "Task {{ ansible_failed_task }} failed, with result {{ ansible_failed_result }}."
