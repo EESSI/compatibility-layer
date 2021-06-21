@@ -19,14 +19,6 @@
     cmd: emerge gentoolkit
     creates: "{{ gentoo_prefix_path }}/usr/bin/equery"
 
-- name: Update world set if we are running in an existing Prefix installation
-  portage:
-    changed_use: yes
-    deep: yes
-    package: "@world"
-    update: yes
-  when: startprefix.stat.exists
-
 - name: Create repos directory
   file:
     path: "{{ gentoo_prefix_path }}/etc/portage/repos.conf"
@@ -125,3 +117,11 @@
     force: yes
   with_items:
     "{{ find_configs.results | rejectattr('files', 'equalto', []) | map(attribute='files') | list }}"
+
+- name: Update system set if we are running in an existing Prefix installation
+  portage:
+    changed_use: yes
+    deep: yes
+    package: "@system"
+    update: yes
+  when: startprefix.stat.exists
