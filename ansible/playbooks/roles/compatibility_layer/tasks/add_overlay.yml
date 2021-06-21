@@ -122,6 +122,6 @@
   portage:
     changed_use: yes
     deep: yes
-    package: "@system"
+    package: "@world"
     update: yes
   when: startprefix.stat.exists
