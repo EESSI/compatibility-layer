@@ -43,3 +43,7 @@
     - name: Abort transaction
       command: "cvmfs_server abort {{ cvmfs_repository }}"
       when: cvmfs_start_transaction and cvmfs_abort_transaction_on_failures
+
+    - name: Exit because of failure
+      fail:
+        msg: "Task {{ ansible_failed_task }} failed, with result {{ ansible_failed_result }}."
