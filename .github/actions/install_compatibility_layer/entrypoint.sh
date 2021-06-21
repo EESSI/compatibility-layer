@@ -6,7 +6,3 @@ cat << EOF > hosts
 EOF
 
 ansible-playbook -v --connection=local --inventory=hosts -e ansible_python_interpreter=python3 -e gentoo_prefix_path=$1 ${GITHUB_WORKSPACE}/ansible/playbooks/install.yml
-
-# A successful installation should at least have Lmod and archspec,
-# so let's  check if we can use them.
-source $1/usr/share/Lmod/init/profile && module avail && $1/usr/bin/archspec cpu

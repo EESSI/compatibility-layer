@@ -1,0 +1,23 @@
+# Run a ReFrame test suite to validate the correctness 
+# of the compatibility layer installation.
+---
+
+- name: Copy ReFrame test file
+  copy:
+    src: "{{ playbook_dir }}/../../test/compat_layer.py"
+    dest: /tmp/compat_layer.py
+    mode: 0644
+  tags:
+    - test
+
+- name: Run ReFrame tests
+  command: reframe -r -v -c /tmp/compat_layer.py
+  environment:
+    EESSI_VERSION: "{{ eessi_version }}"
+    EESSI_OS: "{{ eessi_host_os }}"
+    EESSI_ARCH: "{{ eessi_host_arch }}"
+  register: reframe_cmd
+  changed_when: false
+  failed_when: reframe_cmd.rc != 0
+  tags:
+    - test
