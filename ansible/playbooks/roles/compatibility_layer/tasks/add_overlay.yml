@@ -13,11 +13,20 @@
     path: /etc/group
     regexp: portage
     line: portage::250:portage
-
+    
 - name: Install equery command (dependency for the portage module)
   command:
     cmd: emerge gentoolkit
     creates: "{{ gentoo_prefix_path }}/usr/bin/equery"
+
+- name: Update system set if we are running in an existing Prefix installation
+  portage:
+    changed_use: yes
+    deep: yes
+    package: system
+    update: yes
+    
+  when: not startprefix.stat.exists
 
 - name: Create repos directory
   file:
