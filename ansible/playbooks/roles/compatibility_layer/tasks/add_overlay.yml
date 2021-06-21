@@ -13,7 +13,7 @@
     path: /etc/group
     regexp: portage
     line: portage::250:portage
-    
+
 - name: Install equery command (dependency for the portage module)
   command:
     cmd: emerge gentoolkit
@@ -25,7 +25,6 @@
     deep: yes
     package: system
     update: yes
-    
   when: not startprefix.stat.exists
 
 - name: Create repos directory
