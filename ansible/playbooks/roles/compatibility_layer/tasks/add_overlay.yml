@@ -19,11 +19,11 @@
     cmd: emerge gentoolkit
     creates: "{{ gentoo_prefix_path }}/usr/bin/equery"
 
-- name: Update system set if we are running in an existing Prefix installation
+- name: Update world set if we are running in an existing Prefix installation
   portage:
     changed_use: yes
     deep: yes
-    package: system
+    package: "@world"
     update: yes
   when: startprefix.stat.exists
 
