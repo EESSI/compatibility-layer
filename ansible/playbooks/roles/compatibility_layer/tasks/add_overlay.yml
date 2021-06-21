@@ -25,7 +25,7 @@
     deep: yes
     package: system
     update: yes
-  when: not startprefix.stat.exists
+  when: startprefix.stat.exists
 
 - name: Create repos directory
   file:
