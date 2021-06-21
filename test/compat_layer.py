@@ -11,7 +11,7 @@ class RunInGentooPrefixTestError(rfm.core.exceptions.ReframeError):
 class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
     eessi_repo_dir = '/cvmfs/pilot.eessi-hpc.org'
     eessi_version = parameter(
-        os.environ.get('EESSI_VERSION', os.readlink(os.path.join(eessi_repo_dir, 'latest'))).split(',')
+        os.environ.get('EESSI_VERSION', 'latest').split(',')
     )
     eessi_arch = parameter(
         os.environ.get('EESSI_ARCH', platform.machine()).split(',')
@@ -23,6 +23,9 @@ class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
     def __init__(self):
         self.valid_systems = ['*']
         self.valid_prog_environs = ['*']
+        if self.eessi_version == 'latest':
+            # resolve the "latest" symlink to the actual version
+            self.eessi_version = os.readlink(os.path.join(eessi_repo_dir, 'latest'))
         self.compat_dir = os.path.join(
             self.eessi_repo_dir,
             self.eessi_version,
