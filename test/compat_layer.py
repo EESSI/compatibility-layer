@@ -183,6 +183,26 @@ class SymlinksToHostFilesTest(RunInGentooPrefixTest):
             sn.assert_found(f'\n/{self.symlink_to_host}\n', self.stdout),
         ])
 
+        
+@rfm.simple_test
+class GentooOverlayGitTest(RunInGentooPrefixTest):
+    def __init__(self):
+        # the switch to git was made in pilot version 2021.06
+        self.skip_if(self.eessi_version == '2021.03')
+
+        super().__init__()
+        self.descr = 'Verify that the Gentoo overlay is synced using git.'
+        self.command = f'emerge --info'
+
+        gentoo_repo_dir = os.path.join(self.compat_dir, 'var', 'db', 'repos', 'gentoo')
+        gentoo_git_repo_info = '''gentoo
+    location: %s
+    sync-type: git
+    sync-uri: https://github.com/gentoo/gentoo.git''' % gentoo_repo_dir
+
+        self.sanity_patterns = sn.assert_found(gentoo_git_repo_info, self.stdout)
+
+        
 @rfm.simple_test
 class GlibcEnvFileTest(RunInGentooPrefixTest):
     def __init__(self):
