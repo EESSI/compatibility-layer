@@ -117,11 +117,3 @@
     force: yes
   with_items:
     "{{ find_configs.results | rejectattr('files', 'equalto', []) | map(attribute='files') | list }}"
-
-- name: Update system set if we are running in an existing Prefix installation
-  portage:
-    changed_use: yes
-    deep: yes
-    package: "@world"
-    update: yes
-  when: startprefix.stat.exists
