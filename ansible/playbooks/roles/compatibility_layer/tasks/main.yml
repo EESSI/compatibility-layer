@@ -5,6 +5,13 @@
 # - does some fixes and other modifications in the Prefix installation (e.g. setting the locale).
 ---
 
+- name: Fail if target CPU architecture does not match with build host
+  fail:
+    msg: |
+      Error: CPU architecture of build host {{ ansible_architecture }} does not match with
+      target CPU architecture {{ eessi_host_arch }}.
+  when: not(ansible_architecture == eessi_host_arch)
+
 - name: Check if a Prefix installation is found at the specified location
   stat:
     path: "{{ gentoo_prefix_path }}/startprefix"
