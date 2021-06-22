@@ -22,21 +22,21 @@ and made some modifications. See issue [#8](https://github.com/EESSI/compatibili
 
 You can run our version of the bootstrap script (see `bootstrap-prefix.sh`) inside the Singularity container by executing:
 ```
-singularity run docker://eessi/bootstrap-prefix:centos8-$(uname -m)
+singularity run docker://ghcr.io/eessi/bootstrap-prefix:centos8
 ```
 
 If you want to run your own version of the bootstrap script, use:
 ```
-singularity exec docker://eessi/bootstrap-prefix:centos8-$(uname -m) ./bootstrap-prefix.sh
+singularity exec docker://ghcr.io/eessi/bootstrap-prefix:centos8 ./bootstrap-prefix.sh
 ```
 Our version of the script allows you to pick a custom snapshot for the Portage tree. This can be done by setting `CUSTOM_SNAPSHOT_URL` to
 a URL that points to a directory, and setting `CUSTOM_SNAPSHOT_URL` to the name of a snapshot file (must be a bzip2 archive). For instance:
 ```
-env CUSTOM_SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT_VERSION="20201209" singularity run docker://eessi/bootstrap-prefix:centos8-$(uname -m)
+env CUSTOM_SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT_VERSION="20201209" singularity run docker://ghcr.io/eessi/bootstrap-prefix:centos8
 ```
 If you want to limit the supported/installed Python version(s), you can set the environment variable `PYTHON_TARGETS` before starting the bootstrap script. By only including a Python 3 version, you can prevent Python 2 from being installed, e.g.:
 ```
-env PYTHON_TARGETS="python3_8" CUSTOM_SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT_VERSION="20201126" singularity run docker://eessi/bootstrap-prefix:centos8-$(uname -m)
+env PYTHON_TARGETS="python3_8" CUSTOM_SNAPSHOT_URL="http://cvmfs-s0.eessi-hpc.org/snapshots" CUSTOM_SNAPSHOT_VERSION="20201126" singularity run docker://ghcr.io/eessi/bootstrap-prefix:centos8
 ```
 
 After starting the bootstrap have a long coffee...
