@@ -8,6 +8,13 @@
       The task for installing Gentoo Prefix currently only supports Linux distributions based on RHEL 8.
   when: not(ansible_os_family == "RedHat" and ansible_distribution_major_version is version("8", "=="))
 
+- name: Fail if target CPU architecture does not match with build host
+  fail:
+    msg: |
+      Error: CPU architecture of build host {{ ansible_architecture}} does not match with
+      target CPU architecture {{ eessi_host_arch }}.
+  when: not(ansible_architecture == eessi_host_arch)
+
 - name: "Install EPEL"
   yum:
     name:
