@@ -22,7 +22,7 @@ prefix_snapshot_version: 20210607
 prefix_user_defined_trusted_dirs:
   - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
 prefix_singularity_command: "singularity run -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
-prefix_source: "docker://eessi/bootstrap-prefix:centos8-{{ eessi_host_arch }}"
+prefix_source: "docker://ghcr.io/eessi/bootstrap-prefix:centos8"
 prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
 prefix_install: >-
     SINGULARITYENV_USE_CPU_CORES={{ ansible_processor_vcpus }}

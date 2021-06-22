@@ -1,4 +1,4 @@
-FROM docker.io/arm64v8/centos:8.2.2004
+FROM centos:8.2.2004
 
 COPY bootstrap-prefix.sh /usr/local/bin/bootstrap-prefix.sh
 
