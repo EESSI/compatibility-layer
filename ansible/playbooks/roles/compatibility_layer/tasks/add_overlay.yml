@@ -74,6 +74,7 @@
       sync-type = git
       auto-sync = Yes
       clone-depth = 1
+  register: copy_gentoo_git_config
 
 - name: Create repo.postsync.d directory
   file:
@@ -97,6 +98,7 @@
   file:
     state: absent
     path: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
+  when: copy_gentoo_git_config is changed
 
 - name: Sync the repositories
   portage:
