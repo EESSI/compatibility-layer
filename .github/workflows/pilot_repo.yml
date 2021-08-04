@@ -1,6 +1,12 @@
 # documentation: https://help.github.com/en/articles/workflow-syntax-for-github-actions
 name: Tests for EESSI pilot repo
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+    # run check daily at 08:00 UTC
+    # * is a special character in YAML so you have to quote this string
+    - cron: '0 14 * * *'
 jobs:
   pilot_repo:
     runs-on: ubuntu-20.04
