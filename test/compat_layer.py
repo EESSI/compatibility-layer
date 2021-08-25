@@ -62,7 +62,7 @@ class EchoTest(RunInGentooPrefixTest):
 
 @rfm.simple_test
 class ToolsAvailableTest(RunInGentooPrefixTest):
-    tool = parameter(['emerge', 'equery', 'archspec'])
+    tool = parameter(['archspec', 'emerge', 'equery', 'make', 'patch', 'patchelf'])
 
     def __init__(self):
         super().__init__()
