@@ -62,9 +62,11 @@ class EchoTest(RunInGentooPrefixTest):
 
 @rfm.simple_test
 class ToolsAvailableTest(RunInGentooPrefixTest):
-    tool = parameter(['emerge', 'equery', 'archspec'])
+    tool = parameter(['archspec', 'emerge', 'equery', 'make', 'patch', 'patchelf'])
 
     def __init__(self):
+        # patchelf is only installed since 2021.06 compat layer
+        self.skip_if(self.tool == 'patchelf' and self.eessi_version == '2021.03')
         super().__init__()
         self.descr = 'Verify that some required tools are available'
         self.command = f'which {self.tool}'
