@@ -25,7 +25,7 @@ class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
         self.valid_prog_environs = ['*']
         if self.eessi_version == 'latest':
             # resolve the "latest" symlink to the actual version
-            self.eessi_version = os.readlink(os.path.join(eessi_repo_dir, 'latest'))
+            self.eessi_version = os.readlink(os.path.join(self.eessi_repo_dir, 'latest'))
         self.compat_dir = os.path.join(
             self.eessi_repo_dir,
             self.eessi_version,

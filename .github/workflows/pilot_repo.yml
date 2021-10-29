@@ -15,7 +15,6 @@ jobs:
       matrix:
         EESSI_VERSION:
         # note: use string quotes here, to avoid values being interpreted as floating point values...
-        - '2021.03'
         - '2021.06'
         EESSI_ARCH:
         - aarch64
@@ -25,10 +24,6 @@ jobs:
         - linux
         python:
         - 3.8
-        exclude:
-          # compatibility layer for pcc64le in 2021.03 was skipped
-          - EESSI_VERSION: '2021.03'
-            EESSI_ARCH: ppc64le
     steps:
         - name: Check out code
           uses: actions/checkout@v2
