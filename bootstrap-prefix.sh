@@ -105,7 +105,7 @@ efetch() {
 
 configure_cflags() {
 	export CPPFLAGS="-I${ROOT}/tmp/usr/include"
-	
+
 	case ${CHOST} in
 		*-darwin*)
 			export LDFLAGS="-Wl,-search_paths_first -L${ROOT}/tmp/usr/lib"
@@ -203,9 +203,9 @@ configure_toolchain() {
 					;;
 				*"Apple clang version "*|*"Apple LLVM version "*)
 					# recent binutils-apple are hard to build (C++11
-					# features, and cmake buildsystem) so avoid going
+					# features, and cmake build system) so avoid going
 					# there, the system ld is good enough to bring us to
-					# stage3, after which system set will take care of
+					# stage3, after which the @system set will take care of
 					# the rest
 					linker=sys-devel/native-cctools
 					;;
@@ -319,8 +319,15 @@ bootstrap_setup() {
 			echo "CONFIG_SHELL=\"${ROOT}/bin/bash\""
 			echo "DISTDIR=\"${DISTDIR:-${ROOT}/var/cache/distfiles}\""
 			if is-rap ; then
-				echo "# sandbox does not work well on Prefix, bug 490246"
+				echo "# sandbox does not work well on Prefix, bug #490246"
 				echo 'FEATURES="${FEATURES} -usersandbox -sandbox"'
+				# bug #759424
+				[[ -n ${STABLE_PREFIX} ]] && \
+					echo 'ACCEPT_KEYWORDS="${ARCH} -~${ARCH}"'
+			else
+				echo "# last mirror is for Prefix specific distfiles, you"
+				echo "# might experience fetch failures if you remove it"
+				echo "GENTOO_MIRRORS=\"${GENTOO_MIRRORS} ${DISTFILES_PFX}\""
 			fi
 			if [[ ${FS_INSENSITIVE} == 1 ]] ; then
 				echo
@@ -337,10 +344,24 @@ bootstrap_setup() {
 	fi
 
 	if is-rap ; then
-		[[ -f ${ROOT}/etc/passwd ]] || getent passwd > "${ROOT}"/etc/passwd || \
-			ln -sf {,"${ROOT}"}/etc/passwd
-		[[ -f ${ROOT}/etc/group ]] || getent group > "${ROOT}"/etc/group || \
-			ln -sf {,"${ROOT}"}/etc/group
+		if [[ ! -f ${ROOT}/etc/passwd ]]; then
+			if grep -q $(id -un) /etc/passwd; then
+				ln -sf {,"${ROOT}"}/etc/passwd
+			else
+				getent passwd > "${ROOT}"/etc/passwd
+				# add user if it's not in /etc/passwd, bug #766417
+				getent passwd $(id -un) >> "${ROOT}"/etc/passwd
+			fi
+		fi
+		if [[ ! -f ${ROOT}/etc/group ]]; then
+			if grep -q $(id -gn) /etc/group; then
+				ln -sf {,"${ROOT}"}/etc/group
+			else
+				getent group > "${ROOT}"/etc/group
+				# add group if it's not in /etc/group, bug #766417
+				getent group $(id -gn) >> "${ROOT}"/etc/group
+			fi
+		fi
 		[[ -f ${ROOT}/etc/resolv.conf ]] || ln -s {,"${ROOT}"}/etc/resolv.conf
 		[[ -f ${ROOT}/etc/hosts ]] || cp {,"${ROOT}"}/etc/hosts
 		local profile_linux=default/linux/ARCH/17.0/prefix/$(profile-kernel)
@@ -361,14 +382,30 @@ bootstrap_setup() {
 			rev=${CHOST##*darwin}
 			profile="prefix/darwin/macos/10.$((rev - 4))/x64"
 			;;
-		x86_64-apple-darwin2[0123456789])
+		x86_64-apple-darwin20)
 			# Big Sur is 11.0
 			rev=${CHOST##*darwin}
 			profile="prefix/darwin/macos/11.$((rev - 20))/x64"
 			;;
-		arm64-apple-darwin2[0123456789])
+		x86_64-apple-darwin2[123456789])
+			# Monterey is 12.0
+			rev=${CHOST##*darwin}
+			profile="prefix/darwin/macos/12.$((rev - 21))/x64"
+			;;
+		arm64-apple-darwin20)
 			rev=${CHOST##*darwin}
 			profile="prefix/darwin/macos/11.$((rev - 20))/arm64"
+			;;
+		# TODO: Come up with something better for macOS 11+
+		x86_64-apple-darwin2[123456789])
+			# Monterey is 12.0
+			rev=${CHOST##*darwin}
+			profile="prefix/darwin/macos/12.$((rev - 21))/x64"
+			;;
+		arm64-apple-darwin2[123456789])
+			# Monterey is 12.0
+			rev=${CHOST##*darwin}
+			profile="prefix/darwin/macos/12.$((rev - 21))/arm64"
 			;;
 		i*86-pc-linux-gnu)
 			profile=${profile_linux/ARCH/x86}
@@ -410,7 +447,7 @@ bootstrap_setup() {
 		x86_64-pc-cygwin*)
 			profile="prefix/windows/cygwin/x64"
 			;;
-		*)	
+		*)
 			eerror "UNKNOWN ARCH: You need to set up a make.profile symlink to a"
 			eerror "profile in ${PORTDIR} for your CHOST ${CHOST}"
 			exit 1
@@ -440,7 +477,7 @@ bootstrap_setup() {
 	profile=${PROFILE_BASE:-prefix}/${profile#prefix/}${PROFILE_VARIANT:+/${PROFILE_VARIANT}}
 	if [[ -n ${profile} && ! -e ${ROOT}/etc/portage/make.profile ]] ; then
 		local fullprofile="${PORTDIR}/profiles/${profile}"
-		
+
 		ln -s "${fullprofile}" "${ROOT}"/etc/portage/make.profile
 		einfo "Your profile is set to ${fullprofile}."
 	fi
@@ -540,7 +577,7 @@ do_tree() {
 bootstrap_tree() {
 	# RAP uses the latest gentoo main repo snapshot to bootstrap.
 	is-rap && LATEST_TREE_YES=1
-	local PV="20210213"
+	local PV="20211105"
 	if is-rap ; then
 		do_tree "${CUSTOM_SNAPSHOT_URL:-$SNAPSHOT_URL}" portage-${CUSTOM_SNAPSHOT_VERSION:-latest}.tar.bz2
 	else
@@ -607,12 +644,12 @@ bootstrap_portage() {
 	# STABLE_PV that is known to work. Intended for power users only.
 	## It is critical that STABLE_PV is the lastest (non-masked) version that is
 	## included in the snapshot for bootstrap_tree.
-	STABLE_PV="3.0.12.0.2"
-	[[ ${TESTING_PV} == latest ]] && TESTING_PV="3.0.12.0.2"
+	STABLE_PV="3.0.21"
+	[[ ${TESTING_PV} == latest ]] && TESTING_PV="3.0.21"
 	PV="${TESTING_PV:-${STABLE_PV}}"
 	A=prefix-portage-${PV}.tar.bz2
 	einfo "Bootstrapping ${A%.tar.*}"
-		
+
 	efetch ${DISTFILES_URL}/${A} || return 1
 
 	einfo "Unpacking ${A%.tar.*}"
@@ -661,7 +698,7 @@ bootstrap_portage() {
 	cd "${ROOT}"
 	rm -Rf ${ptmp} >& /dev/null
 
-	# Some people will skip the tree() step and hence var/log is not created 
+	# Some people will skip the tree() step and hence var/log is not created
 	# As such, portage complains..
 	mkdir -p "${ROOT}"/tmp/var/log
 
@@ -942,9 +979,9 @@ bootstrap_gnu() {
 	einfo "${A%.tar.*} successfully bootstrapped"
 }
 
-PYTHONMAJMIN=3.8   # keep this number in line with PV below for stage1,2
+PYTHONMAJMIN=3.9   # keep this number in line with PV below for stage1,2
 bootstrap_python() {
-	PV=3.8.6
+	PV=3.9.6
 	A=Python-${PV}.tar.xz
 	einfo "Bootstrapping ${A%.tar.*}"
 
@@ -1010,8 +1047,8 @@ bootstrap_python() {
 			-e 's/KQUEUE/KQUEUE_DISABLED/' \
 			configure
 		# fixup thread id detection
-		efetch "http://dev.gentoo.org/~grobian/distfiles/python-3.8.6-darwin9.patch"
-		patch -p1 < "${DISTDIR}"/python-3.8.6-darwin9.patch
+		efetch "https://dev.gentoo.org/~sam/distfiles/dev-lang/python/python-3.9.6-darwin9_pthreadid.patch"
+		patch -p1 < "${DISTDIR}"/python-3.9.6-darwin9_pthreadid.patch
 		;;
 	(arm64-*-darwin*)
 		# Teach Python a new trick (arm64)
@@ -1153,7 +1190,7 @@ bootstrap_cmake_core() {
 	emake install || return 1
 
 	# we need sysroot crap to build cmake itself, but it makes trouble
-	# lateron, so kill it in the installed version
+	# later on, so kill it in the installed version
 	ver=${A%-*} ; ver=${ver%.*}
 	sed -i -e '/cmake_gnu_set_sysroot_flag/d' \
 		"${ROOT}"/tmp/usr/share/${ver}/Modules/Platform/Apple-GNU-*.cmake || die
@@ -1365,7 +1402,7 @@ bootstrap_stage_host_gentoo() {
 		einfo "are bootstrapping prefix-rpath.  Do nothing."
 		return 0
 	fi
-	
+
 	if [[ ! -L ${ROOT}/tmp ]] ; then
 		if [[ -e ${ROOT}/tmp ]] ; then
 			einfo "${ROOT}/tmp exists and is not a symlink to ${HOST_GENTOO_EROOT}"
@@ -1602,6 +1639,7 @@ do_emerge_pkgs() {
 			-python
 			-qmanifest -qtegrity
 			-readline
+			-sanitize
 			bootstrap
 			clang
 			internal-glib
@@ -2002,6 +2040,7 @@ bootstrap_stage3() {
 		pkgs=(
 			sys-apps/attr
 			sys-libs/libcap
+			sys-libs/libxcrypt
 		)
 		BOOTSTRAP_RAP=yes \
 		USE="${USE} -pam" \
@@ -2041,7 +2080,7 @@ bootstrap_stage3() {
 	# in addition, avoid collisions
 	rm -Rf "${ROOT}"/tmp/usr/lib/python${PYTHONMAJMIN}/site-packages/clang
 
-	# try to get ourself out of the mudd, bug #575324
+	# try to get ourself out of the mud, bug #575324
 	EXTRA_ECONF="--disable-compiler-version-checks $(rapx '--disable-lto --disable-bootstrap')" \
 	GCC_MAKE_TARGET=$(rapx all) \
 	MYCMAKEARGS="-DCMAKE_USE_SYSTEM_LIBRARY_LIBUV=OFF" \
@@ -2129,10 +2168,10 @@ bootstrap_stage3() {
 	# Avoid glib compiling for Cocoa libs if it finds them, since we're
 	# still with an old llvm that may not understand the system headers
 	# very well on Darwin (-DGNUSTEP_BASE_VERSION hack)
-	einfo "running emerge -u system"
-	estatus "stage3: emerge -u system"
+	einfo "running emerge -uDNav system"
+	estatus "stage3: emerge -uDNav system"
 	CPPFLAGS="-DGNUSTEP_BASE_VERSION" \
-	CFLAGS= CXXFLAGS= emerge --color n -u -v system || return 1
+	CFLAGS= CXXFLAGS= emerge --color n -uDNav system || return 1
 
 	# remove anything that we don't need (compilers most likely)
 	einfo "running emerge --depclean"
@@ -2692,6 +2731,38 @@ EOF
 				echo "Fine, I will bootstrap from scratch."
 				;;
 		esac
+	fi
+
+	# The experimental support for Stable Prefix.
+	# When expanding this to other CHOSTs, don't forget to update
+	# make.conf generation in bootstrap_setup().
+	# TODO: Consider at some point removing the ~ARCH override from
+	# profiles/features/prefix/standalone/make.defaults.
+	# https://bugs.gentoo.org/759424
+	if is-rap ; then
+		if [[ "${CHOST}" == x86_64-pc-linux-gnu ]]; then
+			cat <<EOF
+
+Normally I can only give you ~amd64 packages, and you would be exposed
+to all the bugs of the newest untested software.  Well, ok, sometimes
+it also has new features, but who needs those.  But as you are a VIP
+customer who uses Linux on x86_64, I have a one-time offer for you!
+I can limit your Prefix to use only packages keyworded for stable amd64
+by default.  Of course, you can still enable testing ~amd64 for
+the packages you want, when the need arises.
+EOF
+			[[ ${TODO} == 'noninteractive' ]] && ans=yes ||
+			read -p "  Do you want to use stable Prefix? [Yn] " ans
+			case "${ans}" in
+				[Yy][Ee][Ss]|[Yy]|"")
+					echo "Okay, I'll disable ~amd64 by default."
+					export STABLE_PREFIX="yes"
+					;;
+				*)
+					echo "Fine, I will not disable ~amd64, no problem."
+					;;
+			esac
+		fi
 	fi
 
 	# choose EPREFIX, we do this last, since we have to actually write
