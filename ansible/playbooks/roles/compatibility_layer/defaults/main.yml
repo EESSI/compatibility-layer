@@ -25,7 +25,6 @@ prefix_use_builtin_bootstrap: no
 prefix_custom_bootstrap_script:
   local: "{{ playbook_dir }}/../../bootstrap-prefix.sh"
   remote: /tmp/bootstrap-prefix.sh
-prefix_bootstrap_script_path: "{{ prefix_use_builtin_bootstrap | ternary('/usr/local/bin/bootstrap-prefix.sh', prefix_custom_bootstrap_script.remote) }}"
 prefix_singularity_command: "singularity exec -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
 prefix_source: "docker://ghcr.io/eessi/bootstrap-prefix:centos8"
 prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
