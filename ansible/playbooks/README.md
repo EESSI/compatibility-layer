@@ -76,3 +76,7 @@ ip-or-hostname-of-your-stratum0 eessi_host_arch=x86_64 eessi_host_os=linux
 
 The `eessi_host_arch` corresponds to the architecture of the machine that executes the playbook and for which this compatibility layer has to be built, e.g. `x86_64`, `aarch64`, or `ppc64le`.
 Similarly, `eessi_host_os` should refer to the operating system of the machine, and should be set to either `linux` or `macos`.
+
+Note that, by default, the bootstrap script from the root directory of this git repository will be used, unless you set `prefix_use_builtin_bootstrap` to `yes` 
+(in which case the bootstrap script included in the Prefix build container will be used).
+A different bootstrap script can be used by changing `prefix_custom_bootstrap_script.local` to a local path.
