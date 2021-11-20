@@ -70,10 +70,6 @@
   tags:
     - build_prefix
 
-- name: debug
-  debug:
-    msg: "{{ prefix_custom_bootstrap_script.local }} {{ prefix_custom_bootstrap_script.remote }}"
-
 - name: "Copy custom bootstrap script"
   copy:
     src: "{{ prefix_custom_bootstrap_script.local }}"
