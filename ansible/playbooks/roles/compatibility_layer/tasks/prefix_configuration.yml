@@ -9,3 +9,7 @@
     state: present
   with_items: "{{ prefix_locales }}"
   notify: Generate locales
+
+- name: Make the most recent GCC version the default
+  command: "{{ gentoo_prefix_path }}/usr/bin/gcc-config latest"
+  changed_when: false

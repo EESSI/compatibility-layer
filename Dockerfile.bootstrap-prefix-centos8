@@ -1,8 +1,8 @@
-FROM centos:8.2.2004
+FROM centos:8
 
 COPY bootstrap-prefix.sh /usr/local/bin/bootstrap-prefix.sh
 
-RUN dnf install -y gcc gcc-c++ make diffutils gmp-devel
+RUN dnf install -y gcc gcc-c++ make diffutils gmp-devel perl
 RUN chmod 755 /usr/local/bin/bootstrap-prefix.sh
 
 ENV LC_ALL=C
