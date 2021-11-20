@@ -70,6 +70,17 @@
   tags:
     - build_prefix
 
+- name: debug
+  debug:
+    msg: "{{ prefix_custom_bootstrap_script.local }} {{ prefix_custom_bootstrap_script.remote }}"
+
+- name: "Copy custom bootstrap script"
+  copy:
+    src: "{{ prefix_custom_bootstrap_script.local }}"
+    dest: "{{ prefix_custom_bootstrap_script.remote }}"
+    mode: 0755
+  when: not prefix_use_builtin_bootstrap
+
 - name: "Install Gentoo prefix via {{ prefix_install }}"
   shell: set -o pipefail && ( {{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )' )
   become: no
