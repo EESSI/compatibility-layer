@@ -21,14 +21,19 @@ prefix_snapshot_url: https://eessi-gentoo-snapshot.s3-eu-west-1.amazonaws.com
 prefix_snapshot_version: 20211117
 prefix_user_defined_trusted_dirs:
   - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
-prefix_singularity_command: "singularity run -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
+prefix_use_builtin_bootstrap: no
+prefix_custom_bootstrap_script:
+  local: "{{ playbook_dir }}/../../bootstrap-prefix.sh"
+  remote: /tmp/bootstrap-prefix.sh
+prefix_bootstrap_script_path: "{{ prefix_use_builtin_bootstrap | ternary('/usr/local/bin/bootstrap-prefix.sh', prefix_custom_bootstrap_script.remote) }}"
+prefix_singularity_command: "singularity exec -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
 prefix_source: "docker://ghcr.io/eessi/bootstrap-prefix:centos8"
 prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
 prefix_install: >-
     SINGULARITYENV_USE_CPU_CORES={{ ansible_processor_vcpus }}
     SINGULARITYENV_CUSTOM_SNAPSHOT_URL="{{ prefix_snapshot_url }}"
     SINGULARITYENV_CUSTOM_SNAPSHOT_VERSION="{{ prefix_snapshot_version }}"
-    {{ prefix_singularity_command }} {{ prefix_source }} {{ prefix_source_options }}
+    {{ prefix_singularity_command }} {{ prefix_source }} {{ prefix_bootstrap_script_path }} {{ prefix_source_options }}
 
 # Logging
 eessi_log_dir: "/tmp/eessi-logs"
