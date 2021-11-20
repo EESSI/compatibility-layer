@@ -5,13 +5,13 @@
   fail:
     msg: |
       Error: the operating system of the installation host is {{ ansible_os_family }} {{ ansible_distribution_version }}.
-      The task for installing Gentoo Prefix currently only supports Linux distributions based on RHEL 8.
-  when: not(ansible_os_family == "RedHat" and ansible_distribution_major_version is version("8", "=="))
+      The task for installing Gentoo Prefix currently only supports Linux distributions based on RHEL 7.x or 8.x.
+  when: not(ansible_os_family == "RedHat" and (ansible_distribution_major_version is version("7", "==") or ansible_distribution_major_version is version("8", "==")))
 
 - name: "Install EPEL"
   yum:
     name:
-      - https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+      - https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm
     disable_gpg_check: yes
     state: present
   tags:
