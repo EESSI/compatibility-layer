@@ -33,7 +33,9 @@ prefix_install: >-
     SINGULARITYENV_USE_CPU_CORES={{ ansible_processor_vcpus }}
     SINGULARITYENV_CUSTOM_SNAPSHOT_URL="{{ prefix_snapshot_url }}"
     SINGULARITYENV_CUSTOM_SNAPSHOT_VERSION="{{ prefix_snapshot_version }}"
-    {{ prefix_singularity_command }} {{ prefix_source }} {{ prefix_bootstrap_script_path }} {{ prefix_source_options }}
+    {{ prefix_singularity_command }} {{ prefix_source }}
+    {{ prefix_use_builtin_bootstrap | ternary('/usr/local/bin/bootstrap-prefix.sh', prefix_custom_bootstrap_script.remote) }}
+    {{ prefix_source_options }}
 
 # Logging
 eessi_log_dir: "/tmp/eessi-logs"
