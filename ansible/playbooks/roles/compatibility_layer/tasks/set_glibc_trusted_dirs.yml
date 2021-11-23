@@ -1,14 +1,11 @@
 # Make sure that glibc is always compiled with a user-defined-trusted-dirs option
 ---
-- name: Find all strings in libc library
-  command: "strings {{ gentoo_prefix_path }}/usr/lib64/libc.a"
-  register: libc_strings
+- name: Check the EXTRA_EMAKE flags of glibc
+  command: "equery has --package glibc EXTRA_EMAKE"
+  changed_when: false
+  ignore_errors: yes
+  register: glibc_extra_emake
   when: eessi_host_os == "linux"
-
-- name: Find user defined trusted dirs in libc strings output
-  set_fact: match='{{ libc_strings.stdout | regex_search("\n" + item + "/?\n") | default('', True) | string | length>0 }}'
-  with_items: "{{ prefix_user_defined_trusted_dirs }}"
-  register: trusted_dirs_in_libc
 
 - name: (Re)install glibc with the user-defined-trusted-dirs option
   portage:
@@ -20,7 +17,7 @@
     EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
   when:
     - eessi_host_os == "linux"
-    - trusted_dirs_in_libc.results | selectattr('ansible_facts.match', 'equalto', False) | list | length>0
+    - glibc_extra_emake.stdout != "user-defined-trusted-dirs=" + ":".join(prefix_user_defined_trusted_dirs)
 
 - name: Create portage env directory
   file:
