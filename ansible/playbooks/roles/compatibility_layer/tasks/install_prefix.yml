@@ -78,7 +78,7 @@
   when: prefix_mask_packages is defined and prefix_mask_packages | length > 0
   tags:
     - build_prefix
-    
+
 - name: "Mask packages for the bootstrap"
   copy:
     dest: "{{ gentoo_prefix_path }}/etc/portage/package.mask"
