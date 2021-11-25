@@ -24,10 +24,10 @@ prefix_user_defined_trusted_dirs:
 prefix_mask_packages: |
   # avoid glibc 2.34, as it's causing issues with the bootstrap, and it's not compatible with CUDA 11.
   # see https://github.com/EESSI/compatibility-layer/issues/137 + https://bugs.gentoo.org/824482
-  >=sys-libs/glibc-2.34
+  =sys-libs/glibc-2.34
   # avoid libgcrypt 1.9.4 due to compiler errros on ppc64le,
   # see https://github.com/EESSI/compatibility-layer/issues/134 + https://bugs.gentoo.org/825722
-  >=dev-libs/libgcrypt-1.9.4
+  =dev-libs/libgcrypt-1.9.4
 prefix_use_builtin_bootstrap: no
 prefix_custom_bootstrap_script:
   local: "{{ playbook_dir }}/../../bootstrap-prefix.sh"
