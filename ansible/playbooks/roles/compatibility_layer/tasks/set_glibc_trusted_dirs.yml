@@ -3,7 +3,7 @@
 - name: Check the EXTRA_EMAKE flags of glibc
   command: "equery has --package glibc EXTRA_EMAKE"
   changed_when: false
-  ignore_errors: yes
+  failed_when: false
   register: glibc_extra_emake
   when: eessi_host_os == "linux"
 
