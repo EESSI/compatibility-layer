@@ -42,8 +42,10 @@ Before running the playbook, make sure the following settings are correct, and o
 | prefix_required_space | Minimal amount of disk space that is required for the Gentoo Prefix bootstrap |
 | prefix_snapshot_url | Directory (served over http(s)) containing snapshot files |
 | prefix_snapshot_version | Date (`YYYYMMDD`) of the Portage snapshot file for the Prefix installation |
-| prefix_python_targets | String consisting of [Gentoo Python targets](https://wiki.gentoo.org/wiki/Project:Python/PYTHON_TARGETS) Python targets used for the Prefix installation |
 | prefix_user_defined_trusted_dirs | List of paths to the user defined trusted dirs for glibc |
+| prefix_mask_packages | Contents of a [package.mask file](https://wiki.gentoo.org/wiki//etc/portage/package.mask) that should be used during the bootstrap |
+| prefix_use_builtin_bootstrap | Use the container's built-in bootstrap script? |
+| prefix_custom_bootstrap_script | Dictionary with the `local` source and `remote` destination of the bootstrap script |
 | prefix_singularity_command | Singularity command for launching the container with the bootstrap script |
 | prefix_source | Singularity container path used for the Prefix installtion |
 | prefix_source_options | Arguments to be passed to the Prefix bootstrap script |
@@ -75,3 +77,7 @@ ip-or-hostname-of-your-stratum0 eessi_host_arch=x86_64 eessi_host_os=linux
 
 The `eessi_host_arch` corresponds to the architecture of the machine that executes the playbook and for which this compatibility layer has to be built, e.g. `x86_64`, `aarch64`, or `ppc64le`.
 Similarly, `eessi_host_os` should refer to the operating system of the machine, and should be set to either `linux` or `macos`.
+
+Note that, by default, the bootstrap script from the root directory of this git repository will be used, unless you set `prefix_use_builtin_bootstrap` to `yes` 
+(in which case the bootstrap script included in the Prefix build container will be used).
+A different bootstrap script can be used by changing `prefix_custom_bootstrap_script.local` to a local path.

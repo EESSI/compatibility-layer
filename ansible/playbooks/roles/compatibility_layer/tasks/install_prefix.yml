@@ -61,6 +61,33 @@
   tags:
     - build_prefix
 
+- name: "Copy custom bootstrap script"
+  copy:
+    src: "{{ prefix_custom_bootstrap_script.local }}"
+    dest: "{{ prefix_custom_bootstrap_script.remote }}"
+    mode: 0755
+  when: not prefix_use_builtin_bootstrap
+  tags:
+    - build_prefix
+
+- name: "Create $EPREFIX/etc/portage directory"
+  file:
+    path: "{{ gentoo_prefix_path }}/etc/portage"
+    state: directory
+    mode: 0755
+  when: prefix_mask_packages is defined and prefix_mask_packages | length > 0
+  tags:
+    - build_prefix
+
+- name: "Mask packages for the bootstrap"
+  copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/package.mask"
+    content: "{{ prefix_mask_packages }}"
+    mode: 0644
+  when: prefix_mask_packages is defined and prefix_mask_packages | length > 0
+  tags:
+    - build_prefix
+
 - name: "Give {{ username_on_host.stdout }} recursive user and group ownership of {{ gentoo_prefix_path }}"
   file:
     dest: "{{ gentoo_prefix_path }}"
@@ -81,8 +108,12 @@
   stat:
     path: "{{ gentoo_prefix_path }}/startprefix"
   register: startprefix
+  tags:
+    - build_prefix
 
 - name: "Fail if startprefix script has not been created"
   fail:
     msg: "The resulting Gentoo Prefix installation does not have a startprefix script. Something went wrong!"
   when: not startprefix.stat.exists
+  tags:
+    - build_prefix
