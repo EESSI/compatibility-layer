@@ -42,6 +42,7 @@ Before running the playbook, make sure the following settings are correct, and o
 | prefix_required_space | Minimal amount of disk space that is required for the Gentoo Prefix bootstrap |
 | prefix_snapshot_url | Directory (served over http(s)) containing snapshot files |
 | prefix_snapshot_version | Date (`YYYYMMDD`) of the Portage snapshot file for the Prefix installation |
+| prefix_default_gcc | GCC compiler version to use as default compiler in Gentoo Prefix installation |
 | prefix_user_defined_trusted_dirs | List of paths to the user defined trusted dirs for glibc |
 | prefix_mask_packages | Contents of a [package.mask file](https://wiki.gentoo.org/wiki//etc/portage/package.mask) that should be used during the bootstrap |
 | prefix_use_builtin_bootstrap | Use the container's built-in bootstrap script? |
