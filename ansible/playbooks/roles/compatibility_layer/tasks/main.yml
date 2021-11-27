@@ -25,6 +25,8 @@
   when: cvmfs_start_transaction
 
 - block:
+  - include_tasks: prefix_configuration.yml
+
   - include_tasks: add_overlay.yml
     args:
       apply:
@@ -33,8 +35,6 @@
   - include_tasks: set_glibc_trusted_dirs.yml
 
   - include_tasks: install_packages.yml
-
-  - include_tasks: prefix_configuration.yml
 
   - include_tasks: create_host_symlinks.yml
 
