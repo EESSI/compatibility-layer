@@ -10,6 +10,11 @@
   with_items: "{{ prefix_locales }}"
   notify: Generate locales
 
-- name: Make the most recent GCC version the default
-  command: "{{ gentoo_prefix_path }}/usr/bin/gcc-config latest"
+# Set default compiler in compat layer.
+# We should not use the latest version of GCC here, since that will probably cause problems
+# when building older GCC versions with EasyBuild in the software layer.
+# (see https://github.com/EESSI/software-layer/issues/151).
+# Note: the selected GCC version must be installed (cfr. EESSI set in gentoo-overlay)
+- name: Make specific GCC version the default compiler
+  command: "{{ gentoo_prefix_path }}/usr/bin/gcc-config 9.4.0"
   changed_when: false
