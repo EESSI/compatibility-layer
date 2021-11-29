@@ -157,6 +157,9 @@
   tags:
     - build_prefix
 
+# If a file named .unpacked is present in the root of the gentoo overlay directory,
+# the bootstrap script will not extract a Portage tree snapshot file to that same directory.
+# See the do_tree() function in the bootstrap-prefix.sh script.
 - name: "Prevent our git checkout from being overwritten by making an '.unpacked' file"
   copy:
     content: ""
