@@ -9,7 +9,7 @@ class RunInGentooPrefixTestError(rfm.core.exceptions.ReframeError):
 
 
 class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
-    eessi_repo_dir = '/cvmfs/pilot.eessi-hpc.org'
+    eessi_repo_dir = '/cvmfs/pilot.eessi-hpc.org/versions'
     eessi_version = parameter(
         os.environ.get('EESSI_VERSION', 'latest').split(',')
     )
