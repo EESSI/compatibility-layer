@@ -122,6 +122,35 @@
   tags:
     - build_prefix
 
+- name: "Make directory for the Gentoo overlay"
+  file:
+    path: "{{ gentoo_prefix_path }}/var/db/repos"
+    mode: '0755'
+    state: directory
+  tags:
+    - build_prefix
+
+- name: "Clone the Gentoo git repository into the overlay directory"
+  git:
+    repo: "{{ prefix_gentoo_overlay }}"
+    dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
+    depth: 1
+
+- name: "Fetch the specific git commit to be used for the bootstrap"
+  git:
+    repo: "{{ prefix_gentoo_overlay }}"
+    dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
+    clone: no
+    refspec: "{{ prefix_gentoo_commit }}"
+    depth: 1
+
+- name: "Checkout the fetched git commit"
+  git:
+    repo: "{{ prefix_gentoo_overlay }}"
+    dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
+    clone: no
+    version: "{{ prefix_gentoo_commit }}"
+
 - name: "Mask packages for the bootstrap"
   copy:
     dest: "{{ gentoo_prefix_path }}/etc/portage/package.mask"
