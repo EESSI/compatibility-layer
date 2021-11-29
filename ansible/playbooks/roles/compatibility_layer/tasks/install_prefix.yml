@@ -135,7 +135,7 @@
     repo: "{{ prefix_gentoo_overlay }}"
     dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
     depth: 1
-    version: "HEAD"
+    version: master
   tags:
     - build_prefix
 
@@ -146,6 +146,7 @@
     clone: no
     refspec: "{{ prefix_gentoo_commit }}"
     depth: 1
+    version: master
   tags:
     - build_prefix
 
