@@ -92,7 +92,7 @@
       [gentoo]
       priority  = 1
       location  = {{ gentoo_prefix_path }}/var/db/repos/gentoo
-      sync-uri  = https://github.com/gentoo/gentoo.git
+      sync-uri  = {{ gentoo_git_repo }}
       sync-type = git
       auto-sync = no
       clone-depth = 1
@@ -132,7 +132,7 @@
 
 - name: "Clone the Gentoo git repository into the overlay directory"
   git:
-    repo: "{{ prefix_gentoo_overlay }}"
+    repo: "{{ gentoo_git_repo }}"
     dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
     depth: 1
     version: master
@@ -141,10 +141,10 @@
 
 - name: "Fetch the specific git commit to be used for the bootstrap"
   git:
-    repo: "{{ prefix_gentoo_overlay }}"
+    repo: "{{ gentoo_git_repo }}"
     dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
     clone: no
-    refspec: "{{ prefix_gentoo_commit }}"
+    refspec: "{{ gentoo_git_commit }}"
     depth: 1
     version: master
   tags:
@@ -152,10 +152,10 @@
 
 - name: "Checkout the fetched git commit"
   git:
-    repo: "{{ prefix_gentoo_overlay }}"
+    repo: "{{ gentoo_git_repo }}"
     dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
     clone: no
-    version: "{{ prefix_gentoo_commit }}"
+    version: "{{ gentoo_git_commit }}"
   tags:
     - build_prefix
 
