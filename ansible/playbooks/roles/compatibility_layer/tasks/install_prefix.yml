@@ -135,6 +135,8 @@
     repo: "{{ prefix_gentoo_overlay }}"
     dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
     depth: 1
+  tags:
+    - build_prefix
 
 - name: "Fetch the specific git commit to be used for the bootstrap"
   git:
@@ -143,6 +145,8 @@
     clone: no
     refspec: "{{ prefix_gentoo_commit }}"
     depth: 1
+  tags:
+    - build_prefix
 
 - name: "Checkout the fetched git commit"
   git:
@@ -150,6 +154,16 @@
     dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
     clone: no
     version: "{{ prefix_gentoo_commit }}"
+  tags:
+    - build_prefix
+
+- name: "Prevent our git checkout from being overwritten by making an '.unpacked' file"
+  file:
+    path: "{{ gentoo_prefix_path }}/var/db/repos/gentoo/.unpacked"
+    state: file
+    mode: '0644'
+  tags:
+    - build_prefix
 
 - name: "Mask packages for the bootstrap"
   copy:
