@@ -17,10 +17,11 @@
   tags:
     - build_prefix
 
-- name: "Install other requirements (Singularity et al.)"
+- name: "Install other requirements (Singularity and git)"
   yum:
     name:
       - singularity
+      - git
     state: present
   tags:
     - build_prefix
