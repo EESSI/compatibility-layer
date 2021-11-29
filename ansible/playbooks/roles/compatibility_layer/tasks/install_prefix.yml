@@ -71,9 +71,9 @@
   tags:
     - build_prefix
 
-- name: "Create $EPREFIX/etc/portage directory"
+- name: "Create $EPREFIX/etc/portage/repos.conf directory"
   file:
-    path: "{{ gentoo_prefix_path }}/etc/portage"
+    path: "{{ gentoo_prefix_path }}/etc/portage/repos.conf"
     state: directory
     mode: 0755
   when: prefix_mask_packages is defined and prefix_mask_packages | length > 0

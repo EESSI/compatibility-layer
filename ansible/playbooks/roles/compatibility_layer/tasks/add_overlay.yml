@@ -19,12 +19,6 @@
     cmd: emerge gentoolkit
     creates: "{{ gentoo_prefix_path }}/usr/bin/equery"
 
-- name: Create repos directory
-  file:
-    path: "{{ gentoo_prefix_path }}/etc/portage/repos.conf"
-    state: directory
-    mode: '0755'
-
 - name: Install eselect-repository
   portage:
     package: eselect-repository
