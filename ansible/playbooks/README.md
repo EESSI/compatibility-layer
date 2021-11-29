@@ -40,8 +40,8 @@ Before running the playbook, make sure the following settings are correct, and o
 | eessi_version | Compatibility layer version, which will, by default, be included in the `gentoo_prefix_path` and be used to install the right `package_sets` |
 | gentoo_prefix_path | Path to the root of your Gentoo Prefix installation |
 | prefix_required_space | Minimal amount of disk space that is required for the Gentoo Prefix bootstrap |
-| prefix_snapshot_url | Directory (served over http(s)) containing snapshot files |
-| prefix_snapshot_version | Date (`YYYYMMDD`) of the Portage snapshot file for the Prefix installation |
+| prefix_gentoo_overlay | URL to the git repository of the Gentoo overlay |
+| prefix_gentoo_commit | Git commit hash of the Gentoo overlay repository to be used for the bootstrap |
 | prefix_default_gcc | GCC compiler version to use as default compiler in Gentoo Prefix installation |
 | prefix_user_defined_trusted_dirs | List of paths to the user defined trusted dirs for glibc |
 | prefix_mask_packages | Contents of a [package.mask file](https://wiki.gentoo.org/wiki//etc/portage/package.mask) that should be used during the bootstrap |
