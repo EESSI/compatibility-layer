@@ -190,6 +190,19 @@
   tags:
     - build_prefix
 
+- name: "Find files and directories in $EPREFIX/var/tmp"
+  find:
+    path: "{{ gentoo_prefix_path }}/var/tmp"
+    file_type: any
+    recurse: no
+  register: var_tmp_contents
+
+- name: "Clean up all files and directories found in $EPREFIX/var/tmp"
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ var_tmp_contents.files }}"
+
 - name: "Check if startprefix script has been created"
   stat:
     path: "{{ gentoo_prefix_path }}/startprefix"
