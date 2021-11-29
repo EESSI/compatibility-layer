@@ -17,8 +17,6 @@ gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/c
 
 # How to build the prefix
 prefix_required_space: 15 GB
-prefix_snapshot_url: https://eessi-gentoo-snapshot.s3-eu-west-1.amazonaws.com
-prefix_snapshot_version: 20211120
 prefix_gentoo_overlay: https://github.com/gentoo/gentoo
 prefix_gentoo_commit: 7eaa2512d1e6ddb44e3b41bbddf6c74723f234ce
 prefix_default_gcc: 9.4.0
@@ -43,8 +41,6 @@ prefix_source: "docker://ghcr.io/eessi/bootstrap-prefix:centos8"
 prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
 prefix_install: >-
     SINGULARITYENV_USE_CPU_CORES={{ ansible_processor_vcpus }}
-    SINGULARITYENV_CUSTOM_SNAPSHOT_URL="{{ prefix_snapshot_url }}"
-    SINGULARITYENV_CUSTOM_SNAPSHOT_VERSION="{{ prefix_snapshot_version }}"
     {{ prefix_singularity_command }} {{ prefix_source }}
     {{ prefix_use_builtin_bootstrap | ternary('/usr/local/bin/bootstrap-prefix.sh', prefix_custom_bootstrap_script.remote) }}
     {{ prefix_source_options }}
