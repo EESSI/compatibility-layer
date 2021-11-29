@@ -52,48 +52,6 @@
         selectattr('eclass-overrides', 'equalto', True) | map(attribute='name') | join(' ')
       }}
 
-- name: Use git instead of rsync for the Gentoo overlay
-  copy:
-    dest: "{{ gentoo_prefix_path }}/etc/portage/repos.conf/gentoo.conf"
-    mode: "0644"
-    content: |
-      [DEFAULT]
-      main-repo = gentoo
-      sync-git-pull-extra-opts = --quiet
-
-      [gentoo]
-      priority  = 1
-      location  = {{ gentoo_prefix_path }}/var/db/repos/gentoo
-      sync-uri  = https://github.com/gentoo/gentoo.git
-      sync-type = git
-      auto-sync = Yes
-      clone-depth = 1
-  register: copy_gentoo_git_config
-
-- name: Create repo.postsync.d directory
-  file:
-    path: "{{ gentoo_prefix_path }}/etc/portage/repo.postsync.d"
-    state: directory
-    mode: '0755'
-
-- name: Add post-sync hooks for Gentoo overlay
-  copy:
-    src: "{{ item }}"
-    dest: "{{ gentoo_prefix_path }}/etc/portage/repo.postsync.d/{{ item }}"
-    mode: 0755
-  with_items:
-    - sync_gentoo_cache
-    - sync_gentoo_dtd
-    - sync_gentoo_glsa
-    - sync_gentoo_news
-    - sync_overlay_cache
-
-- name: Remove the old Gentoo overlay directory
-  file:
-    state: absent
-    path: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
-  when: copy_gentoo_git_config is changed
-
 - name: Sync the repositories
   portage:
     sync: 'yes'
