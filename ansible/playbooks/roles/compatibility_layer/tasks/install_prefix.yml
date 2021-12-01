@@ -180,15 +180,6 @@
   tags:
     - build_prefix
 
-- name: "Specify use flags for the bootstrap"
-  copy:
-    dest: "{{ gentoo_prefix_path }}/etc/portage/package.use"
-    content: "{{ prefix_use_flags }}"
-    mode: 0644
-  when: prefix_use_flags is defined and prefix_use_flags | length > 0
-  tags:
-    - build_prefix
-
 - name: "Give {{ username_on_host.stdout }} recursive user and group ownership of {{ gentoo_prefix_path }}"
   file:
     dest: "{{ gentoo_prefix_path }}"
