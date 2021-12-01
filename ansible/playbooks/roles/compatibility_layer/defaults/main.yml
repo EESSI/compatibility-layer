@@ -34,7 +34,7 @@ prefix_mask_packages: |
   # avoid libgcrypt 1.9.4 due to compiler errros on ppc64le,
   # see https://github.com/EESSI/compatibility-layer/issues/134 + https://bugs.gentoo.org/825722
   =dev-libs/libgcrypt-1.9.4
-prefix_use_flags: |
+prefix_bootstrap_use_flags: |
   # make sure that gold linker is installed with binutils
   sys-devel/binutils gold
 prefix_use_builtin_bootstrap: no
