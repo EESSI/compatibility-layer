@@ -45,6 +45,7 @@ Before running the playbook, make sure the following settings are correct, and o
 | prefix_default_gcc | GCC compiler version to use as default compiler in Gentoo Prefix installation |
 | prefix_user_defined_trusted_dirs | List of paths to the user defined trusted dirs for glibc |
 | prefix_mask_packages | Contents of a [package.mask file](https://wiki.gentoo.org/wiki//etc/portage/package.mask) that should be used during the bootstrap |
+| prefix_bootstrap_use_flags | Contents of [package.use file](https://wiki.gentoo.org/wiki//etc/portage/package.use) to put in place after bootstrap stage 3 |
 | prefix_use_builtin_bootstrap | Use the container's built-in bootstrap script? |
 | prefix_custom_bootstrap_script | Dictionary with the `local` source and `remote` destination of the bootstrap script |
 | prefix_singularity_command | Singularity command for launching the container with the bootstrap script |
