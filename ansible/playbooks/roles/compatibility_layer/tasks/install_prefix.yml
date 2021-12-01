@@ -135,6 +135,7 @@
     repo: "{{ gentoo_git_repo }}"
     dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
     depth: 1
+    force: yes
     version: master
   tags:
     - build_prefix
