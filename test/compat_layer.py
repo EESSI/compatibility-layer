@@ -4,18 +4,16 @@ import reframe as rfm
 import reframe.utility.sanity as sn
 
 
+EESSI_REPO_DIR = '/cvmfs/pilot.eessi-hpc.org'
+
 class RunInGentooPrefixTestError(rfm.core.exceptions.ReframeError):
     pass
 
 
 class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
-    eessi_repo_dir = '/cvmfs/pilot.eessi-hpc.org/versions'
     eessi_version = parameter(
         os.environ.get('EESSI_VERSION', 'latest').split(',')
     )
-    # 2021.06 did not have the 'versions' subdirectory yet
-    if eessi_version != '2021.06':
-        eessi_repo_dir = '/cvmfs/pilot.eessi-hpc.org'
     eessi_arch = parameter(
         os.environ.get('EESSI_ARCH', platform.machine()).split(',')
     )
@@ -24,11 +22,18 @@ class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
     )
 
     def __init__(self):
+
         self.valid_systems = ['*']
         self.valid_prog_environs = ['*']
         if self.eessi_version == 'latest':
             # resolve the "latest" symlink to the actual version
-            self.eessi_version = os.readlink(os.path.join(self.eessi_repo_dir, 'latest'))
+            self.eessi_version = os.readlink(os.path.join(EESSI_REPO_DIR, 'latest'))
+        # 2021.06 did not have the 'versions' subdirectory yet
+        if self.eessi_version == '2021.06':
+            self.eessi_repo_dir = EESSI_REPO_DIR
+        else:
+            self.eessi_repo_dir = os.path.join(EESSI_REPO_DIR, 'versions')
+
         self.compat_dir = os.path.join(
             self.eessi_repo_dir,
             self.eessi_version,
@@ -40,8 +45,7 @@ class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
         self.command = None
         self.exit_code = sn.extractsingle(r'Leaving Gentoo Prefix with exit status (\d*)', self.stdout, 1, int)
 
-
-    @rfm.run_before('run')
+    @run_before('run')
     def set_executable_opts(self):
         if not os.path.exists(self.executable):
             raise RunInGentooPrefixTestError(f'startprefix script cannot be found at: {self.executable}')
@@ -222,7 +226,7 @@ class GlibcEnvFileTest(RunInGentooPrefixTest):
         self.command = 'equery has --package glibc EXTRA_EMAKE'
 
         trusted_dir = os.path.join(
-            self.eessi_repo_dir,
+            EESSI_REPO_DIR,
             'host_injections',
             self.eessi_version,
             'compat',
