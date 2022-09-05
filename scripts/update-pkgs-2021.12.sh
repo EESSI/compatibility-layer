@@ -15,8 +15,9 @@ git fetch origin
 git checkout d7c647404a632309810851c52c1d350cafc26949  # 2022-08-25
 cd -
 
-# unmask GCC 9.x, since we're using that as system compiler in EESSI pilot 2021.12
-sed -i 's@<sys-devel/gcc-[0-9]*@<sys-devel/gcc-9@g' $EPREFIX/var/db/repos/gentoo/profiles/package.mask
+# unmask GCC 9.4, since we're using that as system compiler in EESSI pilot 2021.12;
+# see also $EPREFIX/var/db/repos/gentoo/profiles/package.mask
+echo '=sys-devel/gcc-9.4.0' >> ${EPREFIX}/etc/portage/package.unmask
 
 # stick to Python 3.9
 # see also https://wiki.gentoo.org/wiki/Project:Python/PYTHON_TARGETS
