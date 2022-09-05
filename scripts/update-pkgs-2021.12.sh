@@ -18,6 +18,13 @@ cd -
 # unmask GCC 9.x, since we're using that as system compiler in EESSI pilot 2021.12
 sed -i 's@<sys-devel/gcc-[0-9]*@<sys-devel/gcc-9@g' $EPREFIX/var/db/repos/gentoo/profiles/package.mask
 
+# stick to Python 3.9
+# see also https://wiki.gentoo.org/wiki/Project:Python/PYTHON_TARGETS
+# note: make sure that ${EPREFIX}/etc/python-exec/python-exec.conf has the right version of Python in it too
+echo '# replace profile default Python with Python 3.9' >> ${EPREFIX}/etc/portage/package.use
+echo '*/* PYTHON_TARGETS: -* python3_9' >> ${EPREFIX}/etc/portage/package.use
+echo '*/* PYTHON_SINGLE_TARGET: -python3_10 python3_9' >> ${EPREFIX}/etc/portage/package.use
+
 emerge --sync
 
 # update lxml due to https://glsa.gentoo.org/glsa/202208-06
