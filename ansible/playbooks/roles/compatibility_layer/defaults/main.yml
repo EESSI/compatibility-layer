@@ -6,11 +6,11 @@ custom_overlays:
   - name: eessi
     source: git
     url: https://github.com/EESSI/gentoo-overlay.git
-    eclass-overrides: yes
+    eclass-overrides: true
 
-cvmfs_start_transaction: False
-cvmfs_publish_transaction: False
-cvmfs_abort_transaction_on_failures: False
+cvmfs_start_transaction: false
+cvmfs_publish_transaction: false
+cvmfs_abort_transaction_on_failures: false
 cvmfs_repository: pilot.eessi-hpc.org
 
 gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}
@@ -37,7 +37,7 @@ prefix_mask_packages: |
 prefix_bootstrap_use_flags: |
   # make sure that gold linker is installed with binutils
   sys-devel/binutils gold
-prefix_use_builtin_bootstrap: no
+prefix_use_builtin_bootstrap: false
 prefix_custom_bootstrap_script:
   local: "{{ playbook_dir }}/../../bootstrap-prefix.sh"
   remote: /tmp/bootstrap-prefix.sh
@@ -59,8 +59,8 @@ prefix_locales:
   - en_US.UTF-8 UTF-8
 
 # By default, we install an architecture-specific set
-package_sets: 
-  - "eessi-{{ eessi_version }}-{{ eessi_host_os}}-{{ eessi_host_arch }}"
+package_sets:
+  - "eessi-{{ eessi_version }}-{{ eessi_host_os }}-{{ eessi_host_arch }}"
 
 prefix_packages:
 
@@ -68,10 +68,10 @@ prefix_packages:
 # This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.
 symlinks_to_host:
   # required to ensure local user groups are known
-  - /etc/group 
+  - /etc/group
 
   # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
-  - /etc/passwd 
+  - /etc/passwd
 
   # required to ensure that hosts specified in the host's hosts file can be resolved by tools in the Prefix
   - /etc/hosts

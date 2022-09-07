@@ -3,7 +3,7 @@
 ---
 
 - name: Add locales to configuration file
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ gentoo_prefix_path }}/etc/locale.gen"
     line: "{{ item }}"
     state: present
@@ -16,5 +16,5 @@
 # (see https://github.com/EESSI/software-layer/issues/151).
 # Note: the selected GCC version must be installed (cfr. EESSI set in gentoo-overlay)
 - name: Make specific GCC version the default compiler
-  command: "{{ gentoo_prefix_path }}/usr/bin/gcc-config {{ prefix_default_gcc }}"
+  ansible.builtin.command: "{{ gentoo_prefix_path }}/usr/bin/gcc-config {{ prefix_default_gcc }}"
   changed_when: false

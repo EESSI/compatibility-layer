@@ -6,14 +6,14 @@
 ---
 
 - name: Fail if target CPU architecture does not match with build host
-  fail:
+  ansible.builtin.fail:
     msg: |
       Error: CPU architecture of build host {{ ansible_architecture }} does not match with
       target CPU architecture {{ eessi_host_arch }}.
-  when: not(ansible_architecture == eessi_host_arch)
+  when: not (ansible_architecture == eessi_host_arch)
 
 - name: Check if a Prefix installation is found at the specified location
-  stat:
+  ansible.builtin.stat:
     path: "{{ gentoo_prefix_path }}/startprefix"
   register: startprefix
 
@@ -21,36 +21,37 @@
   when: not startprefix.stat.exists
 
 - name: Start transaction
-  command: "cvmfs_server transaction {{ cvmfs_repository }}"
+  ansible.builtin.command: "cvmfs_server transaction {{ cvmfs_repository }}"
   when: cvmfs_start_transaction
 
-- block:
-  - include_tasks: prefix_configuration.yml
+- name: Make customizations to our Prefix installation
+  block:
+    - include_tasks: prefix_configuration.yml
 
-  - include_tasks: add_overlay.yml
-    args:
-      apply:
-        become: False
+    - include_tasks: add_overlay.yml
+      args:
+        apply:
+          become: false
 
-  - include_tasks: set_glibc_trusted_dirs.yml
+    - include_tasks: set_glibc_trusted_dirs.yml
 
-  - include_tasks: install_packages.yml
+    - include_tasks: install_packages.yml
 
-  - include_tasks: create_host_symlinks.yml
+    - include_tasks: create_host_symlinks.yml
 
-  - include_tasks: test.yml
-    tags:
-      - test
+    - include_tasks: test.yml
+      tags:
+        - test
 
-  - name: Publish transaction
-    command: "cvmfs_server publish {{ cvmfs_repository }}"
-    when: cvmfs_start_transaction and cvmfs_publish_transaction
+    - name: Publish transaction
+      ansible.builtin.command: "cvmfs_server publish {{ cvmfs_repository }}"
+      when: cvmfs_start_transaction and cvmfs_publish_transaction
 
   rescue:
     - name: Abort transaction
-      command: "cvmfs_server abort {{ cvmfs_repository }}"
+      ansible.builtin.command: "cvmfs_server abort {{ cvmfs_repository }}"
       when: cvmfs_start_transaction and cvmfs_abort_transaction_on_failures
 
     - name: Exit because of failure
-      fail:
+      ansible.builtin.fail:
         msg: "Task {{ ansible_failed_task }} failed, with result {{ ansible_failed_result }}."
