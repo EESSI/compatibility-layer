@@ -10,7 +10,7 @@
     msg: |
       Error: CPU architecture of build host {{ ansible_architecture }} does not match with
       target CPU architecture {{ eessi_host_arch }}.
-  when: not(ansible_architecture == eessi_host_arch)
+  when: not (ansible_architecture == eessi_host_arch)
 
 - name: Check if a Prefix installation is found at the specified location
   ansible.builtin.stat:
