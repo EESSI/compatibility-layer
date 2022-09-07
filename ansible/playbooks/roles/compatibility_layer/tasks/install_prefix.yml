@@ -6,7 +6,7 @@
     msg: |
       Error: the operating system of the installation host is {{ ansible_os_family }} {{ ansible_distribution_version }}.
       The task for installing Gentoo Prefix currently only supports Linux distributions based on RHEL 8.
-  when: not(ansible_os_family == "RedHat" and ansible_distribution_major_version is version("8", "=="))
+  when: not (ansible_os_family == "RedHat" and ansible_distribution_major_version is version("8", "=="))
 
 - name: "Install EPEL"
   ansible.builtin.yum:
