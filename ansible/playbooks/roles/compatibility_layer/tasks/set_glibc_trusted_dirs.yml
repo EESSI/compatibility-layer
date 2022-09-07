@@ -1,7 +1,7 @@
 # Make sure that glibc is always compiled with a user-defined-trusted-dirs option
 ---
 - name: Check the EXTRA_EMAKE flags of glibc
-  command: "equery has --package glibc EXTRA_EMAKE"
+  ansible.builtin.command: "equery has --package glibc EXTRA_EMAKE"
   changed_when: false
   failed_when: false
   register: glibc_extra_emake
@@ -10,9 +10,9 @@
 - name: (Re)install glibc with the user-defined-trusted-dirs option
   portage:
     package: sys-libs/glibc
-    noreplace: no
-    oneshot: yes
-  become: no
+    noreplace: false
+    oneshot: true
+  become: false
   environment:
     EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
   when:
@@ -20,23 +20,22 @@
     - glibc_extra_emake.stdout != "user-defined-trusted-dirs=" + ":".join(prefix_user_defined_trusted_dirs)
 
 - name: Create portage env directory
-  file:
+  ansible.builtin.file:
     path: "{{ gentoo_prefix_path }}/etc/portage/env"
     state: directory
     mode: 0755
 
 - name: Add env file for glibc to make sure the user-defined-trusted-dirs is always used
-  copy:
+  ansible.builtin.copy:
     dest: "{{ gentoo_prefix_path }}/etc/portage/env/glibc-user-defined-trusted-dirs.conf"
     mode: 0644
     content: |
       EXTRA_EMAKE="user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
 
 - name: Add glibc env file to package.env
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ gentoo_prefix_path }}/etc/portage/package.env"
-    create: yes
+    create: true
     mode: 0644
     line: sys-libs/glibc glibc-user-defined-trusted-dirs.conf
     state: present
-
