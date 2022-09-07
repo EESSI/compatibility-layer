@@ -1,21 +1,21 @@
 # Add a custom overlay to the Gentoo Prefix installation.
 ---
 - name: Add portage user if missing
-  become: True
-  lineinfile:
+  become: true
+  ansible.builtin.lineinfile:
     path: /etc/passwd
     regexp: portage
     line: portage:x:250:250:portage:/var/tmp/portage:/bin/false
 
 - name: Add portage group if missing
-  become: True
-  lineinfile:
+  become: true
+  ansible.builtin.lineinfile:
     path: /etc/group
     regexp: portage
     line: portage::250:portage
 
 - name: Install equery command (dependency for the portage module)
-  command:
+  ansible.builtin.command:
     cmd: emerge gentoolkit
     creates: "{{ gentoo_prefix_path }}/usr/bin/equery"
 
@@ -31,18 +31,18 @@
     state: present
 
 - name: Check which repositories have been installed
-  command: eselect repository list -i
+  ansible.builtin.command: eselect repository list -i
   register: repositories_installed
-  changed_when: False
+  changed_when: false
 
 - name: Add custom overlay configuration
-  command:
+  ansible.builtin.command:
     cmd: "eselect repository add {{ item.name }} {{ item.source }} {{ item.url }}"
   when: item.name not in repositories_installed.stdout
   loop: "{{ custom_overlays }}"
 
 - name: Make configuration file with overlays that can override eclasses
-  copy:
+  ansible.builtin.copy:
     dest: "{{ gentoo_prefix_path }}/etc/portage/repos.conf/eclass-overrides.conf"
     mode: "0644"
     content: |
@@ -57,17 +57,17 @@
     sync: 'yes'
 
 - name: Find all files and directories in the etc/portage directory of the overlay
-  find:
+  ansible.builtin.find:
     file_type: any
     paths: "{{ gentoo_prefix_path }}/var/db/repos/{{ item.name }}/etc/portage"
   loop: "{{ custom_overlays }}"
   register: find_configs
 
 - name: Make symlinks to the portage settings in the custom overlay
-  file:
+  ansible.builtin.file:
     src: "{{ item.path }}"
     dest: "{{ gentoo_prefix_path }}/etc/portage/{{ item.path | basename }}"
     state: link
-    force: yes
+    force: true
   with_items:
     "{{ find_configs.results | rejectattr('files', 'equalto', []) | map(attribute='files') | list }}"
