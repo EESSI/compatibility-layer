@@ -1,7 +1,8 @@
 # Playbook for installing the EESSI compatibility layer.
 ---
 - name: Install compatibility layer
-  hosts: cvmfsstratum0servers
+  hosts: localhost
+  connection: local
   environment:
     PATH:
       "{{ gentoo_prefix_path }}/usr/sbin\
@@ -15,3 +16,6 @@
   roles:
     - compatibility_layer
   become: true
+
+# original (different setting for hosts & no connection)
+#  hosts: cvmfsstratum0servers

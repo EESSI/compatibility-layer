@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Copyright 2006-2021 Gentoo Authors; Distributed under the GPL v2
+# Copyright 2006-2022 Gentoo Authors
+# Distributed under the terms of the GNU General Public License v2
 
 trap 'exit 1' TERM KILL INT QUIT ABRT
 
@@ -39,7 +40,7 @@ emake() {
 	[[ $* == *install* ]] \
 		&& estatus "stage1: installing ${PWD##*/}" \
 		|| estatus "stage1: building ${PWD##*/}"
-	v $MAKE ${MAKEOPTS} "$@" || return 1
+	v ${MAKE} ${MAKEOPTS} "$@" || return 1
 }
 
 efetch() {
@@ -79,7 +80,7 @@ efetch() {
 		estatus "stage1: fetching ${1##*/}"
 		pushd "${DISTDIR}" > /dev/null
 
-		# try for mirrors first, fall back to distfiles, then try given location
+		# Try for mirrors first, fall back to distfiles, then try given location
 		local locs=( )
 		local loc
 		for loc in ${GENTOO_MIRRORS} ${DISTFILES_G_O} ${DISTFILES_PFX}; do
@@ -160,7 +161,7 @@ configure_toolchain() {
 	*-darwin*)
 	  # handled below
 	  ;;
-	*-freebsd*)
+	*-freebsd* | *-openbsd*)
 	  # comes with clang, handled below
 	  ;;
 	*)
@@ -190,9 +191,11 @@ configure_toolchain() {
 			einfo "Triggering Darwin with GCC toolchain"
 			compiler_stage1+=" sys-apps/darwin-miscutils"
 			local ccvers="$(unset CHOST; /usr/bin/gcc --version 2>/dev/null)"
+			local isgcc=
 			case "${ccvers}" in
 				*"(GCC) 4.2.1 "*)
 					linker="=sys-devel/binutils-apple-3.2.6"
+					isgcc=true
 					;;
 				*"(GCC) 4.0.1 "*)
 					linker="=sys-devel/binutils-apple-3.2.6"
@@ -200,6 +203,7 @@ configure_toolchain() {
 					compiler_stage1+="
 						sys-devel/gcc-apple
 						=sys-devel/binutils-apple-3.2.6"
+					isgcc=true
 					;;
 				*"Apple clang version "*|*"Apple LLVM version "*)
 					# recent binutils-apple are hard to build (C++11
@@ -214,7 +218,15 @@ configure_toolchain() {
 					return 1
 					;;
 			esac
-			compiler_stage1+=" sys-devel/gcc"
+			if [[ ${isgcc} == true ]] ; then
+				# current compiler (gcc-11) requires C++11, which is
+				# available since 4.8, so need to bootstrap with <11
+				compiler_stage1+=" <sys-devel/gcc-11"
+				compiler="${compiler%sys-devel/gcc} <sys-devel/gcc-11"
+			else
+				# assume LLVM/Clang has C++11 support
+				compiler_stage1+=" sys-devel/gcc"
+			fi
 			;;
 		*-darwin*)
 			einfo "Triggering Darwin with LLVM/Clang toolchain"
@@ -256,7 +268,7 @@ configure_toolchain() {
 				sys-devel/llvm
 				sys-devel/clang"
 			;;
-		*-freebsd*)
+		*-freebsd* | *-openbsd*)
 			CC=clang
 			CXX=clang++
 			# TODO: target clang toolchain someday?
@@ -287,7 +299,7 @@ configure_toolchain() {
 
 bootstrap_setup() {
 	local profile=""
-	einfo "setting up some guessed defaults"
+	einfo "Setting up some guessed defaults"
 
 	# 2.6.32.1 -> 2*256^3 + 6*256^2 + 32 * 256 + 1 = 33955841
 	kver() { uname -r|cut -d\- -f1|awk -F. '{for (i=1; i<=NF; i++){s+=lshift($i,(4-i)*8)};print s}'; }
@@ -309,7 +321,8 @@ bootstrap_setup() {
 	[[ -e ${ROOT}/foo.$$ ]] && FS_INSENSITIVE=1
 	rm "${ROOT}"/FOO.$$
 
-	if [[ ! -f ${ROOT}/etc/portage/make.conf ]] ; then
+	[[ ! -e "${MAKE_CONF_DIR}" ]] && mkdir -p -- "${MAKE_CONF_DIR}"
+	if [[ ! -f ${MAKE_CONF_DIR}/0100_bootstrap_prefix_make.conf ]] ; then
 		{
 			echo "# Added by bootstrap-prefix.sh for ${CHOST}"
 			echo 'USE="unicode nls"'
@@ -340,7 +353,7 @@ bootstrap_setup() {
 				echo "USE=\"\${USE} ${MAKE_CONF_ADDITIONAL_USE}\""
 			[[ ${OFFLINE_MODE} ]] && \
 				echo 'FETCHCOMMAND="bash -c \"echo I need \${FILE} from \${URI} in \${DISTDIR}; read\""'
-		} > "${ROOT}"/etc/portage/make.conf
+		} > "${MAKE_CONF_DIR}/0100_bootstrap_prefix_make.conf"
 	fi
 
 	if is-rap ; then
@@ -410,6 +423,10 @@ bootstrap_setup() {
 		i*86-pc-linux-gnu)
 			profile=${profile_linux/ARCH/x86}
 			;;
+		riscv64-pc-linux-gnu)
+			profile=${profile_linux/ARCH/riscv}
+			profile=${profile/17.0/20.0/rv64gc/lp64d}
+			;;
 		x86_64-pc-linux-gnu)
 			profile=${profile_linux/ARCH/amd64}
 			profile=${profile/17.0/17.1/no-multilib}
@@ -422,6 +439,10 @@ bootstrap_setup() {
 			;;
 		powerpc64le-unknown-linux-gnu)
 			profile=${profile_linux/ARCH/ppc64le}
+			;;
+		riscv-pc-unknown-linux-gnu)
+			profile=${profile_linux/ARCH/riscv}
+			profile=${profile/17.0/20.0/rv64gc/lp64d}
 			;;
 		aarch64-unknown-linux-gnu)
 			profile=${profile_linux/ARCH/arm64}
@@ -482,21 +503,10 @@ bootstrap_setup() {
 		einfo "Your profile is set to ${fullprofile}."
 	fi
 
-	is-rap && cat >> "${ROOT}"/etc/portage/make.profile/make.defaults <<-'EOF'
-	# For baselayout-prefix in stage2 only.
-	ACCEPT_KEYWORDS="~${ARCH}-linux"
-	EOF
-
-	# bug #788613 avoid gcc-11 during stage 2/3 prior sync/emerge -e
-	is-rap && cat >> "${ROOT}"/etc/portage/make.profile/package.mask <<-EOF
-	# during bootstrap mask, bug #788613
-	>=sys-devel/gcc-11
-	EOF
-
 	# Use package.use to disable in the portage tree to be shared between
 	# stage2 and stage3. The hack will be undone during tree sync in stage3.
 	cat >> "${ROOT}"/etc/portage/make.profile/package.use <<-EOF
-	# disable bootstrapping libcxx* with libunwind
+	# Disable bootstrapping libcxx* with libunwind
 	sys-libs/libcxxabi -libunwind
 	sys-libs/libcxx -libunwind
 	# Most binary Linux distributions seem to fancy toolchains that
@@ -511,11 +521,6 @@ bootstrap_setup() {
 	cat >> "${ROOT}"/etc/portage/make.profile/package.unmask <<-EOF
 	# For Darwin bootstraps
 	sys-devel/native-cctools
-	EOF
-
-	[[ ${CHOST} == arm64-*-darwin* ]] &&
-	cat >> "${ROOT}"/etc/portage/package.accept_keywords <<-EOF
-	=sys-devel/gcc-11_pre20200206 **
 	EOF
 
 	# Strange enough, -cxx causes wrong libtool config on Cygwin,
@@ -565,11 +570,10 @@ do_tree() {
 		else
 			efetch "$1/$2" || return 1
 		fi
-		[[ -e ${PORTDIR} ]] || mkdir -p ${PORTDIR}
 		einfo "Unpacking, this may take a while"
 		estatus "stage1: unpacking Portage tree"
-		bzip2 -dc ${DISTDIR}/$2 | \
-			tar -xf - -C ${PORTDIR} --strip-components=1 || return 1
+		bzip2 -dc ${DISTDIR}/$2 | tar -xf - -C ${PORTDIR} --strip-components=1
+		[[ ${PIPESTATUS[*]} == '0 0' ]] || return 1
 		touch ${PORTDIR}/.unpacked
 	fi
 }
@@ -577,7 +581,7 @@ do_tree() {
 bootstrap_tree() {
 	# RAP uses the latest gentoo main repo snapshot to bootstrap.
 	is-rap && LATEST_TREE_YES=1
-	local PV="20211105"
+	local PV="20220807"
 	if [[ -n ${LATEST_TREE_YES} ]]; then
 		do_tree "${SNAPSHOT_URL}" portage-latest.tar.bz2
 	else
@@ -596,7 +600,10 @@ bootstrap_tree() {
 }
 
 bootstrap_startscript() {
-	local theshell=$(echo "${SHELL##*/}" | cut -f1 -d' ')
+	# from gentoo/prefix
+	#local theshell=${SHELL##*/}
+	# from EESSI/compatibility-layer
+	local theshell=$(echo "${SHELL##*/}" | cut -f1 -d ' ')
 	if [[ ${theshell} == "sh" ]] ; then
 		einfo "sh is a generic shell, using bash instead"
 		theshell="bash"
@@ -644,8 +651,8 @@ bootstrap_portage() {
 	# STABLE_PV that is known to work. Intended for power users only.
 	## It is critical that STABLE_PV is the lastest (non-masked) version that is
 	## included in the snapshot for bootstrap_tree.
-	STABLE_PV="3.0.21"
-	[[ ${TESTING_PV} == latest ]] && TESTING_PV="3.0.21"
+	STABLE_PV="3.0.30.1"
+	[[ ${TESTING_PV} == latest ]] && TESTING_PV="3.0.30.1"
 	PV="${TESTING_PV:-${STABLE_PV}}"
 	A=prefix-portage-${PV}.tar.bz2
 	einfo "Bootstrapping ${A%.tar.*}"
@@ -658,7 +665,8 @@ bootstrap_portage() {
 	rm -rf "${S}" >& /dev/null
 	mkdir -p "${S}" >& /dev/null
 	cd "${S}"
-	bzip2 -dc "${DISTDIR}/${A}" | tar -xf - || return 1
+	bzip2 -dc "${DISTDIR}/${A}" | tar -xf -
+	[[ ${PIPESTATUS[*]} == '0 0' ]] || return 1
 	S="${S}/prefix-portage-${PV}"
 	cd "${S}"
 
@@ -707,7 +715,7 @@ bootstrap_portage() {
 
 	local tmpportdir=${ROOT}/tmp/${PORTDIR#${ROOT}}
 	[[ -e "${tmpportdir}" ]] || ln -s "${PORTDIR}" "${tmpportdir}"
-	for d in "${ROOT}"/tmp/usr/lib/python?.?; do
+	for d in "${ROOT}"/tmp/usr/lib/python${PYTHONMAJMIN}; do
 		[[ -e ${d}/portage ]] || ln -s "${ROOT}"/tmp/usr/lib/portage/lib/portage ${d}/portage
 		[[ -e ${d}/_emerge ]] || ln -s "${ROOT}"/tmp/usr/lib/portage/lib/_emerge ${d}/_emerge
 	done
@@ -753,7 +761,8 @@ bootstrap_simple() {
 		bz2)   decomp=bzip2 ;;
 		gz|"") decomp=gzip  ;;
 	esac
-	${decomp} -dc "${DISTDIR}"/${A} | tar -xf - || return 1
+	${decomp} -dc "${DISTDIR}"/${A} | tar -xf -
+	[[ ${PIPESTATUS[*]} == '0 0' ]] || return 1
 	S="${S}"/${PN}-${PV}
 	cd "${S}"
 
@@ -808,18 +817,21 @@ bootstrap_gnu() {
 		rm -rf "${S}"
 		mkdir -p "${S}"
 		cd "${S}"
-		if [[ ${t} == "tar.gz" ]] ; then
-			gzip -dc "${DISTDIR}"/${URL##*/} | tar -xf - || continue
-		elif [[ ${t} == "tar.xz" ]] ; then
-			xz -dc "${DISTDIR}"/${URL##*/} | tar -xf - || continue
-		elif [[ ${t} == "tar.bz2" ]] ; then
-			bzip2 -dc "${DISTDIR}"/${URL##*/} | tar -xf - || continue
-		elif [[ ${t} == "tar" ]] ; then
-			tar -xf "${DISTDIR}"/${A} || continue
-		else
-			einfo "unhandled extension: $t"
-			return 1
-		fi
+		case ${t} in
+			tar.xz)  decomp=xz    ;;
+			tar.bz2) decomp=bzip2 ;;
+			tar.gz)  decomp=gzip  ;;
+			tar)
+				tar -xf "${DISTDIR}"/${A} || continue
+				break
+				;;
+			*)
+				einfo "unhandled extension: $t"
+				return 1
+				;;
+		esac
+		${decomp} -dc "${DISTDIR}"/${URL##*/} | tar -xf -
+		[[ ${PIPESTATUS[*]} == '0 0' ]] || continue
 		break
 	done
 	S="${S}"/${PN}-${PV}
@@ -874,13 +886,15 @@ bootstrap_gnu() {
 		# doesn't match
 		sed -i -e '/_GL_WARN_ON_USE (gets/d' lib/stdio.in.h lib/stdio.h
 
-		# macOS 10.13 have an issue with %n, which crashes m4
-		efetch "http://rsync.prefix.bitzolder.nl/sys-devel/m4/files/m4-1.4.18-darwin17-printf-n.patch" || return 1
-		patch -p1 < "${DISTDIR}"/m4-1.4.18-darwin17-printf-n.patch || return 1
+		if [[ ${PV} == "1.4.18" ]] ; then
+			# macOS 10.13 have an issue with %n, which crashes m4
+			efetch "http://rsync.prefix.bitzolder.nl/sys-devel/m4/files/m4-1.4.18-darwin17-printf-n.patch" || return 1
+			patch -p1 < "${DISTDIR}"/m4-1.4.18-darwin17-printf-n.patch || return 1
 
-		# Bug 715880
-		efetch http://dev.gentoo.org/~heroxbd/m4-1.4.18-glibc228.patch || return 1
-		patch -p1 < "${DISTDIR}"/m4-1.4.18-glibc228.patch || return 1
+			# Bug 715880
+			efetch http://dev.gentoo.org/~heroxbd/m4-1.4.18-glibc228.patch || return 1
+			patch -p1 < "${DISTDIR}"/m4-1.4.18-glibc228.patch || return 1
+		fi
 	fi
 
 	fix_config_sub
@@ -898,17 +912,21 @@ bootstrap_gnu() {
 	export ac_cv_path_POD2MAN=no
 
 	# Darwin9 in particular doesn't compile when using system readline,
-	# but we don't need any groovy input at all, so just disable it,
-	# except for Cygwin, where the patch above would fail to compile
-	[[ ${PN} == "bash" && ${CHOST} != *-cygwin* ]] \
-		&& myconf="${myconf} --disable-readline"
+	# but we don't need any groovy input handling at all, so just disable it
+	[[ ${PN} == "bash" ]] && myconf="${myconf} --disable-readline"
 
-	# ensure we don't read system-wide shell initialisation, it may
+	# On e.g. musl systems bash will crash with a malloc error if we use
+	# bash' internal malloc, so disable it during it this stage
+	[[ ${PN} == "bash" ]] && \
+		myconf="${myconf} --without-bash-malloc"
+
+	# Ensure we don't read system-wide shell initialisation, it may
 	# contain cruft, bug #650284
 	[[ ${PN} == "bash" ]] && \
 		export CPPFLAGS="${CPPFLAGS} \
-			-DSYS_BASHRC=\'\"${ROOT}/etc/bash/bashrc\"\' \
-			-DSYS_BASH_LOGOUT=\'\"${ROOT}/etc/bash/bash_logout\"\'"
+			-DSYS_BASHRC=\\\"${ROOT}/etc/bash/bashrc\\\" \
+			-DSYS_BASH_LOGOUT=\\\"${ROOT}/etc/bash/bash_logout\\\" \
+		"
 
 	# Don't do ACL stuff on Darwin, especially Darwin9 will make
 	# coreutils completely useless (install failing on everything)
@@ -979,15 +997,13 @@ bootstrap_gnu() {
 	einfo "${A%.tar.*} successfully bootstrapped"
 }
 
-PYTHONMAJMIN=3.9   # keep this number in line with PV below for stage1,2
+PYTHONMAJMIN=3.10   # keep this number in line with PV below for stage1,2
 bootstrap_python() {
-	PV=3.9.6
+	PV=3.10.4
 	A=Python-${PV}.tar.xz
 	einfo "Bootstrapping ${A%.tar.*}"
 
-	# don't really want to put this on the mirror, since they are
-	# non-vanilla sources, bit specific for us
-	efetch ${DISTFILES_URL}/${A} || return 1
+	efetch https://www.python.org/ftp/python/${PV}/${A}
 
 	einfo "Unpacking ${A%.tar.*}"
 	export S="${PORTAGE_TMPDIR}/python-${PV}"
@@ -1007,24 +1023,46 @@ bootstrap_python() {
 
 	case ${CHOST} in
 	(*-*-cygwin*)
-		# apply patches from cygwinports much like the ebuild does
-		local gitrev pf pn
-		gitrev="71f2ac2444946c97d892be3892e47d2a509e0e96" # python36 3.6.8
-		efetch "https://github.com/cygwinports/python36/archive/${gitrev}.tar.gz" \
-			|| return 1
-		gzip -dc "${DISTDIR}"/${gitrev}.tar.gz | tar -xf -
-		[[ ${PIPESTATUS[*]} == '0 0' ]] || return 1
+		local gitrev cygpyver pf pn patch_folder ffail
+
+		# try github first, if that fails, it means that cygwin has not
+		# archived that repo yet
+		# ideally the version of python used by bootstrap would be one
+		# that cygwin has packaged if we don't do exact matches on the
+		# version then some patches may not apply cleanly
+
+		ffail=0
+		gitrev="42494e325a050ba03638568d7318f8f0075e25fb"
+		efetch "https://github.com/cygwinports/python39/archive/${gitrev}.tar.gz" \
+			|| ffail=1
+		if [[ -z ${ffail} ]]; then
+			gzip -dc "${DISTDIR}"/"${gitrev}.tar.gz" | tar -xf -
+			[[ ${PIPESTATUS[*]} == '0 0' ]] || return 1
+			patch_folder="python39-${gitrev}"
+		else
+			cygpyver="3.9.9-1"
+			efetch "https://mirrors.kernel.org/sourceware/cygwin/x86_64/release/python39/python39-${cygpyver}-src.tar.xz" \
+				|| return 1
+			xz -dc "${DISTDIR}"/"python39-${cygpyver}-src.tar.xz" | tar -xf -
+			[[ ${PIPESTATUS[*]} == '0 0' ]] || return 1
+			patch_folder="python39-${cygpyver}.src"
+			ffail=0
+		fi
+		[[ ${ffail} == 0 ]] || return 1
+
 		for pf in $(
 			sed -ne '/PATCH_URI="/,/"/{s/.*="//;s/".*$//;p}' \
-			< python36-${gitrev}/python3.cygport
+				< "${patch_folder}/python39.cygport" \
+				| grep -v rpm-wheels | grep -v revert-bpo
 		); do
-			pf="python36-${gitrev}/${pf}"
+			pf="${patch_folder}/${pf}"
 			for pn in {1..2} fail; do
 				if [[ ${pn} == fail ]]; then
 					eerror "failed to apply ${pf}"
 					return 1
 				fi
-				patch -N -p${pn} -i "${pf}" --dry-run >/dev/null 2>&1 || continue
+				patch -N -p${pn} -i "${pf}" --dry-run >/dev/null 2>&1 \
+					|| continue
 				echo "applying (-p${pn}) ${pf}"
 				patch -N -p${pn} -i "${pf}" || return 1
 				break
@@ -1050,10 +1088,11 @@ bootstrap_python() {
 		efetch "https://dev.gentoo.org/~sam/distfiles/dev-lang/python/python-3.9.6-darwin9_pthreadid.patch"
 		patch -p1 < "${DISTDIR}"/python-3.9.6-darwin9_pthreadid.patch
 		;;
-	(arm64-*-darwin*)
-		# Teach Python a new trick (arm64)
+	(*-openbsd*)
+		# OpenBSD is not a multilib system
 		sed -i \
-			-e "/Unexpected output of 'arch' on OSX/d" \
+			-e '0,/#if defined(__ANDROID__)/{s/ANDROID/OpenBSD/}' \
+			-e '0,/MULTIARCH=/{s/\(MULTIARCH\)=.*/\1=""/}' \
 			configure
 		;;
 	esac
@@ -1070,7 +1109,7 @@ bootstrap_python() {
 
 	local myconf=""
 
-	case $CHOST in
+	case ${CHOST} in
 	(x86_64-*-*|sparcv9-*-*)
 		export CFLAGS="-m64"
 		;;
@@ -1079,7 +1118,7 @@ bootstrap_python() {
 		;;
 	esac
 
-	case $CHOST in
+	case ${CHOST} in
 		*-*-cygwin*)
 			# --disable-shared would link modules against "python.exe"
 			# so renaming to "pythonX.Y.exe" will break them.
@@ -1106,11 +1145,15 @@ bootstrap_python() {
 	export CPPFLAGS="-I${ROOT}/tmp/usr/include"
 	export LDFLAGS="${CFLAGS} -L${ROOT}/tmp/usr/lib"
 	# set correct flags for runtime for ELF platforms
-	case $CHOST in
+	case ${CHOST} in
 		*-linux*)
 			# GNU ld
 			LDFLAGS="${LDFLAGS} -Wl,-rpath,${ROOT}/tmp/usr/lib ${libdir}"
 			LDFLAGS="${LDFLAGS} -Wl,-rpath,${libdir#-L}"
+		;;
+		*-openbsd*)
+			# LLD
+			LDFLAGS="${LDFLAGS} -Wl,-rpath,${ROOT}/tmp/usr/lib"
 		;;
 		*-solaris*)
 			# Sun ld
@@ -1128,9 +1171,9 @@ bootstrap_python() {
 
 	einfo "Compiling ${A%.tar.*}"
 
-	# some ancient versions of hg fail with "hg id -i", so help
-	# configure to not find them using HAS_HG
-	# do not find libffi via pkg-config using PKG_CONFIG
+	# - Some ancient versions of hg fail with "hg id -i", so help
+	#   configure to not find them using HAS_HG (TODO: obsolete?)
+	# - Do not find libffi via pkg-config using PKG_CONFIG
 	HAS_HG=no \
 	PKG_CONFIG= \
 	econf \
@@ -1168,7 +1211,8 @@ bootstrap_cmake_core() {
 	rm -rf "${S}"
 	mkdir -p "${S}"
 	cd "${S}"
-	gzip -dc "${DISTDIR}"/${A} | tar -xf - || return 1
+	gzip -dc "${DISTDIR}"/${A} | tar -xf -
+	[[ ${PIPESTATUS[*]} == '0 0' ]] || return 1
 	S="${S}"/cmake-${PV}
 	cd "${S}"
 
@@ -1206,7 +1250,7 @@ bootstrap_cmake() {
 }
 
 bootstrap_zlib_core() {
-	# use 1.2.8 by default, current bootstrap guides
+	# Use 1.2.8 by default, current bootstrap guides
 	PV="${1:-1.2.8}"
 	A=zlib-${PV}.tar.gz
 
@@ -1219,11 +1263,12 @@ bootstrap_zlib_core() {
 	rm -rf "${S}"
 	mkdir -p "${S}"
 	cd "${S}"
-	if [[ ${A} == *.tar.gz ]] ; then
-		gzip -dc "${DISTDIR}"/${A} | tar -xf - || return 1
-	else
-		bzip2 -dc "${DISTDIR}"/${A} | tar -xf - || return 1
-	fi
+	case ${A} in
+		*.tar.gz) decomp=gzip  ;;
+		*)        decomp=bzip2 ;;
+	esac
+	${decomp} -dc "${DISTDIR}"/${A} | tar -xf -
+	[[ ${PIPESTATUS[*]} == '0 0' ]] || return 1
 	S="${S}"/zlib-${PV}
 	cd "${S}"
 
@@ -1321,7 +1366,7 @@ bootstrap_coreutils() {
 	# 8.16 is the last version released as tar.gz
 	# 8.18 is necessary for macOS High Sierra (darwin17) and converted
 	#      to tar.gz for this case
-	bootstrap_gnu coreutils 8.30 || \
+	bootstrap_gnu coreutils 8.32 || bootstrap_gnu coreutils 8.30 || \
 	bootstrap_gnu coreutils 8.16 || bootstrap_gnu coreutils 8.17
 }
 
@@ -1372,7 +1417,7 @@ bootstrap_bison() {
 }
 
 bootstrap_m4() {
-	bootstrap_gnu m4 1.4.18 # version is patched, so beware
+	bootstrap_gnu m4 1.4.19 || bootstrap_gnu m4 1.4.18 # version is patched, so beware
 }
 
 bootstrap_gzip() {
@@ -1390,6 +1435,8 @@ bootstrap_bzip2() {
 }
 
 bootstrap_libressl() {
+	bootstrap_simple libressl 3.4.3 gz \
+		https://ftp.openbsd.org/pub/OpenBSD/LibreSSL || \
 	bootstrap_simple libressl 3.2.4 gz \
 		https://ftp.openbsd.org/pub/OpenBSD/LibreSSL || \
 	bootstrap_simple libressl 2.8.3 gz \
@@ -1416,7 +1463,9 @@ bootstrap_stage_host_gentoo() {
 	(bootstrap_tree) || return 1
 
 	# setup a profile
-	[[ -e ${ROOT}/etc/portage/make.profile && -e ${ROOT}/etc/portage/make.conf ]] || (bootstrap_setup) || return 1
+	[[ -e ${ROOT}/etc/portage/make.profile && \
+		-e ${MAKE_CONF_DIR}/0100_bootstrap_prefix_make.conf ]] \
+		|| (bootstrap_setup) || return 1
 
 	prepare_portage
 }
@@ -1426,8 +1475,8 @@ bootstrap_stage1() {
 	# bits-size of the compiler, which needs not to match what we're
 	# bootstrapping for.  This is no problem since they're just tools,
 	# for which it really doesn't matter how they run, as long AS they
-	# run.  For libraries, this is different, since they are relied on
-	# by packages we emerge lateron.
+	# run.  For libraries, this is different, since they are relied upon
+	# by packages we emerge later on.
 	# Changing this to compile the tools for the bits the bootstrap is
 	# for, is a BAD idea, since we're extremely fragile here, so
 	# whatever the native toolchain is here, is what in general works
@@ -1444,9 +1493,11 @@ bootstrap_stage1() {
 	configure_toolchain
 	export CC CXX
 
-	# run all bootstrap_* commands in a subshell since the targets
+	# Run all bootstrap_* commands in a subshell since the targets
 	# frequently pollute the environment using exports which affect
 	# packages following (e.g. zlib builds 64-bits)
+
+	local CP
 
 	# don't rely on $MAKE, if make == gmake packages that call 'make' fail
 	[[ -x ${ROOT}/tmp/usr/bin/make ]] \
@@ -1471,9 +1522,20 @@ bootstrap_stage1() {
 		|| [[ $(bison --version 2>&1) == *GNU" "Bison") "2.[3-7]* ]] \
 		|| [[ $(bison --version 2>&1) == *GNU" "Bison") "[3-9]* ]] \
 		|| (bootstrap_bison) || return 1
-	[[ -x ${ROOT}/tmp/usr/bin/uniq ]] \
-		|| [[ $(uniq --version 2>&1) == *"(GNU coreutils) "[6789]* ]] \
-		|| (bootstrap_coreutils) || return 1
+	if [[ ! -x ${ROOT}/tmp/usr/bin/uniq ]]; then
+		# If the system has a uniq, let's use it to test whether
+		# coreutils is new enough (and GNU).
+		if [[ $(uniq --version 2>&1) == *"(GNU coreutils) "[6789]* ]]; then
+			CP="cp"
+		else
+			(bootstrap_coreutils) || return 1
+		fi
+	fi
+
+	# But for e.g. BSD, it isn't going to be, so if our test failed,
+	# use bootstrapped coreutils.
+	[[ -z ${CP} ]] && CP="${ROOT}/tmp/bin/cp"
+
 	[[ -x ${ROOT}/tmp/usr/bin/find ]] \
 		|| [[ $(find --version 2>&1) == *GNU* ]] \
 		|| (bootstrap_findutils) || return 1
@@ -1575,9 +1637,11 @@ bootstrap_stage1() {
 	(bootstrap_tree) || return 1
 
 	# setup a profile
-	[[ -e ${ROOT}/etc/portage/make.profile && -e ${ROOT}/etc/portage/make.conf ]] || (bootstrap_setup) || return 1
+	[[ -e ${ROOT}/etc/portage/make.profile && \
+		-e ${MAKE_CONF_DIR}/0100_bootstrap_prefix_make.conf ]] \
+		|| (bootstrap_setup) || return 1
 	mkdir -p "${ROOT}"/tmp/etc/. || return 1
-	[[ -e ${ROOT}/tmp/etc/portage/make.profile ]] || cp -dpR "${ROOT}"/etc/portage "${ROOT}"/tmp/etc || return 1
+	[[ -e ${ROOT}/tmp/etc/portage/make.profile ]] || "${CP}" -dpR "${ROOT}"/etc/portage "${ROOT}"/tmp/etc || return 1
 
 	# setup portage
 	[[ -e ${ROOT}/tmp/usr/bin/emerge ]] || (bootstrap_portage) || return 1
@@ -1644,16 +1708,20 @@ do_emerge_pkgs() {
 			clang
 			internal-glib
 		)
+		local override_make_conf_dir="${PORTAGE_OVERRIDE_EPREFIX}${MAKE_CONF_DIR#${ROOT}}"
+
 		if [[ " ${USE} " == *" prefix-stack "* ]] &&
 		   [[ ${PORTAGE_OVERRIDE_EPREFIX} == */tmp ]] &&
-		   ! grep -q '^USE=".*" # by bootstrap-prefix.sh$' "${PORTAGE_OVERRIDE_EPREFIX}/etc/portage/make.conf"
+		   ! grep -Rq '^USE=".*" # by bootstrap-prefix.sh$' \
+		   "${override_make_conf_dir}"
 		then
 			# With prefix-stack, the USE env var does apply to the stacked
 			# prefix only, not the base prefix (any more? since some portage
 			# version?), so we have to persist the base USE flags into the
 			# base prefix - without the additional incoming USE flags.
+			mkdir -p -- "${override_make_conf_dir}"
 			echo "USE=\"\${USE} ${myuse[*]}\" # by bootstrap-prefix.sh" \
-				>> "${PORTAGE_OVERRIDE_EPREFIX}/etc/portage/make.conf"
+				>> "${override_make_conf_dir}/0101_bootstrap_prefix_stack.conf"
 		fi
 		myuse=" ${myuse[*]} "
 		local use
@@ -1787,7 +1855,7 @@ bootstrap_stage2() {
 		app-shells/bash
 		app-arch/xz-utils
 		sys-apps/sed
-		sys-apps/baselayout-prefix
+		sys-apps/baselayout
 		dev-libs/libffi
 		sys-devel/m4
 		sys-devel/flex
@@ -1825,9 +1893,13 @@ bootstrap_stage2() {
 	for pkg in ${compiler_stage1} ; do
 		# <glibc-2.5 does not understand .gnu.hash, use
 		# --hash-style=both to produce also sysv hash.
+		# GCC apparently drops CPPFLAGS at some point, which makes it
+		# not find things like gmp which we just installed, so force it
+		# to find our prefix
 		EXTRA_ECONF="--disable-bootstrap $(rapx --with-linker-hash-style=both) --with-local-prefix=${ROOT}" \
 		MYCMAKEARGS="-DCMAKE_USE_SYSTEM_LIBRARY_LIBUV=OFF" \
 		GCC_MAKE_TARGET=all \
+		OVERRIDE_CXXFLAGS="${CPPFLAGS} -O2 -pipe" \
 		TPREFIX="${ROOT}" \
 		PYTHON_COMPAT_OVERRIDE=python${PYTHONMAJMIN} \
 		emerge_pkgs --nodeps ${pkg} || return 1
@@ -1842,8 +1914,9 @@ bootstrap_stage2() {
 	done
 
 	if [[ ${compiler_type} == clang ]] ; then
-		# we use Clang as our toolchain compiler, so we need to make
+		# We use Clang as our toolchain compiler, so we need to make
 		# sure we actually use it
+		mkdir -p -- "${MAKE_CONF_DIR}"
 		{
 			echo
 			echo "# System compiler on $(uname) Prefix is Clang, do not remove this"
@@ -1853,7 +1926,8 @@ bootstrap_stage2() {
 			echo "OBJCXX=${CHOST}-clang++"
 			echo "BUILD_CC=${CHOST}-clang"
 			echo "BUILD_CXX=${CHOST}-clang++"
-		} >> "${ROOT}"/etc/portage/make.conf
+		} >> "${MAKE_CONF_DIR}/0100_bootstrap_prefix_clang.conf"
+
 		# llvm won't setup symlinks to CHOST-clang here because
 		# we're in a cross-ish situation (at least according to
 		# multilib.eclass -- can't blame it at this point really)
@@ -1898,7 +1972,7 @@ bootstrap_stage3() {
 		fi
 	fi
 
-	# if we resume this stage and python-exec was installed already in
+	# If we resume this stage and python-exec was installed already in
 	# tmp, we basically made the system unusable, so remove python-exec
 	# here so we can use the python in tmp
 	for pef in python{,3} python{,3}-config ; do
@@ -2031,8 +2105,14 @@ bootstrap_stage3() {
 			${linker}
 		)
 		# use the new dynamic linker in place of rpath from now on.
-		RAP_DLINKER=$(echo "${ROOT}"/$(get_libdir)/ld*.so.[0-9])
+		RAP_DLINKER=$(echo "${ROOT}"/$(get_libdir)/ld*.so.[0-9] | sed s"!${ROOT}/$(get_libdir)/ld-lsb.*!!")
 		export LDFLAGS="-L${ROOT}/usr/$(get_libdir) -Wl,--dynamic-linker=${RAP_DLINKER}"
+		if [[ ${compiler_type} == gcc ]] ; then
+			# make sure these flags are used even in places that ignore/strip CPPFLAGS/LDFLAGS
+			export LDFLAGS="-B${ROOT}/usr/$(get_libdir) ${LDFLAGS}"
+			export CC="gcc ${CPPFLAGS} ${LDFLAGS}"
+			export CXX="g++ ${CPPFLAGS} ${LDFLAGS}"
+		fi
 		BOOTSTRAP_RAP=yes \
 		pre_emerge_pkgs --nodeps "${pkgs[@]}" || return 1
 
@@ -2051,7 +2131,7 @@ bootstrap_stage3() {
 			app-portage/elt-patches
 			app-arch/xz-utils
 			sys-apps/sed
-			sys-apps/baselayout-prefix
+			sys-apps/baselayout
 			sys-devel/m4
 			sys-devel/flex
 			sys-devel/binutils-config
@@ -2080,16 +2160,16 @@ bootstrap_stage3() {
 	# in addition, avoid collisions
 	rm -Rf "${ROOT}"/tmp/usr/lib/python${PYTHONMAJMIN}/site-packages/clang
 
-	# try to get ourself out of the mud, bug #575324
+	# Try to get ourself out of the mud, bug #575324
 	EXTRA_ECONF="--disable-compiler-version-checks $(rapx '--disable-lto --disable-bootstrap')" \
 	GCC_MAKE_TARGET=$(rapx all) \
 	MYCMAKEARGS="-DCMAKE_USE_SYSTEM_LIBRARY_LIBUV=OFF" \
 	PYTHON_COMPAT_OVERRIDE=python${PYTHONMAJMIN} \
 	pre_emerge_pkgs --nodeps ${compiler} || return 1
-	# undo libgcc_s.so path of stage2
 
-	# now we have the compiler right there
-	unset CXX CPPFLAGS LDFLAGS
+	# Undo libgcc_s.so path of stage2
+	# Now we have the compiler right there
+	unset CC CXX CPPFLAGS LDFLAGS
 
 	rm -f "${ROOT}"/etc/ld.so.conf.d/stage2.conf
 
@@ -2102,10 +2182,11 @@ bootstrap_stage3() {
 		rm -f "${ROOT}"/bin/sh
 		ln -s bash "${ROOT}"/bin/sh
 	fi
-	# start using apps from new target
+
+	# Start using apps from new target
 	export PREROOTPATH="${ROOT}/usr/bin:${ROOT}/bin"
 
-	# get a sane bash, overwriting tmp symlinks
+	# Get a sane bash, overwriting tmp symlinks
 	pre_emerge_pkgs "" "app-shells/bash" || return 1
 
 	# now we have a shell right there
@@ -2123,7 +2204,8 @@ bootstrap_stage3() {
 		app-admin/eselect
 		$( [[ ${CHOST} == *-cygwin* ]] && echo sys-libs/cygwin-crypt )
 	)
-	# for grep we need to do a little workaround as we might use llvm-3.4
+
+	# For grep we need to do a little workaround as we might use llvm-3.4
 	# here, which doesn't necessarily grok the system headers on newer
 	# OSX, confusing the buildsystem
 	ac_cv_c_decl_report=warning \
@@ -2161,19 +2243,16 @@ bootstrap_stage3() {
 		emerge --color n --sync || emerge-webrsync || return 1
 	fi
 
-	# avoid installing git or encryption just for fun while completing @system
+	# Avoid installing git or encryption just for fun while completing @system
 	export USE="-git -crypt"
 
 	# Portage should figure out itself what it needs to do, if anything.
-	# Avoid glib compiling for Cocoa libs if it finds them, since we're
-	# still with an old llvm that may not understand the system headers
-	# very well on Darwin (-DGNUSTEP_BASE_VERSION hack)
 	einfo "running emerge -uDNv system"
 	estatus "stage3: emerge -uDNv system"
-	CPPFLAGS="-DGNUSTEP_BASE_VERSION" \
-	CFLAGS= CXXFLAGS= emerge --color n -uDNv system || return 1
+	unset CFLAGS CXXFLAGS CPPFLAGS
+	emerge --color n -uDNv system || return 1
 
-	# remove anything that we don't need (compilers most likely)
+	# Remove anything that we don't need (compilers most likely)
 	einfo "running emerge --depclean"
 	estatus "stage3: emerge --depclean"
 	emerge --color n --depclean
@@ -2198,6 +2277,7 @@ set_helper_vars() {
 	export PORTDIR=${PORTDIR:-"${ROOT}/var/db/repos/gentoo"}
 	export DISTDIR=${DISTDIR:-"${ROOT}/var/cache/distfiles"}
 	PORTAGE_TMPDIR=${PORTAGE_TMPDIR:-${ROOT}/var/tmp}
+	MAKE_CONF_DIR="${ROOT}/etc/portage/make.conf/"
 	DISTFILES_URL=${DISTFILES_URL:-"http://dev.gentoo.org/~grobian/distfiles"}
 	GNU_URL=${GNU_URL:="http://ftp.gnu.org/gnu"}
 	DISTFILES_G_O="https://distfiles.prefix.bitzolder.nl"
@@ -2212,7 +2292,7 @@ set_helper_vars() {
 
 bootstrap_interactive() {
 	# TODO should immediately die on platforms that we know are
-	# impossible due extremely hard dependency chains
+	# impossible due to extremely hard dependency chains
 	# (NetBSD/OpenBSD)
 
 	cat <<"EOF"
@@ -2322,9 +2402,8 @@ EOF
 	echo
 	echo "It seems to me you are '${USER:-$(whoami 2> /dev/null)}' (${UID}), that looks cool to me."
 
-	# Expect noninteractive users to know what they do:
-	# Take EPREFIX from argv1 (=ROOT), not from env var.
-	[[ ${TODO} == 'noninteractive' ]] && EPREFIX=${ROOT}
+	# In case $ROOT were specified as $1, use it
+	[[ -z "${EPREFIX}" ]] && EPREFIX="${ROOT}"
 
 	echo
 	echo "I'm going to check for some variables in your environment now:"
@@ -2572,12 +2651,18 @@ EOF
 	echo
 	local ncpu=
 	case "${CHOST}" in
-		*-cygwin*)     ncpu=$(cmd /D /Q /C 'echo %NUMBER_OF_PROCESSORS%' | tr -d "\\r") ;;
-		*-darwin*)     ncpu=$(/usr/sbin/sysctl -n hw.ncpu)                 ;;
-		*-freebsd*)    ncpu=$(/sbin/sysctl -n hw.ncpu)                     ;;
-		*-solaris*)    ncpu=$(/usr/sbin/psrinfo | wc -l)                   ;;
-		*-linux-gnu*)  ncpu=$(cat /proc/cpuinfo | grep processor | wc -l)  ;;
-		*)             ncpu=1                                              ;;
+		*-cygwin*)
+			ncpu=$(cmd /D /Q /C 'echo %NUMBER_OF_PROCESSORS%' | tr -d "\\r") ;;
+		*-darwin*)
+			ncpu=$(/usr/sbin/sysctl -n hw.ncpu) ;;
+		*-freebsd* | *-openbsd*)
+			ncpu=$(/sbin/sysctl -n hw.ncpu) ;;
+		*-solaris*)
+			ncpu=$(/usr/sbin/psrinfo | wc -l) ;;
+		*-linux-gnu*)
+			ncpu=$(cat /proc/cpuinfo | grep processor | wc -l) ;;
+		*)
+			ncpu=1 ;;
 	esac
 	# get rid of excess spaces (at least Solaris wc does)
 	ncpu=$((ncpu + 0))
@@ -2835,8 +2920,8 @@ EOF
 		# GNU and BSD variants of stat take different arguments (and
 		# format specifiers are not equivalent)
 		case "${CHOST}" in
-			*-darwin* | *-freebsd*) STAT='stat -f %u/%g' ;;
-			*)                      STAT='stat -c %U/%G' ;;
+			*-darwin* | *-freebsd* | *-openbsd*) STAT='stat -f %u/%g' ;;
+			*)                                   STAT='stat -c %U/%G' ;;
 		esac
 
 		if [[ $(${STAT} "${EPREFIX}"/.canihaswrite) != \
@@ -3086,15 +3171,18 @@ if [[ -z ${CHOST} ]]; then
 	if [[ x$(type -t uname) == "xfile" ]]; then
 		case `uname -s` in
 			Linux)
+				plt="gnu"
+				[[ -e /lib/ld-musl-*.so.1 ]] && plt="musl"
+				sfx="unknown-linux-${plt}"
 				case `uname -m` in
 					ppc*)
-						CHOST="`uname -m | sed -e 's/^ppc/powerpc/'`-unknown-linux-gnu"
+						CHOST="`uname -m | sed -e 's/^ppc/powerpc/'`-${sfx}"
 						;;
 					powerpc*|aarch64*)
-						CHOST="`uname -m`-unknown-linux-gnu"
+						CHOST="`uname -m`-${sfx}"
 						;;
 					*)
-						CHOST="`uname -m`-pc-linux-gnu"
+						CHOST="`uname -m`-${sfx/unknown/pc}"
 						;;
 				esac
 				;;
@@ -3129,6 +3217,13 @@ if [[ -z ${CHOST} ]]; then
 				case `uname -m` in
 					amd64)
 						CHOST="x86_64-pc-freebsd`uname -r | sed 's|-.*$||'`"
+					;;
+				esac
+				;;
+			OpenBSD)
+				case `uname -m` in
+					amd64)
+						CHOST="x86_64-pc-openbsd`uname -r | sed 's|-.*$||'`"
 					;;
 				esac
 				;;
@@ -3251,7 +3346,7 @@ then
 	exit 1
 fi
 
-if [[ -n ${LD_LIBARY_PATH} || -n ${DYLD_LIBRARY_PATH} ]] ; then
+if [[ -n ${LD_LIBRARY_PATH} || -n ${DYLD_LIBRARY_PATH} ]] ; then
 	eerror "EEEEEK!  You have LD_LIBRARY_PATH or DYLD_LIBRARY_PATH set"
 	eerror "in your environment.  This is a guarantee for TROUBLE."
 	eerror "Cowardly refusing to operate any further this way!"
