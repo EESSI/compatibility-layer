@@ -20,22 +20,22 @@ gentoo_git_repo: https://github.com/gentoo/gentoo.git
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
 # 2021.12
-#gentoo_git_commit: 7eaa2512d1e6ddb44e3b41bbddf6c74723f234ce
+# gentoo_git_commit: 7eaa2512d1e6ddb44e3b41bbddf6c74723f234ce
 # 2022.10 (Oct 3 2022) considered
-#gentoo_git_commit: 063b3e0e3d31acd88f453831f71d74d976d66359
+# gentoo_git_commit: 063b3e0e3d31acd88f453831f71d74d976d66359
 # 2022.10 (Oct 3 2022) considered 2
 #   one commit before gcc-config-2.6 was added (by cc6a27ec99c1e08ac51c69ff0ab4c2b8a5578e2e)
 #     the below commit is 3200 commits behind 7eaa2512d1e6ddb44e3b41bbddf6c74723f234ce (2021.12)
 #     079738bd484ed8ecd83e2a82a1bbff97b5b004e2 is from Sep 23, 2022
-#gentoo_git_commit: 079738bd484ed8ecd83e2a82a1bbff97b5b004e2
+# gentoo_git_commit: 079738bd484ed8ecd83e2a82a1bbff97b5b004e2
 # 2022.10 (Oct 11 2022) actually used
-#gentoo_git_commit: 3e6e7da40a59134ab2afee9b27b5b0c2051f21a4
+# gentoo_git_commit: 3e6e7da40a59134ab2afee9b27b5b0c2051f21a4
 # 2022.11 (Oct 28 2022) first try
 #   this installs gcc-10.4.1_p20221006 in bootstrap stage2/3
 #   subsequently 10.4.0 cannot be set as default gcc (via gcc-config)
 #   trying to set 10.4.1_p20221006 fails
 #   we mask sys-devel/gcc below to not install anything newer than 10.4.0
-#gentoo_git_commit: c2d8ce0e1b6206a225a9f2547bbc65c79218756c
+# gentoo_git_commit: c2d8ce0e1b6206a225a9f2547bbc65c79218756c
 # 2022.11 (Nov 3 2022) second iteration made for PR
 gentoo_git_commit: cec3214ef5d5661e28c9d2c5b5750b27c27c5435
 prefix_required_space: 15 GB

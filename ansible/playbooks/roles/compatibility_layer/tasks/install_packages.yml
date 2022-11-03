@@ -1,7 +1,7 @@
 # Install a specified list of sets and packages.
 ---
 - name: Install package set {{ package_sets }}
-  portage:
+  community.general.portage:
     package: "@{{ item }}"
     state: present
   with_items: "{{ package_sets }}"
@@ -10,7 +10,7 @@
     - set
 
 - name: Install additional packages
-  portage:
+  community.general.portage:
     package: "{{ item }}"
     state: present
   with_items: "{{ prefix_packages }}"
