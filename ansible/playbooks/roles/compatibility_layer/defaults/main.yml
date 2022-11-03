@@ -35,7 +35,9 @@ gentoo_git_repo: https://github.com/gentoo/gentoo.git
 #   subsequently 10.4.0 cannot be set as default gcc (via gcc-config)
 #   trying to set 10.4.1_p20221006 fails
 #   we mask sys-devel/gcc below to not install anything newer than 10.4.0
-gentoo_git_commit: c2d8ce0e1b6206a225a9f2547bbc65c79218756c
+#gentoo_git_commit: c2d8ce0e1b6206a225a9f2547bbc65c79218756c
+# 2022.11 (Nov 3 2022) second iteration made for PR
+gentoo_git_commit: cec3214ef5d5661e28c9d2c5b5750b27c27c5435
 prefix_required_space: 15 GB
 prefix_default_gcc: 10.4.0
 prefix_user_defined_trusted_dirs:
