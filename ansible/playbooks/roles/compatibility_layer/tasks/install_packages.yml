@@ -28,6 +28,7 @@
     group: "{{ username_on_host.stdout }}"
     path: "{{ gentoo_prefix_path }}"
     recurse: true
+# task need to be run as root or file ownership cannot be changed
   become: true
 # original value
 #  become: false
