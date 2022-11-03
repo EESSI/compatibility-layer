@@ -7,6 +7,10 @@ custom_overlays:
     source: git
     url: https://github.com/trz42/gentoo-overlay.git
     eclass-overrides: true
+  - name: guru
+    source: git
+    url: https://github.com/gentoo-mirror/guru.git
+    eclass-overrides: true
 
 cvmfs_start_transaction: false
 cvmfs_publish_transaction: false
