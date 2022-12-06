@@ -20,13 +20,13 @@
     creates: "{{ gentoo_prefix_path }}/usr/bin/equery"
 
 - name: Install eselect-repository
-  portage:
+  community.general.portage:
     package: eselect-repository
     state: present
 
 # We need git in order to add Gentoo overlays hosted on git repositories.
 - name: Install git
-  portage:
+  community.general.portage:
     package: dev-vcs/git
     state: present
 
@@ -53,7 +53,7 @@
       }}
 
 - name: Sync the repositories
-  portage:
+  community.general.portage:
     sync: 'yes'
 
 - name: Find all files and directories in the etc/portage directory of the overlay
