@@ -2,6 +2,9 @@ name: Ansible Lint
 
 on: [push, pull_request]
 
+# Declare default permissions as read only.
+permissions: read-all
+
 jobs:
   ansible-lint:
 
@@ -9,11 +12,11 @@ jobs:
 
     steps:
     # Important: This sets up your GITHUB_WORKSPACE environment variable
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
     - name: Lint Ansible Playbook
       # replace "master" with any valid ref
-      uses: ansible/ansible-lint-action@main
+      uses: ansible/ansible-lint-action@27c37f9001153675ee6abcadcd722bcbdafaba08 # v6.8.2
       with:
         # [required]
         # Paths to ansible files (i.e., playbooks, tasks, handlers etc..)
