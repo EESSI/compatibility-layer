@@ -34,7 +34,7 @@
   tags:
     - build_prefix
 
-- name: "Create Gentoo prefix path and log directory -- {{ gentoo_prefix_path }} and {{ eessi_log_dir }}"
+- name: "Create Gentoo prefix path and log directory"
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -180,7 +180,7 @@
   tags:
     - build_prefix
 
-- name: "Give {{ username_on_host.stdout }} recursive user and group ownership of {{ gentoo_prefix_path }}"
+- name: "Give build user recursive user and group ownership of {{ gentoo_prefix_path }}"
   ansible.builtin.file:
     dest: "{{ gentoo_prefix_path }}"
     owner: "{{ username_on_host.stdout }}"
