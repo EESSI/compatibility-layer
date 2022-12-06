@@ -17,7 +17,8 @@
     path: "{{ gentoo_prefix_path }}/startprefix"
   register: startprefix
 
-- include_tasks: install_prefix.yml
+- name: Install prefix if applicable
+  ansible.builtin.include_tasks: install_prefix.yml
   when: not startprefix.stat.exists
 
 - name: Start transaction
@@ -26,20 +27,26 @@
 
 - name: Make customizations to our Prefix installation
   block:
-    - include_tasks: prefix_configuration.yml
+    - name: Configure the Prefix
+      ansible.builtin.include_tasks: prefix_configuration.yml
 
-    - include_tasks: add_overlay.yml
+    - name: Add EESSI overlay
+      ansible.builtin.include_tasks: add_overlay.yml
       args:
         apply:
           become: false
 
-    - include_tasks: set_glibc_trusted_dirs.yml
+    - name: Set the glibc trusted dirs
+      ansible.builtin.include_tasks: set_glibc_trusted_dirs.yml
 
-    - include_tasks: install_packages.yml
+    - name: Install additional packages
+      ansible.builtin.include_tasks: install_packages.yml
 
-    - include_tasks: create_host_symlinks.yml
+    - name: Create symlinks to host files
+      ansible.builtin.include_tasks: create_host_symlinks.yml
 
-    - include_tasks: test.yml
+    - name: Test the Prefix installation
+      ansible.builtin.include_tasks: test.yml
       tags:
         - test
 

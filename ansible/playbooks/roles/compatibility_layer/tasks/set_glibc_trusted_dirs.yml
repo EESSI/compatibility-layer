@@ -8,7 +8,7 @@
   when: eessi_host_os == "linux"
 
 - name: (Re)install glibc with the user-defined-trusted-dirs option
-  portage:
+  community.general.portage:
     package: sys-libs/glibc
     noreplace: false
     oneshot: true
