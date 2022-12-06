@@ -1,4 +1,4 @@
-FROM awesomebytes/gentoo_prefix_boostrapped
+FROM awesomebytes/gentoo_prefix_boostrapped@sha256:ca2255a51ba624743a3faf9446adbcf6c51051909876e7aa6cb140584d7df4d0
 
 USER root
 RUN apt-get install -y python3-pip
