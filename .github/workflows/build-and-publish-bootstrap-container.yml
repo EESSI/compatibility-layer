@@ -4,14 +4,14 @@ on:
     branches:
       - main
     paths:
-      - Dockerfile.bootstrap-prefix-centos8
+      - Dockerfile.bootstrap-prefix-rockylinux8
       - bootstrap-prefix.sh
 
   pull_request:
     branches:
       - main
     paths:
-      - Dockerfile.bootstrap-prefix-centos8
+      - Dockerfile.bootstrap-prefix-rockylinux8
       - bootstrap-prefix.sh
 
 # Declare default permissions as read only.
@@ -48,7 +48,7 @@ jobs:
       - name: Build and push to GitHub Packages
         uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 #v3.2.0
         with:
-          tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/bootstrap-prefix:centos8
-          file: Dockerfile.bootstrap-prefix-centos8
+          tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/bootstrap-prefix:rockylinux8
+          file: Dockerfile.bootstrap-prefix-rockylinux8
           platforms: linux/amd64, linux/arm64, linux/ppc64le
           push: ${{ github.event_name != 'pull_request' }}
