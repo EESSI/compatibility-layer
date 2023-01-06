@@ -5,7 +5,6 @@
 # installation will end up in the subdirectory "cvmfs" (which is bind mounted as /cvmfs into the container).
 
 CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:rockylinux8
-CONTAINER=/data/compat-container/compat.sif
 
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <path for temporary directories>" >&2
