@@ -5,6 +5,7 @@
 # installation will end up in the subdirectory "cvmfs" (which is bind mounted as /cvmfs into the container).
 
 CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:rockylinux8
+CONTAINER=/data/compat-container/compat.sif
 
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <path for temporary directories>" >&2
@@ -30,7 +31,5 @@ export APPTAINER_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 ANSIBLE_COMMAND="ansible-playbook -e eessi_host_os=linux -e eessi_host_arch=$(uname -m) /compatibility-layer/ansible/playbooks/install.yml"
 
 # Run the container
-apptainer shell ${CONTAINER} <<EOF
-git clone https://github.com/EESSI/compatibility-layer /compatibility-layer
-${ANSIBLE_COMMAND}
-EOF
+apptainer exec ${CONTAINER} git clone https://github.com/EESSI/compatibility-layer /compatibility-layer
+apptainer exec ${CONTAINER} ${ANSIBLE_COMMAND}
