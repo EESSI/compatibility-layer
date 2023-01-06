@@ -32,9 +32,6 @@
 
     - name: Add EESSI overlay
       ansible.builtin.include_tasks: add_overlay.yml
-      args:
-        apply:
-          become: false
 
     - name: Set the glibc trusted dirs
       ansible.builtin.include_tasks: set_glibc_trusted_dirs.yml
