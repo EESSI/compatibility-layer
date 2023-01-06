@@ -13,23 +13,23 @@ if [ $# -lt 1 ]; then
 fi
 
 EESSI_TMPDIR=$1
-# make sure specified temporary directory exists
+# Make sure specified temporary directory exists
 mkdir -p $EESSI_TMPDIR
 echo "Using $EESSI_TMPDIR as parent for temporary directories..."
 
-# create temporary directories
+# Create temporary directories
 mkdir -p ${EESSI_TMPDIR}/cvmfs
 mkdir -p ${EESSI_TMPDIR}/compatibility-layer
 mkdir -p ${EESSI_TMPDIR}/home
 
-# set up paths and mount points for Apptainer
+# Set up paths and mount points for Apptainer
 export APPTAINER_CACHEDIR=${EESSI_TMPDIR}/apptainer_cache
 export APPTAINER_BIND="${EESSI_TMPDIR}/cvmfs:/cvmfs,${EESSI_TMPDIR}/compatibility-layer:/compatibility-layer"
 export APPTAINER_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 
-# Ansible command that will be run inside the container
-ANSIBLE_COMMAND="ansible-playbook -e eessi_host_os=linux -e eessi_host_arch=$(uname -m) /compatibility-layer/ansible/playbooks/install.yml"
-
-# Run the container
+# Do a git clone of the repo in the container
 apptainer exec ${CONTAINER} git clone https://github.com/EESSI/compatibility-layer /compatibility-layer
+
+# Finally, run Ansible inside the container to do the actual installation
+ANSIBLE_COMMAND="ansible-playbook -e eessi_host_os=linux -e eessi_host_arch=$(uname -m) /compatibility-layer/ansible/playbooks/install.yml"
 apptainer exec ${CONTAINER} ${ANSIBLE_COMMAND}
