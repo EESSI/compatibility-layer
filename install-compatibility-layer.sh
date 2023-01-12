@@ -26,9 +26,11 @@ export APPTAINER_CACHEDIR=${EESSI_TMPDIR}/apptainer_cache
 export APPTAINER_BIND="${EESSI_TMPDIR}/cvmfs:/cvmfs,${EESSI_TMPDIR}/compatibility-layer:/compatibility-layer"
 export APPTAINER_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 
-# Do a git clone of the repo in the container
-apptainer exec ${CONTAINER} git clone https://github.com/EESSI/compatibility-layer /compatibility-layer
-
 # Finally, run Ansible inside the container to do the actual installation
 ANSIBLE_COMMAND="ansible-playbook -e eessi_host_os=linux -e eessi_host_arch=$(uname -m) /compatibility-layer/ansible/playbooks/install.yml"
-apptainer exec ${CONTAINER} ${ANSIBLE_COMMAND}
+apptainer shell ${CONTAINER} <<EOF
+git clone https://github.com/EESSI/compatibility-layer /compatibility-layer
+# The Gentoo bootstrap will complain if LD_LIBRARY_PATH is set
+unset LD_LIBRARY_PATH
+${ANSIBLE_COMMAND}
+EOF
