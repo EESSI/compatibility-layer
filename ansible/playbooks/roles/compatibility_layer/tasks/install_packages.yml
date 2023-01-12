@@ -13,8 +13,3 @@
     package: "{{ item }}"
     state: present
   with_items: "{{ prefix_packages }}"
-
-- name: "Get the username running the deployment (not root)"
-  ansible.builtin.command: whoami
-  changed_when: false
-  register: username_on_host
