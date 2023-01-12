@@ -4,7 +4,7 @@
 # A location for temporary directories has to be passed to the script, and the resulting
 # installation will end up in the subdirectory "cvmfs" (which is bind mounted as /cvmfs into the container).
 
-CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:rockylinux8
+CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian11
 
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <path for temporary directories>" >&2
