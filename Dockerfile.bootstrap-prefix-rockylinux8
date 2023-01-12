@@ -11,4 +11,6 @@ RUN chmod 755 /usr/local/bin/bootstrap-prefix.sh
 ENV LC_ALL=C
 ENV PATH=/usr/local/bin:$PATH
 
+RUN groupadd -g 1000 portage && useradd -ms /bin/bash -u 1000 -g portage portage
+
 ENTRYPOINT ["/usr/local/bin/bootstrap-prefix.sh"]
