@@ -30,7 +30,7 @@ export APPTAINER_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 ANSIBLE_COMMAND="ansible-playbook -e eessi_host_os=linux -e eessi_host_arch=$(uname -m) /compatibility-layer/ansible/playbooks/install.yml"
 apptainer shell ${CONTAINER} <<EOF
 git clone https://github.com/EESSI/compatibility-layer /compatibility-layer
-# The Gentoo bootstrap will complain if LD_LIBRARY_PATH is set
+# The Gentoo Prefix bootstrap script will complain if $LD_LIBRARY_PATH is set
 unset LD_LIBRARY_PATH
 ${ANSIBLE_COMMAND}
 EOF
