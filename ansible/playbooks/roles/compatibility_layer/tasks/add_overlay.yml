@@ -1,17 +1,5 @@
 # Add a custom overlay to the Gentoo Prefix installation.
 ---
-- name: Add portage user if missing
-  ansible.builtin.lineinfile:
-    path: /etc/passwd
-    regexp: portage
-    line: portage:x:250:250:portage:/var/tmp/portage:/bin/false
-
-- name: Add portage group if missing
-  ansible.builtin.lineinfile:
-    path: /etc/group
-    regexp: portage
-    line: portage::250:portage
-
 - name: Install equery command (dependency for the portage module)
   ansible.builtin.command:
     cmd: emerge gentoolkit
