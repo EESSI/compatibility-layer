@@ -5,7 +5,7 @@
 - name: Check if ReFrame is installed
   ansible.builtin.command: reframe --version >/dev/null 2>&1
   register: reframe_exists
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Install Reframe using pip if it's not installed yet
   ansible.builtin.pip:
