@@ -5,8 +5,7 @@ eessi_version=2023.02
 eessi_repo=pilot.eessi-hpc.org
 tar_topdir=/cvmfs/${eessi_repo}/versions
 
-eessi_tmp=$(mktemp -d)
-./install_compatibility_layer.sh -a ${eessi_arch} -v ${eessi_version} -r ${eessi_repo} -c ../compat.sif
+./install_compatibility_layer.sh -a ${eessi_arch} -v ${eessi_version} -r ${eessi_repo}
 
 # create tarball
 target_tgz=eessi-${eessi_version}-compat-linux-${eessi_arch}-$(date +%s).tar.gz
