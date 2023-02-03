@@ -9,7 +9,7 @@ RUN pip3 install --upgrade pip
 RUN pip3 install ansible
 RUN chmod 755 /usr/local/bin/bootstrap-prefix.sh
 
-ENV LC_ALL=C
+ENV LC_ALL=C.UTF-8
 ENV PATH=/usr/local/bin:$PATH
 
 RUN groupadd -g 1000 portage && useradd -ms /bin/bash -u 1000 -g portage portage
