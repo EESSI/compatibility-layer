@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cpu_target_arch=$(echo ${CPU_TARGET} | cut -d/ -f2)
+cpu_target_arch=$(echo ${CPU_TARGET} | cut -d/ -f1)
 host_arch=$(uname -m)
 eessi_arch=${cpu_target_arch:-${host_arch}}
 eessi_os=linux
