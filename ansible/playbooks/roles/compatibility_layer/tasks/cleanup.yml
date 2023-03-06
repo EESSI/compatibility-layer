@@ -1,0 +1,7 @@
+# Clean up
+---
+- name: Remove redundant packages
+  community.general.portage:
+    package: "{{ item }}"
+    state: absent
+  with_items: "{{ prefix_remove_packages }}"
