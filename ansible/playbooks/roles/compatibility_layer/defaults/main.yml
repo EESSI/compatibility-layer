@@ -64,6 +64,8 @@ package_sets:
 
 prefix_packages:
 
+reframe_venv_dir: /tmp/reframe_venv
+
 # List of locations that should get a symlink $EPREFIX/$LOCATION -> $LOCATION.
 # This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.
 symlinks_to_host:
