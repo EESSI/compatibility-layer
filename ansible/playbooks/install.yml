@@ -14,4 +14,3 @@
     LC_ALL: C
   roles:
     - compatibility_layer
-  become: true
