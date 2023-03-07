@@ -55,6 +55,7 @@ Before running the playbook, make sure the following settings are correct, and o
 | prefix_locales | List of locales to be generated |
 | package_sets | List of package sets to be installed |
 | prefix_packages | List of additional packages to be installed |
+| prefix_remove_packages | List of packages to be removed after the bootstrap |
 | symlinks_to_host | List of paths that should get a symlink to the corresponding host path |
 
 ### Logging
