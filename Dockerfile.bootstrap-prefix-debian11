@@ -1,0 +1,17 @@
+FROM debian:11-slim
+
+COPY bootstrap-prefix.sh /usr/local/bin/bootstrap-prefix.sh
+
+RUN apt-get update
+RUN apt-get install -y gcc g++ make diffutils libgmp-dev perl wget
+RUN apt-get install -y git python3-pip python3-cryptography
+RUN pip3 install --upgrade pip
+RUN pip3 install ansible
+RUN chmod 755 /usr/local/bin/bootstrap-prefix.sh
+
+ENV LC_ALL=C.UTF-8
+ENV PATH=/usr/local/bin:$PATH
+
+RUN groupadd -g 1000 portage && useradd -ms /bin/bash -u 1000 -g portage portage
+
+ENTRYPOINT ["/usr/local/bin/bootstrap-prefix.sh"]
