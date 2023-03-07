@@ -76,7 +76,6 @@
     path: "{{ gentoo_prefix_path }}/etc/portage/repos.conf"
     state: directory
     mode: 0755
-  when: prefix_mask_packages is defined and prefix_mask_packages | length > 0
   tags:
     - build_prefix
 
