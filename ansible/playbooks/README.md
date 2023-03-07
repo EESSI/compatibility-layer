@@ -28,9 +28,6 @@ Before running the playbook, make sure the following settings are correct, and o
 ### CVMFS settings
 | Variable | Description |
 | --- | --- |
-| cvmfs_start_transaction | Whether a CVMFS transaction should be start at the start |
-| cvmfs_publish_transaction | Whether a CVMFS transaction should be published at the end |
-| cvmfs_abort_transaction_on_failures | Whether a CVMFS transaction should be aborted on failures |
 | cvmfs_repository | Name of your CVMFS repository (used for the transaction) |
 
 ### Prefix and packages
