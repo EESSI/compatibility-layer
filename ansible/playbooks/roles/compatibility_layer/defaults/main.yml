@@ -28,6 +28,9 @@ prefix_mask_packages: |
   # stick to GCC 9.x; using a too recent compiler in the compat layer complicates stuff in the software layer,
   # see for example https://github.com/EESSI/software-layer/issues/151
   >=sys-devel/gcc-10
+prefix_unmask_packages: |
+  # unmask older GCC to make it installable
+  =sys-devel/gcc-9*
 prefix_bootstrap_use_flags: |
   # make sure that gold linker is installed with binutils
   sys-devel/binutils gold
