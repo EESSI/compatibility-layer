@@ -44,8 +44,6 @@ Before running the playbook, make sure the following settings are correct, and o
 | prefix_bootstrap_use_flags | Contents of [package.use file](https://wiki.gentoo.org/wiki//etc/portage/package.use) to put in place after bootstrap stage 3 |
 | prefix_use_builtin_bootstrap | Use the container's built-in bootstrap script? |
 | prefix_custom_bootstrap_script | Dictionary with the `local` source and `remote` destination of the bootstrap script |
-| prefix_singularity_command | Singularity command for launching the container with the bootstrap script |
-| prefix_source | Singularity container path used for the Prefix installtion |
 | prefix_source_options | Arguments to be passed to the Prefix bootstrap script |
 | prefix_install | Prefix installation command |
 | prefix_locales | List of locales to be generated |
