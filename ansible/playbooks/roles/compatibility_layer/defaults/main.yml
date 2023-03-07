@@ -19,7 +19,7 @@ gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/c
 gentoo_git_repo: https://github.com/gentoo/gentoo.git
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
-gentoo_git_commit: 7eaa2512d1e6ddb44e3b41bbddf6c74723f234ce
+gentoo_git_commit: 4ca74e7abe4f2b14e686267b517c59d43bb580b4
 prefix_required_space: 15 GB
 prefix_default_gcc: 9.4.0
 prefix_user_defined_trusted_dirs:
