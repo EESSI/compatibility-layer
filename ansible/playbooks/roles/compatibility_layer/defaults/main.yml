@@ -8,9 +8,6 @@ custom_overlays:
     url: https://github.com/EESSI/gentoo-overlay.git
     eclass-overrides: true
 
-cvmfs_start_transaction: false
-cvmfs_publish_transaction: false
-cvmfs_abort_transaction_on_failures: false
 cvmfs_repository: pilot.eessi-hpc.org
 
 gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}
@@ -41,12 +38,8 @@ prefix_use_builtin_bootstrap: false
 prefix_custom_bootstrap_script:
   local: "{{ playbook_dir }}/../../bootstrap-prefix.sh"
   remote: /tmp/bootstrap-prefix.sh
-prefix_singularity_command: "singularity exec -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
-prefix_source: "docker://ghcr.io/eessi/bootstrap-prefix:centos8"
 prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
 prefix_install: >-
-    SINGULARITYENV_USE_CPU_CORES={{ ansible_processor_vcpus }}
-    {{ prefix_singularity_command }} {{ prefix_source }}
     {{ prefix_use_builtin_bootstrap | ternary('/usr/local/bin/bootstrap-prefix.sh', prefix_custom_bootstrap_script.remote) }}
     {{ prefix_source_options }}
 

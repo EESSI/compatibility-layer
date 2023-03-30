@@ -12,7 +12,6 @@
     package: sys-libs/glibc
     noreplace: false
     oneshot: true
-  become: false
   environment:
     EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
   when:
