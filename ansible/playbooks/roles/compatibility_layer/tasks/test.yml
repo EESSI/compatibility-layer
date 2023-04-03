@@ -17,7 +17,8 @@
   changed_when: which_python3.rc != 0
 
 - name: Result for python3 check
-  ansible.builtin.debug: msg="{{ which_python3.stdout }}"
+  ansible.builtin.debug:
+    msg: "{{ which_python3.stdout }}"
   changed_when: false
 
 - name: "Check if venv exists {{ reframe_venv_dir }}"
