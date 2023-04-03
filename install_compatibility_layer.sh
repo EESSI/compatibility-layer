@@ -10,7 +10,7 @@ REPOSITORY="pilot.eessi-hpc.org"
 RESUME=
 RETAIN_TMP=0
 STORAGE=
-VERSION=
+VERSION=2023.04
 VERBOSE=
 
 display_help() {
@@ -141,6 +141,7 @@ echo "Using $EESSI_TMPDIR as temporary storage..."
 # Create temporary directories
 mkdir -p ${EESSI_TMPDIR}/cvmfs
 mkdir -p ${EESSI_TMPDIR}/home
+mkdir -p ${EESSI_TMPDIR}/tmp
 
 RUNTIME=$(get_container_runtime)
 exit_code=$?
@@ -158,6 +159,7 @@ if [[ -z ${SINGULARITY_CACHEDIR} ]]; then
   export SINGULARITY_CACHEDIR=${EESSI_TMPDIR}/apptainer_cache
 fi
 export SINGULARITY_BIND="${EESSI_TMPDIR}/cvmfs:/cvmfs,${SCRIPT_DIR}:/compatibility-layer"
+export SINGULARITY_BIND="${SINGULARITY_BIND},${EESSI_TMPDIR}/tmp:/tmp"
 export SINGULARITY_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 
 # Construct the Ansible playbook command
@@ -183,7 +185,8 @@ EOF
 
 if [[ ${RETAIN_TMP} -eq 1 ]]; then
   echo "Left container; tar'ing up ${EESSI_TMPDIR} for future inspection"
-  tar cvzf ${SCRIPT_DIR}/job_${SLURM_JOB_ID}_$(date +%s).tgz -C ${EESSI_TMPDIR} .
+  ID=${SLURM_JOB_ID:-$$}
+  tar cvzf ${SCRIPT_DIR}/job_${ID}_$(date +%s).tgz -C ${EESSI_TMPDIR} .
 fi
 
 echo "To resume work add '--resume ${EESSI_TMPDIR}'"
