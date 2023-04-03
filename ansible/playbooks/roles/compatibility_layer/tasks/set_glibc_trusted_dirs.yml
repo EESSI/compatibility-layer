@@ -8,10 +8,8 @@
   when: eessi_host_os == "linux"
 
 - name: (Re)install glibc with the user-defined-trusted-dirs option
-  community.general.portage:
-    package: sys-libs/glibc
-    noreplace: false
-    oneshot: true
+  ansible.builtin.command:
+    cmd: emerge --oneshot sys-libs/glibc
   environment:
     EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
   when:
