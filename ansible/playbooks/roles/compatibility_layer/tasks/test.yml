@@ -50,7 +50,7 @@
   ansible.builtin.file:
     path: "{{ reframe_venv_dir }}"
     state: absent
-    recursive: yes
+    recursive: true
   register: remove_venv
   ignore_errors: true
 
