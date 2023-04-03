@@ -15,9 +15,10 @@
     cmd: "which python3"
   register: which_python3
 
-- debug: msg="{{ which_python3.stdout }}"
+- name: Result for python3 check
+  ansible.builtin.debug: msg="{{ which_python3.stdout }}"
 
-- name: "Check if {{ reframe_venv_dir }} exists"
+- name: "Check if venv exists {{ reframe_venv_dir }}"
   ansible.builtin.command:
     cmd: "ls -l {{ reframe_venv_dir }}"
   register: ls_reframe_venv_dir
@@ -26,9 +27,10 @@
   tags:
     - test
 
-- debug: msg="{{ ls_reframe_venv_dir }}"
+- name: "Result for checking {{ reframe_venv_dir }}"
+  ansible.builtin.debug: msg="{{ ls_reframe_venv_dir }}"
 
-#- name: "Show contents of {{ reframe_venv_dir }}/bin"
+# - name: "Show contents of {{ reframe_venv_dir }}/bin"
 #  ansible.builtin.command:
 #    cmd: "ls -l {{ reframe_venv_dir }}/bin"
 #  register: ls_reframe_venv_dir_bin
@@ -37,7 +39,7 @@
 #  tags:
 #    - test
 #
-#- debug: msg="{{ ls_reframe_venv_dir_bin }}"
+# - debug: msg="{{ ls_reframe_venv_dir_bin }}"
 
 - name: Remove venv
   ansible.builtin.shell: |
@@ -49,9 +51,10 @@
   tags:
     - test
 
-- debug: msg="{{ remove_venv.stdout }}"
+- name: Result for removing venv
+  ansible.builtin.debug: msg="{{ remove_venv.stdout }}"
 
-#- name: "Show contents of {{ reframe_venv_dir }}"
+# - name: "Show contents of {{ reframe_venv_dir }}"
 #  ansible.builtin.command:
 #    cmd: "ls -l {{ reframe_venv_dir }}"
 #  register: ls_reframe_venv_dir
@@ -60,9 +63,9 @@
 #  tags:
 #    - test
 #
-#- debug: msg="{{ ls_reframe_venv_dir }}"
+# - debug: msg="{{ ls_reframe_venv_dir }}"
 
-#- name: Install ReFrame with venv pip
+# - name: Install ReFrame with venv pip
 #  ansible.builtin.shell: |
 #    which python3
 #    #python3 -m venv "{{ reframe_venv_dir }}"
@@ -72,7 +75,7 @@
 #  when: reframe_exists.rc != 0
 #  register: pip_reframe
 #
-#- debug: msg="{{ pip_reframe.stdout }}"
+# - debug: msg="{{ pip_reframe.stdout }}"
 
 - name: Install Reframe using pip if it's not installed yet
   ansible.builtin.pip:

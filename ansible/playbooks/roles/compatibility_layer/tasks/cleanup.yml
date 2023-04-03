@@ -3,14 +3,20 @@
 - name: Install redundant packages
   ansible.builtin.command:
     cmd: emerge --verbose "{{ item }}"
+  register: emerge_redundant
   with_items: "{{ prefix_remove_packages }}"
+  changed_when: emerge_redundant.rc != 0
 
 - name: Remove redundant packages from world set
   ansible.builtin.command:
     cmd: emerge --deselect --verbose "{{ item }}"
+  register: deselect_redundant
   with_items: "{{ prefix_remove_packages }}"
+  changed_when: deselect_redundant.rc != 0
 
 - name: Remove redundant packages
   ansible.builtin.command:
     cmd: emerge --unmerge --keep-going=y --verbose "{{ item }}"
+  register: unmerge_redundant
   with_items: "{{ prefix_remove_packages }}"
+  changed_when: unmerge_redundant.rc != 0

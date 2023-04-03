@@ -3,12 +3,16 @@
 - name: Install package set {{ package_sets }}
   ansible.builtin.command:
     cmd: emerge --noreplace "@{{ item }}"
+  register: emerge_item_from_set
   with_items: "{{ package_sets }}"
   tags:
     - set
+  changed_when: emerge_item_from_set.rc != 0
 
 - name: Install additional packages
   ansible.builtin.command:
     cmd: emerge "{{ item }}"
+  register: emerge_additional_item
   with_items: "{{ prefix_packages }}"
   when: prefix_packages is iterable
+  changed_when: emerge_additional_item.rc != 0
