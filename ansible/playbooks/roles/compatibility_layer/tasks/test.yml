@@ -2,16 +2,32 @@
 # of the compatibility layer installation.
 ---
 
+- name: Check if ReFrame is installed
+  ansible.builtin.command: reframe --version >/dev/null 2>&1
+  register: reframe_exists
+  ignore_errors: true
+  changed_when: false
+  tags:
+    - test
+
+- name: Install Reframe using pip if it's not installed yet
+  ansible.builtin.pip:
+    name: ReFrame-HPC
+    virtualenv: "{{ reframe_venv_dir }}"
+    virtualenv_command: python3 -m venv
+  when: reframe_exists.rc != 0
+
 - name: Copy ReFrame test file
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../../test/compat_layer.py"
-    dest: /tmp/compat_layer.py
+    dest: "{{ reframe_venv_dir }}/compat_layer.py"
     mode: 0644
   tags:
     - test
 
 - name: Run ReFrame tests
-  ansible.builtin.command: reframe -r -v -c /tmp/compat_layer.py
+  ansible.builtin.command:
+    cmd: "{{ reframe_venv_dir + '/bin/' if reframe_exists.rc != 0 else '' }}reframe -r -v -c {{ reframe_venv_dir }}/compat_layer.py"
   environment:
     EESSI_VERSION: "{{ eessi_version }}"
     EESSI_OS: "{{ eessi_host_os }}"

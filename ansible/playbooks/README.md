@@ -11,7 +11,8 @@ all functionality for installing the EESSI compatibility layer. It performs the 
  - add a given overlay to the installation;
  - use the Portage configuration files from that overlay, if applicable, by making symlinks to them;
  - install a given list of package sets;
- - install a given list of additional packages.
+ - install a given list of additional packages;
+ - test the installation using ReFrame.
  
 The playbook `install.yml` will execute this role on a given server. 
 
@@ -50,6 +51,7 @@ Before running the playbook, make sure the following settings are correct, and o
 | prefix_locales | List of locales to be generated |
 | package_sets | List of package sets to be installed |
 | prefix_packages | List of additional packages to be installed |
+| reframe_venv | Path where a virtual environment will be created for the ReFrame installation |
 | symlinks_to_host | List of paths that should get a symlink to the corresponding host path |
 
 ### Logging
