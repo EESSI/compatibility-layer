@@ -42,7 +42,7 @@
   ansible.builtin.command:
     cmd: emerge --sync
   register: sync_repos
-  changed_when: sync_repo.rc != 0
+  changed_when: sync_repos.rc != 0
 
 - name: Find all files and directories in the etc/portage directory of the overlay
   ansible.builtin.find:
