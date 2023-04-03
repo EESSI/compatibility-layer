@@ -31,7 +31,8 @@
     - test
 
 - name: "Result for checking {{ reframe_venv_dir }}"
-  ansible.builtin.debug: msg="{{ ls_reframe_venv_dir }}"
+  ansible.builtin.debug:
+    msg: "{{ ls_reframe_venv_dir }}"
   changed_when: false
 
 # - name: "Show contents of {{ reframe_venv_dir }}/bin"
@@ -46,17 +47,16 @@
 # - debug: msg="{{ ls_reframe_venv_dir_bin }}"
 
 - name: Remove venv
-  ansible.builtin.command:
-    cmd: "rm -rf {{ reframe_venv_dir }}"
-  when: reframe_exists.rc != 0
+  ansible.builtin.file:
+    path: "{{ reframe_venv_dir }}"
+    state: absent
+    recursive: yes
   register: remove_venv
   ignore_errors: true
-  changed_when: false
-  tags:
-    - test
 
 - name: Result for removing venv
-  ansible.builtin.debug: msg="{{ remove_venv.stdout }}"
+  ansible.builtin.debug:
+    msg: "{{ remove_venv.stdout }}"
   changed_when: false
 
 # - name: "Show contents of {{ reframe_venv_dir }}"
