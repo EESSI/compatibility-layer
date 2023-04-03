@@ -186,7 +186,10 @@ EOF
 if [[ ${RETAIN_TMP} -eq 1 ]]; then
   echo "Left container; tar'ing up ${EESSI_TMPDIR} for future inspection"
   ID=${SLURM_JOB_ID:-$$}
-  tar cvzf ${SCRIPT_DIR}/job_${ID}_$(date +%s).tgz -C ${EESSI_TMPDIR} .
+  TIMESTAMP=$(date +%s)
+  TGZ=${SCRIPT_DIR}/job_${ID}_${TIMESTAMP}.tgz
+  tar cvzf ${TGZ} -C ${EESSI_TMPDIR} .
+  echo "created tarball '${TGZ}'"
 fi
 
 echo "To resume work add '--resume ${EESSI_TMPDIR}'"
