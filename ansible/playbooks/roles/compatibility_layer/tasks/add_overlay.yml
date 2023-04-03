@@ -6,15 +6,15 @@
     creates: "{{ gentoo_prefix_path }}/usr/bin/equery"
 
 - name: Install eselect-repository
-  community.general.portage:
-    package: eselect-repository
-    state: present
+  ansible.builtin.command:
+    cmd: emerge app-eselect/eselect-repository
+    creates: "{{ gentoo_prefix_path }}/etc/eselect/repository.conf"
 
 # We need git in order to add Gentoo overlays hosted on git repositories.
 - name: Install git
-  community.general.portage:
-    package: dev-vcs/git
-    state: present
+  ansible.builtin.command:
+    cmd: emerge dev-vcs/git
+    creates: "{{ gentoo_prefix_path }}/usr/bin/git"
 
 - name: Check which repositories have been installed
   ansible.builtin.command: eselect repository list -i
@@ -39,8 +39,8 @@
       }}
 
 - name: Sync the repositories
-  community.general.portage:
-    sync: 'yes'
+  ansible.builtin.command:
+    cmd: emerge --sync
 
 - name: Find all files and directories in the etc/portage directory of the overlay
   ansible.builtin.find:
