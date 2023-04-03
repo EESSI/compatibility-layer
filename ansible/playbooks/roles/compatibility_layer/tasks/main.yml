@@ -35,6 +35,9 @@
 - name: Create symlinks to host files
   ansible.builtin.include_tasks: create_host_symlinks.yml
 
+- name: Clean up
+  ansible.builtin.include_tasks: cleanup.yml
+
 - name: Test the Prefix installation
   ansible.builtin.include_tasks: test.yml
   tags:
