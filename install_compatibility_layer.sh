@@ -153,6 +153,7 @@ if [[ -z ${APPTAINER_CACHEDIR} ]]; then
   export APPTAINER_CACHEDIR=${EESSI_TMPDIR}/apptainer_cache
 fi
 export APPTAINER_BIND="${EESSI_TMPDIR}/cvmfs:/cvmfs,${SCRIPT_DIR}:/compatibility-layer"
+export APPTAINER_BIND="${APPTAINER_BIND},${EESSI_TMPDIR}/tmp:/tmp"
 export APPTAINER_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 # also define SINGULARITY_* env vars
 if [[ -z ${SINGULARITY_CACHEDIR} ]]; then
