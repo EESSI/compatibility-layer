@@ -76,14 +76,14 @@ else
     echo "bot/build.sh: no modules to be loaded"
 fi
 
-#####################################################
-# cpu_target_arch=$(echo ${CPU_TARGET} | cut -d/ -f1)
 cpu_target_arch=$(cfg_get_value "architecture" "software_subdir" | cut -d/ -f1)
 host_arch=$(uname -m)
 eessi_arch=${cpu_target_arch:-${host_arch}}
 eessi_os=linux
-eessi_version=2023.04
-eessi_repo=pilot.eessi-hpc.org
+job_version=$(cfg_get_value "repository" "repo_version")
+eessi_version=${job_version:-2023.04}
+job_repo=$(cfg_get_value "repository" "repo_name")
+eessi_repo=${job_repo:-pilot.eessi-hpc.org}
 tar_topdir=/cvmfs/${eessi_repo}/versions
 
 if [ "${eessi_arch}" != "${host_arch}" ]; then
@@ -91,7 +91,6 @@ if [ "${eessi_arch}" != "${host_arch}" ]; then
   exit 1
 fi
 
-#./install_compatibility_layer.sh -a ${eessi_arch} -v ${eessi_version} -r ${eessi_repo} -c ~/compat.sif
 ./install_compatibility_layer.sh -a ${eessi_arch} -v ${eessi_version} -r ${eessi_repo} -g ${STORAGE}
 
 # create tarball -> should go into a separate script when this is supported by the bot
