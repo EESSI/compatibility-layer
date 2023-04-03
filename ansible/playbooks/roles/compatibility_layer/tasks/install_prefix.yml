@@ -1,46 +1,11 @@
 # Install Gentoo Prefix.
 ---
 
-- name: Fail if host OS is not supported
-  ansible.builtin.fail:
-    msg: |
-      Error: the operating system of the installation host is {{ ansible_os_family }} {{ ansible_distribution_version }}.
-      The task for installing Gentoo Prefix currently only supports Linux distributions based on RHEL 8.
-  when: not (ansible_os_family == "RedHat" and ansible_distribution_major_version is version("8", "=="))
-
-- name: "Install EPEL"
-  ansible.builtin.yum:
-    name:
-      - https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-    disable_gpg_check: true
-    state: present
-  tags:
-    - build_prefix
-
-- name: "Install other requirements (Singularity and git)"
-  ansible.builtin.yum:
-    name:
-      - singularity
-      - git
-    state: present
-  tags:
-    - build_prefix
-
-- name: "Get the username running the deployment (not root)"
-  ansible.builtin.shell: set -o pipefail && who | grep -v root | awk '{print $1}' | uniq
-  become: false
-  register: username_on_host
-  changed_when: true
-  tags:
-    - build_prefix
-
 - name: "Create Gentoo prefix path and log directory"
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     recurse: true
-    owner: "{{ username_on_host.stdout }}"
-    group: "{{ username_on_host.stdout }}"
     mode: "0755"
   with_items:
     - "{{ gentoo_prefix_path }}"
@@ -76,7 +41,6 @@
     path: "{{ gentoo_prefix_path }}/etc/portage/repos.conf"
     state: directory
     mode: 0755
-  when: prefix_mask_packages is defined and prefix_mask_packages | length > 0
   tags:
     - build_prefix
 
@@ -180,12 +144,12 @@
   tags:
     - build_prefix
 
-- name: "Give build user recursive user and group ownership of {{ gentoo_prefix_path }}"
-  ansible.builtin.file:
-    dest: "{{ gentoo_prefix_path }}"
-    owner: "{{ username_on_host.stdout }}"
-    group: "{{ username_on_host.stdout }}"
-    recurse: true
+- name: "Unmask packages for the bootstrap"
+  ansible.builtin.copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/package.unmask"
+    content: "{{ prefix_unmask_packages }}"
+    mode: 0644
+  when: prefix_unmask_packages is defined and prefix_unmask_packages | length > 0
   tags:
     - build_prefix
 

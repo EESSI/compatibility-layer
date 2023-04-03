@@ -11,10 +11,10 @@ all functionality for installing the EESSI compatibility layer. It performs the 
  - add a given overlay to the installation;
  - use the Portage configuration files from that overlay, if applicable, by making symlinks to them;
  - install a given list of package sets;
- - install a given list of additional packages.
+ - install a given list of additional packages;
+ - test the installation using ReFrame.
  
 The playbook `install.yml` will execute this role on a given server. 
-Note that if you want the role to install Gentoo Prefix, this particular task currently only supports Linux distributions based on RHEL 8 on the installation host.
 
 ## Configuration
 
@@ -29,9 +29,6 @@ Before running the playbook, make sure the following settings are correct, and o
 ### CVMFS settings
 | Variable | Description |
 | --- | --- |
-| cvmfs_start_transaction | Whether a CVMFS transaction should be start at the start |
-| cvmfs_publish_transaction | Whether a CVMFS transaction should be published at the end |
-| cvmfs_abort_transaction_on_failures | Whether a CVMFS transaction should be aborted on failures |
 | cvmfs_repository | Name of your CVMFS repository (used for the transaction) |
 
 ### Prefix and packages
@@ -45,17 +42,17 @@ Before running the playbook, make sure the following settings are correct, and o
 | prefix_default_gcc | GCC compiler version to use as default compiler in Gentoo Prefix installation |
 | prefix_user_defined_trusted_dirs | List of paths to the user defined trusted dirs for glibc |
 | prefix_mask_packages | Contents of a [package.mask file](https://wiki.gentoo.org/wiki//etc/portage/package.mask) that should be used during the bootstrap |
+| prefix_unmask_packages | Contents of a [package.unmask file](https://wiki.gentoo.org/wiki//etc/portage/package.unmask) that should be used during the bootstrap |
 | prefix_bootstrap_use_flags | Contents of [package.use file](https://wiki.gentoo.org/wiki//etc/portage/package.use) to put in place after bootstrap stage 3 |
 | prefix_use_builtin_bootstrap | Use the container's built-in bootstrap script? |
 | prefix_custom_bootstrap_script | Dictionary with the `local` source and `remote` destination of the bootstrap script |
-| prefix_singularity_command | Singularity command for launching the container with the bootstrap script |
-| prefix_source | Singularity container path used for the Prefix installtion |
 | prefix_source_options | Arguments to be passed to the Prefix bootstrap script |
 | prefix_install | Prefix installation command |
 | prefix_locales | List of locales to be generated |
 | package_sets | List of package sets to be installed |
 | prefix_packages | List of additional packages to be installed |
 | prefix_remove_packages | List of packages to be removed after the bootstrap |
+| reframe_venv | Path where a virtual environment will be created for the ReFrame installation |
 | symlinks_to_host | List of paths that should get a symlink to the corresponding host path |
 
 ### Logging

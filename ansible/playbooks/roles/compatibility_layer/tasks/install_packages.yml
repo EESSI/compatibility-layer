@@ -5,7 +5,6 @@
     package: "@{{ item }}"
     state: present
   with_items: "{{ package_sets }}"
-  become: false
   tags:
     - set
 
@@ -14,18 +13,3 @@
     package: "{{ item }}"
     state: present
   with_items: "{{ prefix_packages }}"
-  become: false
-
-- name: "Get the username running the deployment (not root)"
-  ansible.builtin.command: whoami
-  changed_when: false
-  become: false
-  register: username_on_host
-
-- name: "Fix permissions after installing as portage/root"
-  ansible.builtin.file:
-    owner: "{{ username_on_host.stdout }}"
-    group: "{{ username_on_host.stdout }}"
-    path: "{{ gentoo_prefix_path }}"
-    recurse: true
-  become: false

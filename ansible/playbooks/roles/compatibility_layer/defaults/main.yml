@@ -1,6 +1,6 @@
 # Defaults file for the compatibility layer role.
 ---
-eessi_version: "2021.12"
+eessi_version: "2023.03"
 
 custom_overlays:
   - name: eessi
@@ -8,9 +8,6 @@ custom_overlays:
     url: https://github.com/EESSI/gentoo-overlay.git
     eclass-overrides: true
 
-cvmfs_start_transaction: false
-cvmfs_publish_transaction: false
-cvmfs_abort_transaction_on_failures: false
 cvmfs_repository: pilot.eessi-hpc.org
 
 gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}
@@ -19,21 +16,18 @@ gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/c
 gentoo_git_repo: https://github.com/gentoo/gentoo.git
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
-gentoo_git_commit: 7eaa2512d1e6ddb44e3b41bbddf6c74723f234ce
+gentoo_git_commit: 4ca74e7abe4f2b14e686267b517c59d43bb580b4
 prefix_required_space: 15 GB
-prefix_default_gcc: 9.4.0
+prefix_default_gcc: 9.5.0
 prefix_user_defined_trusted_dirs:
   - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
 prefix_mask_packages: |
-  # avoid glibc 2.34, as it's causing issues with the bootstrap, and it's not compatible with CUDA 11.
-  # see https://github.com/EESSI/compatibility-layer/issues/137 + https://bugs.gentoo.org/824482
-  >=sys-libs/glibc-2.34
   # stick to GCC 9.x; using a too recent compiler in the compat layer complicates stuff in the software layer,
   # see for example https://github.com/EESSI/software-layer/issues/151
   >=sys-devel/gcc-10
-  # avoid libgcrypt 1.9.4 due to compiler errros on ppc64le,
-  # see https://github.com/EESSI/compatibility-layer/issues/134 + https://bugs.gentoo.org/825722
-  =dev-libs/libgcrypt-1.9.4
+prefix_unmask_packages: |
+  # unmask older GCC to make it installable
+  =sys-devel/gcc-9*
 prefix_bootstrap_use_flags: |
   # make sure that gold linker is installed with binutils
   sys-devel/binutils gold
@@ -41,12 +35,8 @@ prefix_use_builtin_bootstrap: false
 prefix_custom_bootstrap_script:
   local: "{{ playbook_dir }}/../../bootstrap-prefix.sh"
   remote: /tmp/bootstrap-prefix.sh
-prefix_singularity_command: "singularity exec -B {{ gentoo_prefix_path }}:{{ gentoo_prefix_path }}"
-prefix_source: "docker://ghcr.io/eessi/bootstrap-prefix:centos8"
 prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
 prefix_install: >-
-    SINGULARITYENV_USE_CPU_CORES={{ ansible_processor_vcpus }}
-    {{ prefix_singularity_command }} {{ prefix_source }}
     {{ prefix_use_builtin_bootstrap | ternary('/usr/local/bin/bootstrap-prefix.sh', prefix_custom_bootstrap_script.remote) }}
     {{ prefix_source_options }}
 
@@ -67,6 +57,8 @@ prefix_packages:
 prefix_remove_packages:
   - dev-lang/go
   - dev-lang/go-bootstrap
+
+reframe_venv_dir: /tmp/reframe_venv
 
 # List of locations that should get a symlink $EPREFIX/$LOCATION -> $LOCATION.
 # This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.

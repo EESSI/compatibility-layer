@@ -1,6 +1,5 @@
 # Main task which:
 # - checks the given path for a Prefix installation, and installs it if necessary;
-# - starts (and publishes at the end) a CVMFS transaction, if requested;
 # - calls the tasks for adding the overlay and installation of sets and packages;
 # - does some fixes and other modifications in the Prefix installation (e.g. setting the locale).
 ---
@@ -21,47 +20,25 @@
   ansible.builtin.include_tasks: install_prefix.yml
   when: not startprefix.stat.exists
 
-- name: Start transaction
-  ansible.builtin.command: "cvmfs_server transaction {{ cvmfs_repository }}"
-  when: cvmfs_start_transaction
+- name: Configure the Prefix
+  ansible.builtin.include_tasks: prefix_configuration.yml
 
-- name: Make customizations to our Prefix installation
-  block:
-    - name: Configure the Prefix
-      ansible.builtin.include_tasks: prefix_configuration.yml
+- name: Add EESSI overlay
+  ansible.builtin.include_tasks: add_overlay.yml
 
-    - name: Add EESSI overlay
-      ansible.builtin.include_tasks: add_overlay.yml
-      args:
-        apply:
-          become: false
+- name: Set the glibc trusted dirs
+  ansible.builtin.include_tasks: set_glibc_trusted_dirs.yml
 
-    - name: Set the glibc trusted dirs
-      ansible.builtin.include_tasks: set_glibc_trusted_dirs.yml
+- name: Install additional packages
+  ansible.builtin.include_tasks: install_packages.yml
 
-    - name: Install additional packages
-      ansible.builtin.include_tasks: install_packages.yml
+- name: Create symlinks to host files
+  ansible.builtin.include_tasks: create_host_symlinks.yml
 
-    - name: Create symlinks to host files
-      ansible.builtin.include_tasks: create_host_symlinks.yml
+- name: Clean up
+  ansible.builtin.include_tasks: cleanup.yml
 
-    - name: Clean up
-      ansible.builtin.include_tasks: cleanup.yml
-
-    - name: Test the Prefix installation
-      ansible.builtin.include_tasks: test.yml
-      tags:
-        - test
-
-    - name: Publish transaction
-      ansible.builtin.command: "cvmfs_server publish {{ cvmfs_repository }}"
-      when: cvmfs_start_transaction and cvmfs_publish_transaction
-
-  rescue:
-    - name: Abort transaction
-      ansible.builtin.command: "cvmfs_server abort {{ cvmfs_repository }}"
-      when: cvmfs_start_transaction and cvmfs_abort_transaction_on_failures
-
-    - name: Exit because of failure
-      ansible.builtin.fail:
-        msg: "Task {{ ansible_failed_task }} failed, with result {{ ansible_failed_result }}."
+- name: Test the Prefix installation
+  ansible.builtin.include_tasks: test.yml
+  tags:
+    - test
