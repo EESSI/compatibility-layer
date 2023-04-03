@@ -1,15 +1,14 @@
 # Install a specified list of sets and packages.
 ---
 - name: Install package set {{ package_sets }}
-  community.general.portage:
-    package: "@{{ item }}"
-    state: present
+  ansible.builtin.command:
+    cmd: emerge --noreplace "@{{ item }}"
   with_items: "{{ package_sets }}"
   tags:
     - set
 
 - name: Install additional packages
-  community.general.portage:
-    package: "{{ item }}"
-    state: present
+  ansible.builtin.command:
+    cmd: emerge "{{ item }}"
   with_items: "{{ prefix_packages }}"
+  when: prefix_packages is iterable
