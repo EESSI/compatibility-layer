@@ -14,9 +14,11 @@
   ansible.builtin.command:
     cmd: "which python3"
   register: which_python3
+  changed_when: which_python3.rc != 0
 
 - name: Result for python3 check
   ansible.builtin.debug: msg="{{ which_python3.stdout }}"
+  changed_when: false
 
 - name: "Check if venv exists {{ reframe_venv_dir }}"
   ansible.builtin.command:
@@ -29,6 +31,7 @@
 
 - name: "Result for checking {{ reframe_venv_dir }}"
   ansible.builtin.debug: msg="{{ ls_reframe_venv_dir }}"
+  changed_when: false
 
 # - name: "Show contents of {{ reframe_venv_dir }}/bin"
 #  ansible.builtin.command:
@@ -42,8 +45,8 @@
 # - debug: msg="{{ ls_reframe_venv_dir_bin }}"
 
 - name: Remove venv
-  ansible.builtin.shell: |
-    rm -rf "{{ reframe_venv_dir }}"
+  ansible.builtin.command:
+    cmd: "rm -rf {{ reframe_venv_dir }}"
   when: reframe_exists.rc != 0
   register: remove_venv
   ignore_errors: true
@@ -53,6 +56,7 @@
 
 - name: Result for removing venv
   ansible.builtin.debug: msg="{{ remove_venv.stdout }}"
+  changed_when: false
 
 # - name: "Show contents of {{ reframe_venv_dir }}"
 #  ansible.builtin.command:
