@@ -35,58 +35,24 @@
     msg: "{{ ls_reframe_venv_dir }}"
   changed_when: false
 
-# - name: "Show contents of {{ reframe_venv_dir }}/bin"
-#  ansible.builtin.command:
-#    cmd: "ls -l {{ reframe_venv_dir }}/bin"
-#  register: ls_reframe_venv_dir_bin
-#  ignore_errors: true
-#  changed_when: false
-#  tags:
-#    - test
-#
-# - debug: msg="{{ ls_reframe_venv_dir_bin }}"
-
 - name: Remove venv
   ansible.builtin.file:
     path: "{{ reframe_venv_dir }}"
     state: absent
-    recursive: true
   register: remove_venv
+  when: ls_reframe_venv_dir.rc == 0
   ignore_errors: true
 
 - name: Result for removing venv
   ansible.builtin.debug:
-    msg: "{{ remove_venv.stdout }}"
+    msg: "{{ remove_venv }}"
+  when: ls_reframe_venv_dir.rc == 0
   changed_when: false
-
-# - name: "Show contents of {{ reframe_venv_dir }}"
-#  ansible.builtin.command:
-#    cmd: "ls -l {{ reframe_venv_dir }}"
-#  register: ls_reframe_venv_dir
-#  ignore_errors: true
-#  changed_when: false
-#  tags:
-#    - test
-#
-# - debug: msg="{{ ls_reframe_venv_dir }}"
-
-# - name: Install ReFrame with venv pip
-#  ansible.builtin.shell: |
-#    which python3
-#    #python3 -m venv "{{ reframe_venv_dir }}"
-#    #. "{{ reframe_venv_dir }}/bin/activate"
-#    #which python3
-#    #    python3 -m pip install ReFrame-HPC
-#  when: reframe_exists.rc != 0
-#  register: pip_reframe
-#
-# - debug: msg="{{ pip_reframe.stdout }}"
 
 - name: Install Reframe using pip if it's not installed yet
   ansible.builtin.pip:
     name: ReFrame-HPC
     virtualenv: "{{ reframe_venv_dir }}"
-    #    virtualenv_command: "{{ gentoo_prefix_path }}/usr/bin/python3 -m venv"
     virtualenv_command: python3 -m venv
     state: forcereinstall
   when: reframe_exists.rc != 0
