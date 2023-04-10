@@ -5,6 +5,8 @@
     package: "@{{ item }}"
     state: present
   with_items: "{{ package_sets }}"
+  vars:
+    ansible_python_interpreter: "{{ gentoo_prefix_path }}/usr/bin/python3"
   tags:
     - set
 
@@ -13,3 +15,5 @@
     package: "{{ item }}"
     state: present
   with_items: "{{ prefix_packages }}"
+  vars:
+    ansible_python_interpreter: "{{ gentoo_prefix_path }}/usr/bin/python3"
