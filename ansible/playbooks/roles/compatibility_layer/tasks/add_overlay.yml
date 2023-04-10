@@ -11,9 +11,6 @@
     state: present
   vars:
     ansible_python_interpreter: "{{ gentoo_prefix_path }}/usr/bin/python3"
-#  ansible.builtin.command:
-#    cmd: emerge app-eselect/eselect-repository
-#    creates: "{{ gentoo_prefix_path }}/etc/eselect/repository.conf"
 
 # We need git in order to add Gentoo overlays hosted on git repositories.
 - name: Install git
@@ -22,9 +19,6 @@
     state: present
   vars:
     ansible_python_interpreter: "{{ gentoo_prefix_path }}/usr/bin/python3"
-#  ansible.builtin.command:
-#    cmd: emerge dev-vcs/git
-#    creates: "{{ gentoo_prefix_path }}/usr/bin/git"
 
 - name: Check which repositories have been installed
   ansible.builtin.command: eselect repository list -i
@@ -54,10 +48,6 @@
     verbose: true
   vars:
     ansible_python_interpreter: "{{ gentoo_prefix_path }}/usr/bin/python3"
-#  ansible.builtin.command:
-#    cmd: emerge --sync
-#  register: sync_repos
-#  changed_when: sync_repos.rc != 0
 
 - name: Find all files and directories in the etc/portage directory of the overlay
   ansible.builtin.find:

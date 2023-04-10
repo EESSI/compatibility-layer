@@ -5,7 +5,7 @@ eessi_version: "2023.04"
 custom_overlays:
   - name: eessi
     source: git
-    url: https://github.com/trz42/gentoo-overlay.git
+    url: https://github.com/EESSI/gentoo-overlay.git
     eclass-overrides: true
 
 cvmfs_repository: pilot.eessi-hpc.org
