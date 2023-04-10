@@ -22,10 +22,13 @@ gentoo_git_repo: https://github.com/gentoo/gentoo.git
 # gentoo_git_commit: b9ebfbaef10f4740671c8bd90c6d2c929f8379bc
 # April 5 (8c0ce1bcd089d5badcb39afce98111bf4cfbc8f0)
 # gentoo_git_commit: 8c0ce1bcd089d5badcb39afce98111bf4cfbc8f0
-# March 13 (7db97f5a3fc7ca8eced2a94e5f9481f7556cf908) one commit before 3a38f9b245e674722d5d58dfbb6baafca2b26975 (which introduced nghttp2 1.52.0 which switched to using cmake)
-# gentoo_git_commit: 7db97f5a3fc7ca8eced2a94e5f9481f7556cf908
-# March 13 (3a38f9b245e674722d5d58dfbb6baafca2b26975) commit which introduced nghttp2 1.52.0 which switched to using cmake
-gentoo_git_commit: 3a38f9b245e674722d5d58dfbb6baafca2b26975
+# March 13 (3a38f9b245e674722d5d58dfbb6baafca2b26975) commit which introduced
+# version 1.52.0 of nghttp2 (this commit switched to using cmake and likely
+# caused a circular dependency)
+# gentoo_git_commit: 3a38f9b245e674722d5d58dfbb6baafca2b26975
+# March 13 (7db97f5a3fc7ca8eced2a94e5f9481f7556cf908) one commit before
+# 3a38f9b245e674722d5d58dfbb6baafca2b26975
+gentoo_git_commit: 7db97f5a3fc7ca8eced2a94e5f9481f7556cf908
 prefix_required_space: 15 GB
 prefix_default_gcc: 9.5.0
 prefix_user_defined_trusted_dirs:
@@ -34,12 +37,6 @@ prefix_mask_packages: |
   # stick to GCC 9.x; using a too recent compiler in the compat layer complicates stuff in the software layer,
   # see for example https://github.com/EESSI/software-layer/issues/151
   >=sys-devel/gcc-10
-  # it looks like sys-apps/portaga-3.0.45.3-r2 creates a circular dependency that wasn't there before (version 3.0.45.2 with commit from March 7)
-  # didn't solve the problem with circular dependencies
-  # >=sys-apps/portage-3.0.45.3  # it looks like sys-apps/portaga-3.0.45.3-r2 creates a circular dependency that wasn't there before (version 3.0.45.2 with commit from March 7)
-  # net-libs/nghttp2-1.52.0 was introduced on March 13 (3a38f9b245e674722d5d58dfbb6baafca2b26975) switching to cmake ...
-  # .. instead of using a commit before (7db97f5a3fc7ca8eced2a94e5f9481f7556cf908) here we try to mask any version equal or younger
-  # >= net-libs/nghttp2-1.52.0
 prefix_unmask_packages: |
   # unmask older GCC to make it installable
   =sys-devel/gcc-9*
