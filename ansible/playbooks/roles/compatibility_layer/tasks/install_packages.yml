@@ -9,13 +9,6 @@
     ansible_python_interpreter: "{{ gentoo_prefix_path }}/usr/bin/python3"
   tags:
     - set
-#  ansible.builtin.command:
-#    cmd: emerge --noreplace "@{{ item }}"
-#  register: emerge_item_from_set
-#  with_items: "{{ package_sets }}"
-#  tags:
-#    - set
-#  changed_when: emerge_item_from_set.rc != 0
 
 - name: Install additional packages
   community.general.portage:
@@ -24,9 +17,3 @@
   with_items: "{{ prefix_packages }}"
   vars:
     ansible_python_interpreter: "{{ gentoo_prefix_path }}/usr/bin/python3"
-#  ansible.builtin.command:
-#    cmd: emerge "{{ item }}"
-#  register: emerge_additional_item
-#  with_items: "{{ prefix_packages }}"
-#  when: prefix_packages is iterable
-#  changed_when: emerge_additional_item.rc != 0

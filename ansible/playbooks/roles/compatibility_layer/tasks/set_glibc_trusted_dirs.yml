@@ -19,13 +19,6 @@
   when:
     - eessi_host_os == "linux"
     - glibc_extra_emake.stdout != "user-defined-trusted-dirs=" + ":".join(prefix_user_defined_trusted_dirs)
-#  ansible.builtin.command:
-#    cmd: emerge --oneshot sys-libs/glibc
-#  environment:
-#    EXTRA_EMAKE: "user-defined-trusted-dirs={{ prefix_user_defined_trusted_dirs | join(':') }}"
-#  when:
-#    - eessi_host_os == "linux"
-#    - glibc_extra_emake.stdout != "user-defined-trusted-dirs=" + ":".join(prefix_user_defined_trusted_dirs)
 
 - name: Create portage env directory
   ansible.builtin.file:
