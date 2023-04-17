@@ -10,45 +10,6 @@
   tags:
     - test
 
-- name: Check for python3
-  ansible.builtin.command:
-    cmd: "which python3"
-  register: which_python3
-  changed_when: which_python3.rc != 0
-
-- name: Result for python3 check
-  ansible.builtin.debug:
-    msg: "{{ which_python3.stdout }}"
-  changed_when: false
-
-- name: "Check if venv exists {{ reframe_venv_dir }}"
-  ansible.builtin.command:
-    cmd: "ls -l {{ reframe_venv_dir }}"
-  register: ls_reframe_venv_dir
-  ignore_errors: true
-  changed_when: false
-  tags:
-    - test
-
-- name: "Result for checking {{ reframe_venv_dir }}"
-  ansible.builtin.debug:
-    msg: "{{ ls_reframe_venv_dir }}"
-  changed_when: false
-
-- name: Remove venv
-  ansible.builtin.file:
-    path: "{{ reframe_venv_dir }}"
-    state: absent
-  register: remove_venv
-  when: ls_reframe_venv_dir.rc == 0
-  ignore_errors: true
-
-- name: Result for removing venv
-  ansible.builtin.debug:
-    msg: "{{ remove_venv }}"
-  when: ls_reframe_venv_dir.rc == 0
-  changed_when: false
-
 - name: Install Reframe using pip if it's not installed yet
   ansible.builtin.pip:
     name: ReFrame-HPC
