@@ -157,7 +157,6 @@
   ansible.builtin.shell: set -o pipefail && ( {{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )' )
   args:
     executable: /bin/bash
-  become: false
   changed_when: true
   environment:
     STOP_BOOTSTRAP_AFTER: stage3
@@ -177,7 +176,6 @@
   ansible.builtin.shell: set -o pipefail && ( {{ prefix_install }} | tee -a {{ prefix_build_log }} | grep -E '^(>>> Installing|\\* )' )
   args:
     executable: /bin/bash
-  become: false
   changed_when: true
   tags:
     - build_prefix
