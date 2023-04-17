@@ -9,16 +9,12 @@
   community.general.portage:
     package: eselect-repository
     state: present
-  vars:
-    ansible_python_interpreter: "{{ gentoo_prefix_path }}/usr/bin/python3"
 
 # We need git in order to add Gentoo overlays hosted on git repositories.
 - name: Install git
   community.general.portage:
     package: dev-vcs/git
     state: present
-  vars:
-    ansible_python_interpreter: "{{ gentoo_prefix_path }}/usr/bin/python3"
 
 - name: Check which repositories have been installed
   ansible.builtin.command: eselect repository list -i
@@ -46,8 +42,6 @@
   community.general.portage:
     sync: 'yes'
     verbose: true
-  vars:
-    ansible_python_interpreter: "{{ gentoo_prefix_path }}/usr/bin/python3"
 
 - name: Find all files and directories in the etc/portage directory of the overlay
   ansible.builtin.find:

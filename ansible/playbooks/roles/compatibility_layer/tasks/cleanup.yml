@@ -5,5 +5,3 @@
     package: "{{ item }}"
     state: absent
   with_items: "{{ prefix_remove_packages }}"
-  vars:
-    ansible_python_interpreter: "{{ gentoo_prefix_path }}/usr/bin/python3"

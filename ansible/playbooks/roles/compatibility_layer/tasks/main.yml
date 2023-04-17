@@ -20,6 +20,10 @@
   ansible.builtin.include_tasks: install_prefix.yml
   when: not startprefix.stat.exists
 
+- name: Set Ansible Python interpreter to the Prefix one
+  ansible.builtin.set_fact:
+    ansible_python_interpreter: "{{ gentoo_prefix_path }}/usr/bin/python3"
+
 - name: Configure the Prefix
   ansible.builtin.include_tasks: prefix_configuration.yml
 
