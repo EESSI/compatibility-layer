@@ -56,9 +56,11 @@ package_sets:
 prefix_packages:
 
 prefix_remove_packages:
+  - app-eselect/eselect-rust
   - dev-lang/go
   - dev-lang/go-bootstrap
   - dev-lang/rust
+  - dev-lang/rust-bin
   - dev-python/setuptools-rust
   - dev-util/cmake
   - dev-util/ninja
