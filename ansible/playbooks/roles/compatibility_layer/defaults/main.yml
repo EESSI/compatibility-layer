@@ -58,6 +58,11 @@ prefix_packages:
 prefix_remove_packages:
   - dev-lang/go
   - dev-lang/go-bootstrap
+  - dev-lang/rust
+  - dev-python/setuptools-rust
+  - dev-util/cmake
+  - dev-util/ninja
+  - virtual/rust
 
 reframe_venv_dir: /tmp/reframe_venv
 
