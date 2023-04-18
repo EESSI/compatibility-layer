@@ -1,0 +1,49 @@
+# Store some information and scripts that were used for this installation.
+---
+
+- name: Make a subdirectory for storing build information
+  ansible.builtin.file:
+    path: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}"
+    state: directory
+    mode: '0755'
+  tags:
+    - reprod
+
+- name: Copy the used bootstrap script
+  ansible.builtin.copy:
+    src: "{{ prefix_use_builtin_bootstrap | ternary('/usr/local/bin/bootstrap-prefix.sh', prefix_custom_bootstrap_script.remote) }}"
+    dest: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}/bootstrap-prefix.sh"
+  tags:
+    - reprod
+
+- name: Get list of installed packages
+  ansible.builtin.command: "qlist -IRv"
+  changed_when: false
+  register: qlist
+  tags:
+    - reprod
+
+- name: Dump list of installed packages to a file
+  ansible.builtin.copy:
+    content: "{{ qlist.stdout }}"
+    dest: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}/{{ prefix_packages_file }}"
+  tags:
+    - reprod
+
+- name: Store other metadata of build in a json file
+  ansible.builtin.copy:
+    content: "{{ metadata|to_nice_json }}"
+    dest: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}/{{ prefix_metadata_json }}"
+  vars:
+    metadata:
+      username: "{{ ansible_user_id }}"
+      userid: "{{ ansible_user_uid }}"
+      timestamp: "{{ ansible_date_time.iso8601 }}"
+      hostname: "{{ ansible_hostname }}"
+      host_os: "{{ ansible_distribution }} {{ ansible_distribution_version }}"
+      host_kernel: "{{ ansible_kernel }}"
+      host_memory: "{{ ansible_memory_mb.real }}"
+      host_mounts: "{{ ansible_mounts }}"
+      gentoo_git_commit: "{{ gentoo_git_commit }}"
+  tags:
+    - reprod
