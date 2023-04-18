@@ -15,6 +15,7 @@
     name: ReFrame-HPC
     virtualenv: "{{ reframe_venv_dir }}"
     virtualenv_command: python3 -m venv
+    state: forcereinstall
   when: reframe_exists.rc != 0
 
 - name: Copy ReFrame test file

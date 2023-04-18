@@ -41,6 +41,7 @@
 - name: Sync the repositories
   community.general.portage:
     sync: 'yes'
+    verbose: true
 
 - name: Find all files and directories in the etc/portage directory of the overlay
   ansible.builtin.find:
