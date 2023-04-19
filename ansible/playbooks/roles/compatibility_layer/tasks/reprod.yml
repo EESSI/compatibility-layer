@@ -13,6 +13,7 @@
   ansible.builtin.copy:
     src: "{{ prefix_use_builtin_bootstrap | ternary('/usr/local/bin/bootstrap-prefix.sh', prefix_custom_bootstrap_script.remote) }}"
     dest: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}/bootstrap-prefix.sh"
+    mode: '0644'
   tags:
     - reprod
 
@@ -27,13 +28,15 @@
   ansible.builtin.copy:
     content: "{{ qlist.stdout }}"
     dest: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}/{{ prefix_packages_file }}"
+    mode: '0644'
   tags:
     - reprod
 
 - name: Store other metadata of build in a json file
   ansible.builtin.copy:
-    content: "{{ metadata|to_nice_json }}"
+    content: "{{ metadata | to_nice_json }}"
     dest: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}/{{ prefix_metadata_json }}"
+    mode: '0644'
   vars:
     metadata:
       username: "{{ ansible_user_id }}"
