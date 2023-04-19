@@ -41,6 +41,11 @@ prefix_install: >-
     {{ prefix_use_builtin_bootstrap | ternary('/usr/local/bin/bootstrap-prefix.sh', prefix_custom_bootstrap_script.remote) }}
     {{ prefix_source_options }}
 
+# Reproducibility settings
+prefix_reprod_dir: reprod
+prefix_packages_file: packages.txt
+prefix_metadata_json: build.json
+
 # Logging
 eessi_log_dir: "/tmp/eessi-logs"
 prefix_build_log: "{{ eessi_log_dir }}/prefix-build.log"

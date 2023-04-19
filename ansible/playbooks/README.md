@@ -55,6 +55,14 @@ Before running the playbook, make sure the following settings are correct, and o
 | reframe_venv | Path where a virtual environment will be created for the ReFrame installation |
 | symlinks_to_host | List of paths that should get a symlink to the corresponding host path |
 
+### Reproducibility settings
+| Variable | Description |
+| --- | --- |
+| prefix_reprod_dir | Name of subdirectory for storing reproducibility information |
+| prefix_packages_file | Filename for storing list of installed packages |
+| prefix_metadata_json | Filename for storing metadata of build |
+
+
 ### Logging
 | Variable | Description |
 | --- | --- |
