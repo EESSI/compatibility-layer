@@ -17,7 +17,7 @@ jobs:
       matrix:
         EESSI_VERSION:
         # note: use string quotes here, to avoid values being interpreted as floating point values...
-        - '2021.06'
+        - '2021.12'
         EESSI_ARCH:
         - aarch64
         - ppc64le
@@ -45,7 +45,7 @@ jobs:
 
         - name: Check compat layer in EESSI pilot repository
           env:
-              EPREFIX: /cvmfs/pilot.eessi-hpc.org/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
+              EPREFIX: /cvmfs/pilot.eessi-hpc.org/versions/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
           run: |
               # trigger automount
               echo '>> ls /cvmfs/pilot.eessi-hpc.org'
