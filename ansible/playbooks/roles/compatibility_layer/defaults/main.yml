@@ -26,9 +26,10 @@ prefix_mask_packages: |
   # stick to GCC 9.x; using a too recent compiler in the compat layer complicates stuff in the software layer,
   # see for example https://github.com/EESSI/software-layer/issues/151
   >=sys-devel/gcc-10
-  # see https://github.com/EESSI/software-layer/issues/257
-  # and https://github.com/EESSI/software-layer/issues/258
-  <dev-libs/openssl-3
+  # mask OpenSSL 3.x, stick to OpenSSL 1.1.x for now to avoid problems with:
+  # - older versions of Rust (see https://github.com/EESSI/software-layer/issues/257)
+  # - older versions of cryptograhy in Python (see https://github.com/EESSI/software-layer/issues/258)
+  >=dev-libs/openssl-3
 prefix_unmask_packages: |
   # unmask older GCC to make it installable
   =sys-devel/gcc-9*
