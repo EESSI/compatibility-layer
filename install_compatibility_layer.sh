@@ -10,7 +10,7 @@ REPOSITORY="pilot.eessi-hpc.org"
 RESUME=
 RETAIN_TMP=0
 STORAGE=
-VERSION=2023.04
+VERSION=2023.06
 VERBOSE=
 
 display_help() {
