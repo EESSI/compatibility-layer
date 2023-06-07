@@ -28,7 +28,7 @@ prefix_mask_packages: |
   >=sys-devel/gcc-10
   # see https://github.com/EESSI/software-layer/issues/257
   # and https://github.com/EESSI/software-layer/issues/258
-  <dev-libs/openssl-3*
+  <dev-libs/openssl-3
 prefix_unmask_packages: |
   # unmask older GCC to make it installable
   =sys-devel/gcc-9*
