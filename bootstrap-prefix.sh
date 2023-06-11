@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2006-2022 Gentoo Authors
+# Copyright 2006-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 trap 'exit 1' TERM INT QUIT ABRT
@@ -72,9 +72,7 @@ efetch() {
 				FETCH_COMMAND="curl -f -L -O"
 			elif [[ x$(type -t fetch) == "xfile" ]] ; then
 				FETCH_COMMAND="fetch"
-			elif [[ x$(type -t ftp) == "xfile" ]] &&
-				 [[ ${CHOST} != *-cygwin* || \
-				 ! $(type -P ftp) -ef $(cygpath -S)/ftp ]] ; then
+			elif [[ x$(type -t ftp) == "xfile" ]] ; then
 				FETCH_COMMAND="ftp"
 			else
 				eerror "no suitable download manager found!"
@@ -122,9 +120,6 @@ configure_cflags() {
 		*-solaris*)
 			export LDFLAGS="-L${ROOT}/tmp/usr/lib -R${ROOT}/tmp/usr/lib"
 			;;
-		i586-pc-winnt* | *-pc-cygwin*)
-			export LDFLAGS="-L${ROOT}/tmp/usr/lib"
-			;;
 		*)
 			export LDFLAGS="-L${ROOT}/tmp/usr/lib -Wl,-rpath=${ROOT}/tmp/usr/lib"
 			;;
@@ -161,11 +156,6 @@ configure_toolchain() {
 	compiler_stage1="${gcc_deps} sys-devel/gcc-config"
 	compiler_type="gcc"
 	case ${CHOST} in
-	*-cygwin*)
-	  # not supported in gcc-4.7 yet, easy enough to install g++
-	  # Cygwin patches come as .zip from github
-	  compiler_stage1+=" app-arch/unzip sys-devel/gcc"
-	  ;;
 	*-darwin*)
 	  # handled below
 	  ;;
@@ -290,11 +280,6 @@ configure_toolchain() {
 					# bootstrap for this target
 					compiler_stage1=${compiler_stage1/" dev-libs/mpfr "/" <dev-libs/mpfr-4 "}
 					;;
-			esac
-			local nmout=$(nm -B 2>&1)
-			case "${nmout}" in
-				*/dev/null*)  :                            ;;  # apparently GNU
-				*)            export NM="$(type -P nm) -p" ;;  # Solaris nm
 			esac
 			;;
 		*-linux*)
@@ -453,23 +438,18 @@ bootstrap_profile() {
 		armv7l-pc-linux-gnu)
 			profile=${profile_linux/ARCH/arm}
 			;;
-		i386-pc-solaris2.11)
-			profile="prefix/sunos/solaris/5.11/x86"
-			;;
 		x86_64-pc-solaris2.11)
 			profile="prefix/sunos/solaris/5.11/x64"
 			;;
-		sparc-sun-solaris2.11)
-			profile="prefix/sunos/solaris/5.11/sparc"
+		i386-pc-solaris2*|sparc-sun-solaris2*|sparcv9-sun-solaris2*)
+			eerror "REMOVED ARCH: this Solaris architecture was removed,"
+			eerror "bootstrapping is impossible"
+			exit 1
 			;;
-		sparcv9-sun-solaris2.11)
-			profile="prefix/sunos/solaris/5.11/sparc64"
-			;;
-		i586-pc-winnt*)
-			profile="prefix/windows/winnt/${CHOST#i586-pc-winnt}/x86"
-			;;
-		x86_64-pc-cygwin*)
-			profile="prefix/windows/cygwin/x64"
+		i586-pc-winnt*|x86_64-pc-cygwin*)
+			eerror "REMOVED ARCH: this Windows architecture was removed,"
+			eerror "bootstrapping is impossible"
+			exit 1
 			;;
 		*)
 			eerror "UNKNOWN ARCH: You need to set up a make.profile symlink to a"
@@ -528,8 +508,7 @@ bootstrap_profile() {
 
 	# Strange enough, -cxx causes wrong libtool config on Cygwin,
 	# but we require a C++ compiler there anyway - so just use it.
-	[[ ${CHOST} == *-cygwin* ]] ||
-		cat >> "${ROOT}"/etc/portage/make.profile/package.use <<-EOF
+	cat >> "${ROOT}"/etc/portage/make.profile/package.use <<-EOF
 	# gmp has cxx flag enabled by default. When dealing with a host
 	# compiler without cxx support this causes configure failure.
 	# In addition, The stage2 g++ is only for compiling stage3 compiler,
@@ -584,7 +563,7 @@ do_tree() {
 bootstrap_tree() {
 	# RAP uses the latest gentoo main repo snapshot to bootstrap.
 	is-rap && LATEST_TREE_YES=1
-	local PV="20221104"
+	local PV="20230601"
 	if [[ -n ${LATEST_TREE_YES} ]]; then
 		do_tree "${SNAPSHOT_URL}" portage-latest.tar.bz2
 	else
@@ -854,24 +833,6 @@ bootstrap_gnu() {
 		patch -p1 < ${DISTDIR}/${tar_patch_file} || return 1
 	fi
 
-	if [[ ${PN}-${PV} == "bash-4.3" && ${CHOST} == *-cygwin* ]] ; then
-		local p patchopts
-		for p in \
-			"-p0" \
-			"${DISTFILES_G_O}/distfiles/bash43-"{001..048} \
-			"-p2" \
-			"https://dev.gentoo.org/~haubi/distfiles/bash-4.3_p39-cygwin-r2.patch" \
-		; do
-			if [[ ${p} == -* ]] ; then
-				patchopts=${p}
-				continue
-			fi
-			efetch "${p}" || return 1
-			patch --forward --no-backup-if-mismatch ${patchopts} \
-				< "${DISTDIR}/${p##*/}" || return 1
-		done
-	fi
-
 	local myconf=""
 	if [[ ${PN} == "make" && ${PV} == "4.2.1" ]] ; then
 		if [[ ${CHOST} == *-linux-gnu* ]] ; then
@@ -998,23 +959,24 @@ bootstrap_gnu() {
 }
 
 python_ver() {
-	if [[ ${CHOST} == *-cygwin* ]] ; then
-	  echo 3.9   # keep this number in line with PV below for stage1,2
-	else
-	  echo 3.10   # keep this number in line with PV below for stage1,2
-	fi
+	# keep this number in line with PV below for stage1,2
+	# also, note that this version must match the Python version in the
+	# snapshot for stage3, else packages will break with some python
+	# mismatch error due to Portage using a different version after it
+	# upgraded itself with a newer Python
+	echo 3.11   # keep this number in line with PV below for stage1,2
 }
 
 bootstrap_python() {
-	if [[ ${CHOST} == *-cygwin* ]] ; then
-          PV=3.9.10
-        else
-	  PV=3.10.4
-        fi
+	PV=$(python_ver).3-gentoo-prefix-patched
 	A=Python-${PV}.tar.xz
 	einfo "Bootstrapping ${A%.tar.*}"
 
-	efetch https://www.python.org/ftp/python/${PV}/${A}
+	if [[ ${PV} == *-gentoo-prefix-patched ]] ; then
+		efetch https://dev.gentoo.org/~grobian/distfiles/${A}
+	else
+		efetch https://www.python.org/ftp/python/${PV}/${A}
+	fi
 
 	einfo "Unpacking ${A%.tar.*}"
 	export S="${PORTAGE_TMPDIR}/python-${PV}"
@@ -1027,45 +989,12 @@ bootstrap_python() {
 		*)    einfo "Don't know to unpack ${A}"       ;;
 	esac
 	[[ ${PIPESTATUS[*]} == '0 0' ]] || return 1
-	S="${S}"/Python-${PV}
+	S="${S}"/Python-${PV%%-*}
 	cd "${S}"
 	rm -rf Modules/_ctypes/libffi* || return 1
 	rm -rf Modules/zlib || return 1
 
 	case ${CHOST} in
-	(*-*-cygwin*)
-		local cygpyver pf pn patch_folder
-
-		# ideally the version of python used by bootstrap would be one
-		# that cygwin has packaged if we don't do exact matches on the
-		# version then some patches may not apply cleanly
-
-		cygpyver="3.9.10-1"
-		efetch "https://mirrors.kernel.org/sourceware/cygwin/x86_64/release/python39/python39-${cygpyver}-src.tar.xz" \
-			|| return 1
-		xz -dc "${DISTDIR}"/"python39-${cygpyver}-src.tar.xz" | tar -xf -
-		[[ ${PIPESTATUS[*]} == '0 0' ]] || return 1
-		patch_folder="python39-${cygpyver}.src"
-
-		for pf in $(
-			sed -ne '/PATCH_URI="/,/"/{s/.*="//;s/".*$//;p}' \
-				< "${patch_folder}/python39.cygport" \
-				| grep -v rpm-wheels | grep -v revert-bpo
-		); do
-			pf="${patch_folder}/${pf}"
-			for pn in {1..2} fail; do
-				if [[ ${pn} == fail ]]; then
-					eerror "failed to apply ${pf}"
-					return 1
-				fi
-				patch -N -p${pn} -i "${pf}" --dry-run >/dev/null 2>&1 \
-					|| continue
-				echo "applying (-p${pn}) ${pf}"
-				patch -N -p${pn} -i "${pf}" || return 1
-				break
-			done
-		done
-		;;
 	(*-solaris*)
 		# Solaris' host compiler (if old -- 3.4.3) doesn't grok HUGE_VAL,
 		# and barfs on isnan() so patch it out
@@ -1073,6 +1002,13 @@ bootstrap_python() {
 			-e '/^#define Py_HUGE_VAL/s/HUGE_VAL$/(__builtin_huge_val())/' \
 			-e '/defined HAVE_DECL_ISNAN/s/ISNAN/USE_FALLBACK/' \
 			Include/pymath.h
+		# OpenIndiana/Solaris 11 defines inet_aton no longer in
+		# libresolv, so use hstrerror to check if we need -lresolv
+		sed -i -e '/AC_CHECK_LIB/s/inet_aton/hstrerror/' \
+			configure.ac || die
+		# we don't regenerate configure at this point, so just force the
+		# fix result
+		export LIBS="${LIBS} -lresolv"
 		;;
 	(*-darwin9)
 		# Darwin 9's kqueue seems to act up (at least at this stage), so
@@ -1081,9 +1017,9 @@ bootstrap_python() {
 		sed -i \
 			-e 's/KQUEUE/KQUEUE_DISABLED/' \
 			configure
-		# fixup thread id detection
-		efetch "https://dev.gentoo.org/~sam/distfiles/dev-lang/python/python-3.9.6-darwin9_pthreadid.patch"
-		patch -p1 < "${DISTDIR}"/python-3.9.6-darwin9_pthreadid.patch
+		# fixup thread id detection (only needed on vanilla Python tar)
+		#efetch "https://dev.gentoo.org/~sam/distfiles/dev-lang/python/python-3.9.6-darwin9_pthreadid.patch"
+		#patch -p1 < "${DISTDIR}"/python-3.9.6-darwin9_pthreadid.patch
 		;;
 	(*-openbsd*)
 		# OpenBSD is not a multilib system
@@ -1116,12 +1052,6 @@ bootstrap_python() {
 	esac
 
 	case ${CHOST} in
-		*-*-cygwin*)
-			# --disable-shared would link modules against "python.exe"
-			# so renaming to "pythonX.Y.exe" will break them.
-			# And ctypes dynamically loads "libpythonX.Y.dll" anyway.
-			myconf="${myconf} --enable-shared"
-		;;
 		*-linux*)
 			# Bug 382263: make sure Python will know about the libdir in use for
 			# the current arch
@@ -1286,24 +1216,6 @@ bootstrap_zlib_core() {
 	# 1.2.5 suffers from a concurrency problem
 	[[ ${PV} == 1.2.5 ]] && makeopts=()
 
-	if [[ ${CHOST} == *-cygwin* ]] ; then
-		# gzopen_w is for real _WIN32 only
-		sed -i -e '/gzopen_w/d' win32/zlib.def
-		makeopts=(
-			-f win32/Makefile.gcc
-			SHARED_MODE=1
-			# avoid toolchain finding ./cygz.dll (esp. in parallel build)
-			SHAREDLIB=win32/cygz.dll
-			IMPLIB=libz.dll.a
-			BINARY_PATH="${ROOT}"/tmp/usr/bin
-			INCLUDE_PATH="${ROOT}"/tmp/usr/include
-			LIBRARY_PATH="${ROOT}"/tmp/usr/lib
-			"${makeopts[@]}"
-		)
-		# stage1 python searches for lib/libz.dll
-		ln -sf libz.dll.a "${ROOT}"/tmp/usr/lib/libz.dll
-	fi
-
 	einfo "Compiling ${A%.tar.*}"
 	CHOST= ${CONFIG_SHELL} ./configure --prefix="${ROOT}"/tmp/usr || return 1
 	MAKEOPTS=
@@ -1408,13 +1320,15 @@ bootstrap_bash() {
 }
 
 bootstrap_bison() {
-	bootstrap_gnu bison 2.6.2 || bootstrap_gnu bison 2.6.1 || \
-	bootstrap_gnu bison 2.6 || bootstrap_gnu bison 2.5.1 || \
+	bootstrap_gnu bison 3.8.2 || \
+	bootstrap_gnu bison 2.6.2 || \
+	bootstrap_gnu bison 2.5.1 || \
 	bootstrap_gnu bison 2.4
 }
 
 bootstrap_m4() {
-	bootstrap_gnu m4 1.4.19 || bootstrap_gnu m4 1.4.18 # version is patched, so beware
+	bootstrap_gnu m4 1.4.19 || \
+	bootstrap_gnu m4 1.4.18 # version is patched, so beware
 }
 
 bootstrap_gzip() {
@@ -1756,18 +1670,6 @@ do_emerge_pkgs() {
 			emerge --color n -v --oneshot --root-deps ${opts} "${pkg}"
 		)
 		[[ $? -eq 0 ]] || return 1
-
-		case ${pkg},${CHOST} in
-		app-shells/bash,*-cygwin*)
-			# Cygwin would resolve 'bin/bash' to 'bin/bash.exe', but
-			# merging bin/bash.exe does not replace the bin/bash symlink.
-			# When we can execute both bin/bash and bin/bash.exe, but
-			# they are different files, then we need to drop the symlink.
-			[[ -x ${EPREFIX}/bin/bash && -x ${EPREFIX}/bin/bash.exe &&
-			 !    ${EPREFIX}/bin/bash  -ef  ${EPREFIX}/bin/bash.exe ]] &&
-				rm -f "${EPREFIX}"/bin/bash
-			;;
-		esac
 	done
 }
 
@@ -1852,7 +1754,6 @@ bootstrap_stage2() {
 		sys-devel/gnuconfig
 		sys-apps/gentoo-functions
 		app-portage/elt-patches
-		$([[ ${CHOST} == *-cygwin* ]] && echo dev-libs/libiconv ) # bash dependency
 		sys-libs/ncurses
 		sys-libs/readline
 		app-shells/bash
@@ -1893,13 +1794,37 @@ bootstrap_stage2() {
 	EXTRA_ECONF=$(rapx --with-sysroot=/) \
 	emerge_pkgs --nodeps ${linker} || return 1
 
+	# During Gentoo prefix bootstrap stage2, GCC is built with
+	# "--disable-bootstrap". For Darwin, it means that rather than letting
+	# GCC to eventually build itself using multiple passes, we're forcing
+	# it to build with the host LLVM/clang toolchain in a single pass.
+	# It's not officially supported, but practically it worked. However,
+	# since >=gcc-12.2.0, in order to support the new embedded rpath
+	# feature on Darwin, two incompatible options, "-nodefaultrpaths" and
+	# "-nodefaultexport" are introduced. This causes linking failures,
+	# since these options are only recognized by GCC and are unknown to
+	# LLVM/clang (hypothetically, using an older GCC possibly causes the
+	# same problem as well).
+	#
+	# Thus, embedded rpath should be disabled during prefix bootstrap stage2
+	# and passed into EXTRA_ECONF.
+	# https://bugs.gentoo.org/895334
+	if [[ ${CHOST} == *-darwin* ]] ;
+	then
+		local disable_darwin_rpath="--disable-darwin-at-rpath"
+	else
+		local disable_darwin_rpath=""
+	fi
+
 	for pkg in ${compiler_stage1} ; do
 		# <glibc-2.5 does not understand .gnu.hash, use
 		# --hash-style=both to produce also sysv hash.
 		# GCC apparently drops CPPFLAGS at some point, which makes it
 		# not find things like gmp which we just installed, so force it
 		# to find our prefix
-		EXTRA_ECONF="--disable-bootstrap $(rapx --with-linker-hash-style=both) --with-local-prefix=${ROOT}" \
+		# For >=gcc-12.2.0, rpath needs to be disabled in stage2 on
+		# Darwin, see above.
+		EXTRA_ECONF="--disable-bootstrap $(rapx --with-linker-hash-style=both) --with-local-prefix=${ROOT} ${disable_darwin_rpath}" \
 		MYCMAKEARGS="-DCMAKE_USE_SYSTEM_LIBRARY_LIBUV=OFF" \
 		GCC_MAKE_TARGET=all \
 		OVERRIDE_CXXFLAGS="${CPPFLAGS} -O2 -pipe" \
@@ -2203,7 +2128,6 @@ bootstrap_stage3() {
 		sys-devel/make
 		sys-apps/file
 		app-admin/eselect
-		$( [[ ${CHOST} == *-cygwin* ]] && echo sys-libs/cygwin-crypt )
 	)
 
 	# For grep we need to do a little workaround as we might use llvm-3.4
@@ -2333,63 +2257,6 @@ EOF
 			;;
 	esac
 
-	if [[ ${CHOST} == *-cygwin* ]]; then
-		if [[ -r /var/run/cygfork/. ]]; then
-			cat << EOF
-
-Whoah there, I've found the /var/run/cygfork/ directory.  This makes
-me believe you have a working fork() in your Cygwin instance, which
-seems you really know what I can do for you when you help me out!
-EOF
-		else
-			echo
-			[[ ${TODO} == 'noninteractive' ]] && ans="yes" ||
-			read -p "Are you really, really sure what you want me to do for you? [no] " ans
-			case "${ans}" in
-			[Yy][Ee][Ss]) ;;
-			*)
-				cat << EOF
-
-Puh, I'm glad you agree with me here, thanks!
-EOF
-				exit 1
-				;;
-			esac
-
-			cat << EOF
-
-Well...
-EOF
-			[[ ${TODO} == 'noninteractive' ]] || sleep 1
-			cat << EOF
-
-Nope, seems you aren't: This is Windows after all,
-which I'm traditionally incompatible with!
-EOF
-			[[ ${TODO} == 'noninteractive' ]] || sleep 1
-			cat << EOF
-
-But wait, there might be help!
-EOF
-			[[ ${TODO} == 'noninteractive' ]] || sleep 1
-			cat << EOF
-
-Once upon a time there was a guy, probably as freaky as you, my master.
-And whether you believe or not, he has been able to do something useful
-to Windows, in that he completed a piece of code to support myself.
-
-Although you already use that piece of code - yes, it's called Cygwin,
-you seem to not use this freaky guy's completions yet.
-
-To help me out of the incompatibility hole, please read and follow
-https://wiki.gentoo.org/wiki/Prefix/Cygwin first.
-
-But remember that you won't get support from upstream Cygwin now.
-EOF
-		  exit 1
-		fi
-	fi
-
 	if [[ ${UID} == 0 ]] ; then
 		cat << EOF
 
@@ -2517,10 +2384,6 @@ EOF
 			# Apple ships a broken clang by default, fun!
 			[[ -e /Library/Developer/CommandLineTools/usr/bin/clang ]] \
 				&& PATH="/Library/Developer/CommandLineTools/usr/bin:${PATH}"
-			;;
-		*-cygwin*)
-			# Keep some Windows
-			PATH+=":$(cygpath -S):$(cygpath -W)"
 			;;
 	esac
 
@@ -2655,8 +2518,6 @@ EOF
 	echo
 	local ncpu=
 	case "${CHOST}" in
-		*-cygwin*)
-			ncpu=$(cmd /D /Q /C 'echo %NUMBER_OF_PROCESSORS%' | tr -d "\\r") ;;
 		*-darwin*)
 			ncpu=$(/usr/sbin/sysctl -n hw.ncpu) ;;
 		*-freebsd* | *-openbsd*)
@@ -2945,7 +2806,8 @@ EOF
 	done
 	export PATH="$EPREFIX/usr/bin:$EPREFIX/bin:$EPREFIX/tmp/usr/bin:$EPREFIX/tmp/bin:$EPREFIX/tmp/usr/local/bin:${PATH}"
 
-	cat << EOF
+	if [[ -z ${PARTIAL_BOOTSTRAP} ]]; then
+		cat << EOF
 
 OK!  I'm going to give it a try, this is what I have collected sofar:
   EPREFIX=${EPREFIX}
@@ -2959,14 +2821,15 @@ Prefix.  In short, I'm going to run stage1, stage2, stage3, followed by
 emerge -e system.  If any of these stages fail, both you and me are in
 deep trouble.  So let's hope that doesn't happen.
 EOF
-	echo
-	[[ ${TODO} == 'noninteractive' ]] && ans="" ||
-	read -p "Type here what you want to wish me [luck] " ans
-	if [[ -n ${ans} && ${ans} != "luck" ]] ; then
-		echo "Huh?  You're not serious, are you?"
-		sleep 3
-	fi
-	echo
+		echo
+		[[ ${TODO} == 'noninteractive' ]] && ans="" ||
+		read -p "Type here what you want to wish me [luck] " ans
+		if [[ -n ${ans} && ${ans} != "luck" ]] ; then
+			echo "Huh?  You're not serious, are you?"
+			sleep 3
+		fi
+		echo
+  fi
 
 	if [[ -d ${HOST_GENTOO_EROOT} ]]; then
 		if ! [[ -x ${EPREFIX}/tmp/usr/lib/portage/bin/emerge ]] && ! ${BASH} ${BASH_SOURCE[0]} "${EPREFIX}" stage_host_gentoo ; then
@@ -2989,6 +2852,19 @@ EOF
 	# just harvested
 	ROOT="${EPREFIX}"
 	set_helper_vars
+
+	if [[ -n ${PARTIAL_BOOTSTRAP} ]]; then
+	cat << EOF
+
+OK! All necessary tools and ENV variables were installed:
+  EPREFIX=${EPREFIX}
+  CHOST=${CHOST}
+  PATH=${PATH}
+  MAKEOPTS=${MAKEOPTS}
+Now I'm going to  run an <action> you asked me to.
+EOF
+		return 0;
+	fi
 
 	if ! [[ -e ${EPREFIX}/.stage1-finished ]] && ! bootstrap_stage1_log ; then
 		# stage 1 fail
@@ -3367,11 +3243,23 @@ if [[ -n ${PKG_CONFIG_PATH} ]] ; then
 fi
 
 einfo "ready to bootstrap ${TODO}"
+
+# part of bootstrap_interactive should be executed before any bootstrap_${TODO}
+# to properly setup environment variables and guarantee that bootstrap_${TODO}
+# executes inside a prefix
+if [[ ${TODO} != "noninteractive" && $(type -t bootstrap_${TODO} == "function") ]]; then
+	PARTIAL_BOOTSTRAP=true
+	TODO='noninteractive' bootstrap_interactive || exit 1
+	bootstrap_${TODO} || exit 1
+	exit 0
+fi
+
 # bootstrap_interactive proceeds with guessed defaults when TODO=noninteractive
 bootstrap_${TODO#non} || exit 1
 
 # Local Variables:
-# sh-indentation: 8
-# sh-basic-offset: 8
+# sh-indentation: 4
+# sh-basic-offset: 4
 # indent-tabs-mode: t
 # End:
+# vim: set ts=4 sw=4 noexpandtab:
