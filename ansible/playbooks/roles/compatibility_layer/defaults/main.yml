@@ -25,9 +25,9 @@ prefix_default_gcc: 9.5.0
 prefix_user_defined_trusted_dirs:
   - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
 prefix_mask_packages: |
-  # stick to GCC 9.x; using a too recent compiler in the compat layer complicates stuff in the software layer,
+  # stick to GCC 10.x; using a too recent compiler in the compat layer complicates stuff in the software layer,
   # see for example https://github.com/EESSI/software-layer/issues/151
-  >=sys-devel/gcc-10
+  >=sys-devel/gcc-11
   # mask OpenSSL 3.x, stick to OpenSSL 1.1.x for now to avoid problems with:
   # - older versions of Rust (see https://github.com/EESSI/software-layer/issues/257)
   # - older versions of cryptograhy in Python (see https://github.com/EESSI/software-layer/issues/258)
