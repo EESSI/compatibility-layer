@@ -83,7 +83,7 @@ eessi_os=linux
 job_version=$(cfg_get_value "repository" "repo_version")
 eessi_version=${job_version:-2023.06}
 job_repo=$(cfg_get_value "repository" "repo_name")
-eessi_repo=${job_repo:-pilot.eessi-hpc.org}
+eessi_repo=${job_repo:-software.eessi.io}
 tar_topdir=/cvmfs/${eessi_repo}/versions
 
 if [ "${eessi_arch}" != "${host_arch}" ]; then
@@ -92,15 +92,20 @@ if [ "${eessi_arch}" != "${host_arch}" ]; then
 fi
 
 # option -k is used for retaining ${eessi_tmp}
-./install_compatibility_layer.sh -a ${eessi_arch} -v ${eessi_version} -r ${eessi_repo} -g ${STORAGE} -k
+# store output in local file such that the temporary directory ${STORAGE}/eessi.XXXXXXXXXX
+# can be determined
+script_out="install_stdout.log"
+./install_compatibility_layer.sh -a ${eessi_arch} -v ${eessi_version} -r ${eessi_repo} -g ${STORAGE} -k 2>&1 | tee -a ${script_out}
 
+# TODO handle errors (no outfile, no tmp directory found)
+eessi_tmp=$(cat ${script_out} | grep 'To resume work add' | cut -f 2 -d \' | cut -f 2 -d ' ')
 # create tarball -> should go into a separate script when this is supported by the bot
 target_tgz=eessi-${eessi_version}-compat-linux-${eessi_arch}-$(date +%s).tar.gz
-if [ -d ${eessi_tmp}/${tar_topdir}/${eessi_version} ]; then
-  echo ">> Creating tarball ${target_tgz} from ${eessi_tmp}/${tar_topdir}..."
-  tar cfvz ${target_tgz} -C ${eessi_tmp}/${tar_topdir} ${eessi_version}/compat/${eessi_os}/${eessi_arch}
+if [ -d ${eessi_tmp}${tar_topdir}/${eessi_version} ]; then
+  echo ">> Creating tarball ${target_tgz} from ${eessi_tmp}${tar_topdir}..."
+  tar cfvz ${target_tgz} -C ${eessi_tmp}${tar_topdir} ${eessi_version}/compat/${eessi_os}/${eessi_arch}
   echo ${target_tgz} created!
 else
-  echo "Directory ${eessi_tmp}/${tar_topdir}/${eessi_version} was not created, not creating tarball."
+  echo "Directory ${eessi_tmp}${tar_topdir}/${eessi_version} was not created, not creating tarball."
   exit 1
 fi

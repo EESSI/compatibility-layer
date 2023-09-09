@@ -4,7 +4,7 @@ import reframe as rfm
 import reframe.utility.sanity as sn
 
 
-EESSI_REPO_DIR = '/cvmfs/pilot.eessi-hpc.org'
+EESSI_REPO_DIR = '/cvmfs/software.eessi.io'
 
 class RunInGentooPrefixTestError(rfm.core.exceptions.ReframeError):
     pass

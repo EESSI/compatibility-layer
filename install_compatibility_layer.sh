@@ -6,7 +6,7 @@
 
 ARCH=
 CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian11
-REPOSITORY="pilot.eessi-hpc.org"
+REPOSITORY="software.eessi.io"
 RESUME=
 RETAIN_TMP=0
 STORAGE=
@@ -145,23 +145,30 @@ mkdir -p ${EESSI_TMPDIR}/tmp
 
 RUNTIME=$(get_container_runtime)
 exit_code=$?
-echo "RUNTIME='${RUNTIME}'"
+[[ ${VERBOSE} == '-vvv' ]] && echo "RUNTIME='${RUNTIME}'"
 check_exit_code ${exit_code} "using runtime ${RUNTIME}" "oh no, neither apptainer nor singularity available"
 
 # Set up paths and mount points for Apptainer
 if [[ -z ${APPTAINER_CACHEDIR} ]]; then
   export APPTAINER_CACHEDIR=${EESSI_TMPDIR}/apptainer_cache
+  [[ ${VERBOSE} == '-vvv' ]] && echo "APPTAINER_CACHEDIR='${APPTAINER_CACHEDIR}'"
 fi
 export APPTAINER_BIND="${EESSI_TMPDIR}/cvmfs:/cvmfs,${SCRIPT_DIR}:/compatibility-layer"
 export APPTAINER_BIND="${APPTAINER_BIND},${EESSI_TMPDIR}/tmp:/tmp"
+[[ ${VERBOSE} == '-vvv' ]] && echo "APPTAINER_BIND='${APPTAINER_BIND}'"
 export APPTAINER_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
+[[ ${VERBOSE} == '-vvv' ]] && echo "APPTAINER_HOME='${APPTAINER_HOME}'"
+
 # also define SINGULARITY_* env vars
 if [[ -z ${SINGULARITY_CACHEDIR} ]]; then
   export SINGULARITY_CACHEDIR=${EESSI_TMPDIR}/apptainer_cache
+  [[ ${VERBOSE} == '-vvv' ]] && echo "SINGULARITY_CACHEDIR='${SINGULARITY_CACHEDIR}'"
 fi
 export SINGULARITY_BIND="${EESSI_TMPDIR}/cvmfs:/cvmfs,${SCRIPT_DIR}:/compatibility-layer"
 export SINGULARITY_BIND="${SINGULARITY_BIND},${EESSI_TMPDIR}/tmp:/tmp"
+[[ ${VERBOSE} == '-vvv' ]] && echo "SINGULARITY_BIND='${SINGULARITY_BIND}'"
 export SINGULARITY_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
+[[ ${VERBOSE} == '-vvv' ]] && echo "SINGULARITY_HOME='${SINGULARITY_HOME}'"
 
 # Construct the Ansible playbook command
 ANSIBLE_OPTIONS="-e eessi_host_os=linux -e eessi_host_arch=$(uname -m)"
