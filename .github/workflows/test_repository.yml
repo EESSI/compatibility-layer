@@ -17,7 +17,7 @@ jobs:
       matrix:
         EESSI_VERSION:
         # note: use string quotes here, to avoid values being interpreted as floating point values...
-        - '2021.12'
+        - '2023.06'
         EESSI_ARCH:
         - aarch64
         - ppc64le
