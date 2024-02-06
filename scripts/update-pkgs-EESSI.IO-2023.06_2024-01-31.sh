@@ -28,6 +28,13 @@ echo "Checking out ${gentoo_commit} in ${PWD}..."
 time git checkout ${gentoo_commit}
 cd -
 
+# unmask dev-libs/openssl-1.1.1w, so we can update to it
+# (masked by $EPREFIX/var/db/repos/gentoo/profiles/package.mask, because OpenSSL 1.1.x is EOL)
+echo '# unmask dev-libs/openssl-1.1.1w (openssl 1.1.x is masked via $EPREFIX/var/db/repos/gentoo/profiles/package.mask)' >> ${EPREFIX}/etc/portage/package.unmask
+echo '=dev-libs/openssl-1.1.1w' >> ${EPREFIX}/etc/portage/package.unmask
+# update openssl due to https://nvd.nist.gov/vuln/detail/CVE-2023-4807
+emerge --update --oneshot --verbose '=dev-libs/openssl-1.1.1w'  # was dev-libs/openssl-1.1.1u
+
 # update zlib due to https://security.gentoo.org/glsa/202401-18
 emerge --update --oneshot --verbose '=sys-libs/zlib-1.3-r2'  # was sys-libs/zlib-1.2.13-r1
 
