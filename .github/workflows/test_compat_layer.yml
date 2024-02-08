@@ -1,5 +1,5 @@
 # documentation: https://help.github.com/en/articles/workflow-syntax-for-github-actions
-name: Tests for EESSI pilot repo
+name: Tests for EESSI compat layer
 on:
   push:
   pull_request:
@@ -17,7 +17,7 @@ jobs:
       matrix:
         EESSI_VERSION:
         # note: use string quotes here, to avoid values being interpreted as floating point values...
-        - '2021.12'
+        - '2023.06'
         EESSI_ARCH:
         - aarch64
         - ppc64le
@@ -41,19 +41,19 @@ jobs:
           with:
               cvmfs_config_package: https://github.com/EESSI/filesystem-layer/releases/download/latest/cvmfs-config-eessi_latest_all.deb
               cvmfs_http_proxy: DIRECT
-              cvmfs_repositories: pilot.eessi-hpc.org
+              cvmfs_repositories: software.eessi.io
 
         - name: Check compat layer in EESSI pilot repository
           env:
-              EPREFIX: /cvmfs/pilot.eessi-hpc.org/versions/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
+              EPREFIX: /cvmfs/software.eessi.io/versions/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
           run: |
               # trigger automount
-              echo '>> ls /cvmfs/pilot.eessi-hpc.org'
-              ls /cvmfs/pilot.eessi-hpc.org
+              echo '>> ls /cvmfs/software.eessi.io'
+              ls /cvmfs/software.eessi.io
 
               # check which Stratum 1 we're connected to
-              echo '>> cvmfs_config stat -v pilot.eessi-hpc.org'
-              cvmfs_config stat -v pilot.eessi-hpc.org
+              echo '>> cvmfs_config stat -v software.eessi.io'
+              cvmfs_config stat -v software.eessi.io
 
               echo '>> ls ${EPREFIX}/startprefix'
               ls ${EPREFIX}/startprefix
