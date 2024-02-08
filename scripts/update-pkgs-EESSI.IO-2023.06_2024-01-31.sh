@@ -15,14 +15,24 @@ list_installed_pkgs_pre_update=${mytmpdir}/installed-pkgs-pre-update.txt
 echo "Collecting list of installed packages to ${list_installed_pkgs_pre_update}..."
 qlist -IRv | sort | tee ${list_installed_pkgs_pre_update}
 
+# update checkout of eessi overlay to sufficiently recent commit to include fix from https://github.com/EESSI/gentoo-overlay/pull/98
+# https://github.com/EESSI/gentoo-overlay/commit/bf189508bf7510d8acf8ef089d4c7f03f6c512d1 (2024-01-29)
+eessi_commit='bf189508bf7510d8acf8ef089d4c7f03f6c512d1'
+echo "Updating $EPREFIX/var/db/repos/eessi to recent commit (${eessi_commit})..."
+cd $EPREFIX/var/db/repos/eessi
+time git fetch origin
+echo "Checking out ${eessi_commit} in ${PWD}..."
+time git checkout ${eessi_commit}
+cd -
+
+# update zlib due to https://security.gentoo.org/glsa/202401-18
+# this has to be done before switching to a newer commit of the gentoo repository,
+# as that one doesn't have this zlib version anymore, # while the current commit does
+emerge --update --oneshot --verbose '=sys-libs/zlib-1.2.13-r2'  # was sys-libs/zlib-1.2.13-r1
+
 # update checkout of gentoo repository to sufficiently recent commit
 # this is required because we pin to a specific commit when bootstrapping the compat layer
 # see gentoo_git_commit in ansible/playbooks/roles/compatibility_layer/defaults/main.yml;
-
-# update zlib due to https://security.gentoo.org/glsa/202401-18
-# this has to be done before switching to a newer commit, as that one doesn't have this zlib version anymore,
-# while the current commit does
-emerge --update --oneshot --verbose '=sys-libs/zlib-1.2.13-r2'  # was sys-libs/zlib-1.2.13-r1
 
 # https://gitweb.gentoo.org/repo/gentoo.git/commit/?id=ac78a6d2a0ec2546a59ed98e00499ddd8343b13d (2024-01-31)
 gentoo_commit='ac78a6d2a0ec2546a59ed98e00499ddd8343b13d'
