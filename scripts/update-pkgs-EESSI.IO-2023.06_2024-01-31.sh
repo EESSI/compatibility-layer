@@ -19,6 +19,11 @@ qlist -IRv | sort | tee ${list_installed_pkgs_pre_update}
 # this is required because we pin to a specific commit when bootstrapping the compat layer
 # see gentoo_git_commit in ansible/playbooks/roles/compatibility_layer/defaults/main.yml;
 
+# update zlib due to https://security.gentoo.org/glsa/202401-18
+# this has to be done before switching to a newer commit, as that one doesn't have this zlib version anymore,
+# while the current commit does
+emerge --update --oneshot --verbose '=sys-libs/zlib-1.2.13-r2'  # was sys-libs/zlib-1.2.13-r1
+
 # https://gitweb.gentoo.org/repo/gentoo.git/commit/?id=ac78a6d2a0ec2546a59ed98e00499ddd8343b13d (2024-01-31)
 gentoo_commit='ac78a6d2a0ec2546a59ed98e00499ddd8343b13d'
 echo "Updating $EPREFIX/var/db/repos/gentoo to recent commit (${gentoo_commit})..."
@@ -34,9 +39,6 @@ echo '# unmask dev-libs/openssl-1.1.1w (openssl 1.1.x is masked via $EPREFIX/var
 echo '=dev-libs/openssl-1.1.1w' >> ${EPREFIX}/etc/portage/package.unmask
 # update openssl due to https://nvd.nist.gov/vuln/detail/CVE-2023-4807
 emerge --update --oneshot --verbose '=dev-libs/openssl-1.1.1w'  # was dev-libs/openssl-1.1.1u
-
-# update zlib due to https://security.gentoo.org/glsa/202401-18
-emerge --update --oneshot --verbose '=sys-libs/zlib-1.3-r2'  # was sys-libs/zlib-1.2.13-r1
 
 # update glibc due to https://security.gentoo.org/glsa/202402-01
 emerge --update --oneshot --verbose '=sys-libs/glibc-2.37-r10'  # was sys-libs/glibc-2.37-r7
