@@ -25,15 +25,25 @@ echo "Checking out ${eessi_commit} in ${PWD}..."
 time git checkout ${eessi_commit}
 cd -
 
-# update zlib due to https://security.gentoo.org/glsa/202401-18
-# this has to be done before switching to a newer commit of the gentoo repository,
-# as that one doesn't have this zlib version anymore, # while the current commit does
-emerge --update --oneshot --verbose '=sys-libs/zlib-1.2.13-r2'  # was sys-libs/zlib-1.2.13-r1
-
 # update checkout of gentoo repository to sufficiently recent commit
 # this is required because we pin to a specific commit when bootstrapping the compat layer
 # see gentoo_git_commit in ansible/playbooks/roles/compatibility_layer/defaults/main.yml;
+# https://gitweb.gentoo.org/repo/gentoo.git/commit/?id=d9718dafa6ecd841f4364f2ee0039613f0b8efec (2023-10-30)
+gentoo_commit='d9718dafa6ecd841f4364f2ee0039613f0b8efec'
+echo "Updating $EPREFIX/var/db/repos/gentoo to recent commit (${gentoo_commit})..."
+cd $EPREFIX/var/db/repos/gentoo
+time git fetch origin
+echo "Checking out ${gentoo_commit} in ${PWD}..."
+time git checkout ${gentoo_commit}
+cd -
 
+# update zlib due to https://security.gentoo.org/glsa/202401-18
+# this has to be done before switching to an even newer commit of the gentoo repository,
+# as that doesn't have this zlib version anymore, while the current commit does
+emerge --update --oneshot --verbose '=sys-libs/zlib-1.2.13-r2'  # was sys-libs/zlib-1.2.13-r1
+
+# update checkout of gentoo repository to an even more recent commit,
+# which contains the required versions of openssl and glibc
 # https://gitweb.gentoo.org/repo/gentoo.git/commit/?id=ac78a6d2a0ec2546a59ed98e00499ddd8343b13d (2024-01-31)
 gentoo_commit='ac78a6d2a0ec2546a59ed98e00499ddd8343b13d'
 echo "Updating $EPREFIX/var/db/repos/gentoo to recent commit (${gentoo_commit})..."
