@@ -1,5 +1,5 @@
 # documentation: https://help.github.com/en/articles/workflow-syntax-for-github-actions
-name: Tests for EESSI pilot repo
+name: Tests for EESSI software repository
 on:
   push:
   pull_request:
@@ -10,17 +10,16 @@ on:
 # Declare default permissions as read only.
 permissions: read-all
 jobs:
-  pilot_repo:
+  software_repo:
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
         EESSI_VERSION:
         # note: use string quotes here, to avoid values being interpreted as floating point values...
-        - '2021.12'
+        - '2023.06'
         EESSI_ARCH:
         - aarch64
-        - ppc64le
         - x86_64
         EESSI_OS:
         - linux
@@ -36,24 +35,24 @@ jobs:
               sudo apt-get update
               sudo apt-get install qemu-user
 
-        - name: Mount EESSI CernVM-FS pilot repository
+        - name: Mount EESSI CernVM-FS repository
           uses: cvmfs-contrib/github-action-cvmfs@55899ca74cf78ab874bdf47f5a804e47c198743c # v4.0
           with:
               cvmfs_config_package: https://github.com/EESSI/filesystem-layer/releases/download/latest/cvmfs-config-eessi_latest_all.deb
               cvmfs_http_proxy: DIRECT
-              cvmfs_repositories: pilot.eessi-hpc.org
+              cvmfs_repositories: software.eessi.io
 
-        - name: Check compat layer in EESSI pilot repository
+        - name: Check compat layer in EESSI repository
           env:
-              EPREFIX: /cvmfs/pilot.eessi-hpc.org/versions/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
+              EPREFIX: /cvmfs/software.eessi.io/versions/${{matrix.EESSI_VERSION}}/compat/linux/${{matrix.EESSI_ARCH}}
           run: |
               # trigger automount
-              echo '>> ls /cvmfs/pilot.eessi-hpc.org'
-              ls /cvmfs/pilot.eessi-hpc.org
+              echo '>> ls /cvmfs/software.eessi.io'
+              ls /cvmfs/software.eessi.io
 
               # check which Stratum 1 we're connected to
-              echo '>> cvmfs_config stat -v pilot.eessi-hpc.org'
-              cvmfs_config stat -v pilot.eessi-hpc.org
+              echo '>> cvmfs_config stat -v software.eessi.io'
+              cvmfs_config stat -v software.eessi.io
 
               echo '>> ls ${EPREFIX}/startprefix'
               ls ${EPREFIX}/startprefix
@@ -64,7 +63,7 @@ jobs:
               ${EPREFIX}/startprefix <<< "which bash; qlist -IRv; exit"
 
         - name: Set up Python
-          uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # v4.3.0
+          uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
           with:
             python-version: ${{matrix.python}}
             architecture: x64
