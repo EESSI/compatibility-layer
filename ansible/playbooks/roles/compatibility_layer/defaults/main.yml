@@ -98,7 +98,7 @@ symlinks_to_host:
   - /etc/hosts
 
   # required to ensure name-service information is taken from the right source (e.g. ldap)
-  - /etc/nsswitch.conf
+  #- /etc/nsswitch.conf
 
   # required to use the DNS resolver from the host (should be done automatically)
   - /etc/resolv.conf
@@ -110,16 +110,16 @@ symlinks_to_host:
   - /lib64/libnss_centrifydc.so.2
 
   # required if LDAP is used in nsswitch.conf
-  - /lib64/libnss_ldap.so.2
+  #- /lib64/libnss_ldap.so.2
 
   # required if SSSD is used in nsswitch.conf
-  - /lib64/libnss_sss.so.2
+  #- /lib64/libnss_sss.so.2
 
   # required to make runtime data available for lots of tools (including who and w)
-  - /var/run
+  #- /var/run
 
   # required by the last command
-  - /var/log/wtmp
+  #- /var/log/wtmp
 
 #  - /var/lib/munge
 #  - /var/lib/unbound
