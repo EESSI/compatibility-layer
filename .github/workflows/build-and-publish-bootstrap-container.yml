@@ -50,5 +50,5 @@ jobs:
         with:
           tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/bootstrap-prefix:debian-11
           file: Dockerfile.bootstrap-prefix-debian11
-          platforms: linux/amd64, linux/arm64, linux/ppc64le
+          platforms: linux/amd64, linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
