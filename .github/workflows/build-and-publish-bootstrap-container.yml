@@ -4,14 +4,14 @@ on:
     branches:
       - main
     paths:
-      - Dockerfile.bootstrap-prefix-debian11
+      - Dockerfile.bootstrap-prefix*
       - bootstrap-prefix.sh
 
   pull_request:
     branches:
       - main
     paths:
-      - Dockerfile.bootstrap-prefix-debian11
+      - Dockerfile.bootstrap-prefix*
       - bootstrap-prefix.sh
 
 # Declare default permissions as read only.
