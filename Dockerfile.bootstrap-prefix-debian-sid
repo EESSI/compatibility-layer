@@ -1,0 +1,22 @@
+# Should move to Trixie whenever riscv64 images are available
+FROM debian:sid-20240211-slim
+
+COPY bootstrap-prefix.sh /usr/local/bin/bootstrap-prefix.sh
+
+RUN apt-get update
+RUN apt-get install -y gcc g++ make diffutils libgmp-dev perl wget
+RUN apt-get install -y git python3-pip python3-cryptography python3-venv
+RUN python3 -m venv --system-site-packages /opt/ansible && \
+    . /opt/ansible/bin/activate && \
+    pip3 install --upgrade pip && \
+    pip3 install ansible && \
+    ln -s /opt/ansible/bin/ansible* /usr/local/bin/ && \
+    deactivate
+RUN chmod 755 /usr/local/bin/bootstrap-prefix.sh
+
+ENV LC_ALL=C.UTF-8
+ENV PATH=/usr/local/bin:$PATH
+
+RUN groupadd -g 1000 portage && useradd -ms /bin/bash -u 1000 -g portage portage
+
+ENTRYPOINT ["/usr/local/bin/bootstrap-prefix.sh"]
