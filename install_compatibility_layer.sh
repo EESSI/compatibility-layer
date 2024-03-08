@@ -17,7 +17,7 @@ VERBOSE=
 if [[ $(uname -m) = "riscv64" ]]; then
   CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian-sid
   REPOSITORY=riscv.eessi.io
-  VERSION=2024.03
+  VERSION=20240307
 fi
 
 display_help() {
