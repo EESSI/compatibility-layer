@@ -13,6 +13,13 @@ STORAGE=
 VERSION=2023.06
 VERBOSE=
 
+# RISC-V needs some different default values
+if [[ $(uname -m) = "riscv64" ]]; then
+  CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian-sid
+  REPOSITORY=riscv.eessi.io
+  VERSION=2024.03
+fi
+
 display_help() {
   echo "usage: $0 [OPTIONS]"
   echo "OPTIONS:"
@@ -181,8 +188,15 @@ fi
 if [[ ! -z ${VERBOSE} ]]; then
     ANSIBLE_OPTIONS="${ANSIBLE_OPTIONS} ${VERBOSE}"
 fi
-ANSIBLE_COMMAND="ansible-playbook ${ANSIBLE_OPTIONS} /compatibility-layer/ansible/playbooks/install.yml"
+
+# If the kernel does not have SquashFS support, convert the container to sandbox format
+if ! grep --quiet "squashfs" /proc/filesystems; then
+  singularity build --sandbox ${EESSI_TMPDIR}/container ${CONTAINER}
+  CONTAINER=${EESSI_TMPDIR}/container
+fi
+
 # Finally, run Ansible inside the container to do the actual installation
+ANSIBLE_COMMAND="ansible-playbook ${ANSIBLE_OPTIONS} /compatibility-layer/ansible/playbooks/install.yml"
 echo "Executing ${ANSIBLE_COMMAND} in ${CONTAINER}, this will take a while..."
 ${RUNTIME} shell ${CONTAINER} <<EOF
 # The Gentoo Prefix bootstrap script will complain if $LD_LIBRARY_PATH is set
