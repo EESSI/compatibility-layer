@@ -11,6 +11,9 @@ class RunInGentooPrefixTestError(rfm.core.exceptions.ReframeError):
 
 
 class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
+    eessi_repo_dir = parameter(
+        os.environ.get('EESSI_REPO_DIR', EESSI_REPO_DIR)
+    )
     eessi_version = parameter(
         os.environ.get('EESSI_VERSION', 'latest').split(',')
     )
