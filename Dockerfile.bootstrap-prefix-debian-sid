@@ -4,7 +4,7 @@ FROM debian:sid-20240211-slim
 COPY bootstrap-prefix.sh /usr/local/bin/bootstrap-prefix.sh
 
 RUN apt-get update
-RUN apt-get install -y gcc g++ make diffutils libgmp-dev perl wget
+RUN apt-get install -y gcc g++ make diffutils libgmp-dev perl wget rustc
 RUN apt-get install -y git python3-pip python3-cryptography python3-venv
 RUN python3 -m venv --system-site-packages /opt/ansible && \
     . /opt/ansible/bin/activate && \
