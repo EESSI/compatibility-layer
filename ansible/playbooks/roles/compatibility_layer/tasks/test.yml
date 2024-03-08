@@ -17,6 +17,8 @@
     virtualenv_command: python3 -m venv
     state: forcereinstall
   when: reframe_exists.rc != 0
+  tags:
+    - test
 
 - name: Copy ReFrame test file
   ansible.builtin.copy:
@@ -30,6 +32,7 @@
   ansible.builtin.command:
     cmd: "{{ reframe_venv_dir + '/bin/' if reframe_exists.rc != 0 else '' }}reframe -r -v -c {{ reframe_venv_dir }}/compat_layer.py"
   environment:
+    EESSI_REPO_DIR: "/cvmfs/{{ cvmfs_repository }}"
     EESSI_VERSION: "{{ eessi_version }}"
     EESSI_OS: "{{ eessi_host_os }}"
     EESSI_ARCH: "{{ eessi_host_arch }}"
