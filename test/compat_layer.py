@@ -30,12 +30,12 @@ class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
         self.valid_prog_environs = ['*']
         if self.eessi_version == 'latest':
             # resolve the "latest" symlink to the actual version
-            self.eessi_version = os.readlink(os.path.join(EESSI_REPO_DIR, 'latest'))
+            self.eessi_version = os.readlink(os.path.join(eessi_repo_dir, 'latest'))
         # 2021.06 did not have the 'versions' subdirectory yet
         if self.eessi_version == '2021.06':
-            self.eessi_repo_dir = EESSI_REPO_DIR
+            self.eessi_repo_dir = eessi_repo_dir
         else:
-            self.eessi_repo_dir = os.path.join(EESSI_REPO_DIR, 'versions')
+            self.eessi_repo_dir = os.path.join(eessi_repo_dir, 'versions')
 
         self.compat_dir = os.path.join(
             self.eessi_repo_dir,
@@ -198,7 +198,7 @@ class SymlinksToHostFilesTest(RunInGentooPrefixTest):
             sn.assert_found(f'\n/{self.symlink_to_host}\n', self.stdout),
         ])
 
-        
+
 @rfm.simple_test
 class GentooOverlayGitTest(RunInGentooPrefixTest):
     def __init__(self):
@@ -217,7 +217,7 @@ class GentooOverlayGitTest(RunInGentooPrefixTest):
 
         self.sanity_patterns = sn.assert_found(gentoo_git_repo_info, self.stdout)
 
-        
+
 @rfm.simple_test
 class GlibcEnvFileTest(RunInGentooPrefixTest):
     def __init__(self):
@@ -229,7 +229,7 @@ class GlibcEnvFileTest(RunInGentooPrefixTest):
         self.command = 'equery has --package glibc EXTRA_EMAKE'
 
         trusted_dir = os.path.join(
-            EESSI_REPO_DIR,
+            eessi_repo_dir,
             'host_injections',
             self.eessi_version,
             'compat',
