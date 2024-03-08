@@ -1,6 +1,6 @@
 # Defaults file for the compatibility layer role.
 ---
-eessi_version: "2024.03"
+eessi_version: "20240307"
 
 custom_overlays:
   - name: eessi
@@ -24,6 +24,7 @@ prefix_user_defined_trusted_dirs:
 prefix_mask_packages: |
   # stick to GCC 10.x; using a too recent compiler in the compat layer complicates stuff in the software layer,
   # see for example https://github.com/EESSI/software-layer/issues/151
+  # for RISC-V we do need a more recent compiler, so we don't mask the recent versions
   #>=sys-devel/gcc-11
   # mask OpenSSL 3.x, stick to OpenSSL 1.1.x for now to avoid problems with:
   # - older versions of Rust (see https://github.com/EESSI/software-layer/issues/257)
@@ -34,6 +35,7 @@ prefix_unmask_packages: |
   =dev-libs/openssl-1.1.1w
 prefix_bootstrap_use_flags: |
   # make sure that gold linker is installed with binutils
+  # the gold linker is not supported on RISC-V
   # sys-devel/binutils gold
   # only install Python 3.11
   */* PYTHON_TARGETS: -* python3_11
