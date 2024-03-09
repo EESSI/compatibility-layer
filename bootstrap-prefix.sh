@@ -112,6 +112,9 @@ efetch() {
 
 configure_cflags() {
 	export CPPFLAGS="-I${ROOT}/tmp/usr/include"
+	# keep it fairly reasonable (no -march or whatever)
+	export OVERRIDE_CFLAGS="-O2 -pipe"
+	export OVERRIDE_CXXFLAGS="-O2 -pipe"
 
 	case ${CHOST} in
 		*-darwin*)
@@ -151,35 +154,23 @@ configure_cflags() {
 
 configure_toolchain() {
 	linker="sys-devel/binutils"
-	local gcc_deps="dev-libs/gmp dev-libs/mpfr dev-libs/mpc"
+	local gcc_deps="dev-libs/gmp dev-libs/mpfr dev-libs/mpc dev-libs/libffi"
 	compiler="${gcc_deps} sys-devel/gcc-config sys-devel/gcc"
 	compiler_stage1="${gcc_deps} sys-devel/gcc-config"
 	compiler_type="gcc"
-	case ${CHOST} in
-	*-darwin*)
-	  # handled below
-	  ;;
-	*-freebsd* | *-openbsd*)
-	  # comes with clang, handled below
-	  ;;
-	*)
-	  # The host may not have a functioning c++ toolchain, so use a
-	  # stage1 compiler that can build with C only.
-	  # But gcc-4.7 fails to build with gcc-5.4, so we check for
-	  # >gcc-4.7, as anything newer provides c++ anyway (#619542).
-	  # gcc-4.7 is the last version not to require a c++ compiler to
-	  # build
-	  eval $( (gcc -E - | grep compiler_stage1) <<-EOP
-		#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 7))
-		  compiler_stage1+=" sys-devel/gcc"
-		#elif defined(__GNUC__) && __GNUC__ >= 4
-		  compiler_stage1+=" <sys-devel/gcc-4.8"
-		#else
-		  compiler_stage1+=" <sys-devel/gcc-4.7"
-		#endif
-		EOP
-	  )
-	esac
+
+	# The host may not have a functioning C++ toolchain, but all
+	# compilers available to us require C++ to build.  The last known
+	# version not to require C++ is gcc-4.7.
+	# We can bootstrap 4.7 in stage1 perhaps if we find envs that do
+	# not have a functioning C++ toolchain, but for now we assume this
+	# is not a problem.
+	# On top of this since gcc-11, C++11 is necessary.  This was
+	# introduced in gcc-4.8, but apparently gcc-5 is still buildable
+	# with Apple's gcc-apple-4.0.1, so that's a good candidate
+	# The Prefix tree only contains gcc-12 as of this writing.
+	# The bootstrap Python 3.7 we have in use requires C11, so Apple's
+	# 4.x line is no longer enough for that.
 
 	CC=gcc
 	CXX=g++
@@ -188,43 +179,23 @@ configure_toolchain() {
 		*darwin*:1)
 			einfo "Triggering Darwin with GCC toolchain"
 			compiler_stage1+=" sys-apps/darwin-miscutils"
-			local ccvers="$(unset CHOST; /usr/bin/gcc --version 2>/dev/null)"
-			local isgcc=
-			case "${ccvers}" in
-				*"(GCC) 4.2.1 "*)
-					linker="=sys-devel/binutils-apple-3.2.6"
-					isgcc=true
-					;;
-				*"(GCC) 4.0.1 "*)
-					linker="=sys-devel/binutils-apple-3.2.6"
-					# upgrade to 4.2.1 first
-					compiler_stage1+="
-						sys-devel/gcc-apple
-						=sys-devel/binutils-apple-3.2.6"
-					isgcc=true
-					;;
-				*"Apple clang version "*|*"Apple LLVM version "*)
-					# recent binutils-apple are hard to build (C++11
-					# features, and cmake build system) so avoid going
-					# there, the system ld is good enough to bring us to
-					# stage3, after which the @system set will take care of
-					# the rest
-					linker=sys-devel/native-cctools
+			compiler_stage1+=" sys-devel/gcc"
+
+			# binutils-apple/xtools doesn't work (yet) on arm64.  The
+			# profiles will mask and keep using native-cctools for that,
+			# otherwise stage3 and @system will take care of switching
+			# to binutils-apple.
+			# one problem: when we have a really old linker, we need
+			# to use it sooner or else packages like libffi won't
+			# compile.
+			case ${CHOST} in
+				*-darwin[89])
+					linker="=sys-devel/binutils-apple-3.2.6*"
 					;;
 				*)
-					eerror "unknown compiler: ${ccvers}"
-					return 1
+					linker="sys-devel/native-cctools"
 					;;
 			esac
-			if [[ ${isgcc} == true ]] ; then
-				# current compiler (gcc-11) requires C++11, which is
-				# available since 4.8, so need to bootstrap with <11
-				compiler_stage1+=" <sys-devel/gcc-11"
-				compiler="${compiler%sys-devel/gcc} <sys-devel/gcc-11"
-			else
-				# assume LLVM/Clang has C++11 support
-				compiler_stage1+=" sys-devel/gcc"
-			fi
 			;;
 		*-darwin*)
 			einfo "Triggering Darwin with LLVM/Clang toolchain"
@@ -232,8 +203,8 @@ configure_toolchain() {
 			# https://bugs.gentoo.org/show_bug.cgi?id=538366
 			compiler_stage1="sys-apps/darwin-miscutils"
 			compiler_type="clang"
-			local ccvers="$(unset CHOST; /usr/bin/gcc --version 2>/dev/null)"
-			local llvm_deps="dev-util/ninja"
+			local ccvers="$(unset CHOST; ${CC} --version 2>/dev/null)"
+			local llvm_deps="dev-build/ninja"
 			case "${ccvers}" in
 				*"Apple clang version "*|*"Apple LLVM version "*)
 					# this is Clang, recent enough to compile recent clang
@@ -266,24 +237,12 @@ configure_toolchain() {
 				sys-devel/llvm
 				sys-devel/clang"
 			;;
-		*-freebsd* | *-openbsd*)
-			CC=clang
-			CXX=clang++
-			# TODO: target clang toolchain someday?
-			;;
-		*-solaris*)
-			local ccvers="$(unset CHOST; gcc --version 2>/dev/null)"
-			case "${ccvers}" in
-				*"gcc (GCC) 3.4.3"*)
-					# host compiler doesn't cope with the asm introduced
-					# in mpfr-4, so force using an older one during
-					# bootstrap for this target
-					compiler_stage1=${compiler_stage1/" dev-libs/mpfr "/" <dev-libs/mpfr-4 "}
-					;;
-			esac
-			;;
 		*-linux*)
 			is-rap && einfo "Triggering Linux RAP bootstrap"
+			compiler_stage1+=" sys-devel/gcc"
+			;;
+		*)
+			compiler_stage1+=" sys-devel/gcc"
 			;;
 	esac
 
@@ -330,12 +289,22 @@ bootstrap_setup() {
 				echo "USE=\"\${USE} ${MAKE_CONF_ADDITIONAL_USE}\""
 			[[ ${OFFLINE_MODE} ]] && \
 				echo 'FETCHCOMMAND="bash -c \"echo I need \${FILE} from \${URI} in \${DISTDIR}; read\""'
+
+			if [[ ${CHOST} == i*86-apple-darwin9 ]] ; then
+				# There's no legitimate reason to use 10.5 with x86 (10.6 and
+				# 10.7 run on every device that ever ran 10.5 x86) but it's
+				# vastly easier to access and faster than ppc.  Don't want to
+				# burden the tree with this aid-arch, so just use the ppc
+				# keyword.
+				echo
+				echo 'ACCEPT_KEYWORDS="~ppc-macos"'
+			fi
 		} > "${MAKE_CONF_DIR}/0100_bootstrap_prefix_make.conf"
 	fi
 
 	if is-rap ; then
 		if [[ ! -f ${ROOT}/etc/passwd ]]; then
-			if grep -q $(id -un) /etc/passwd; then
+			if grep -q "^$(id -un):" /etc/passwd; then
 				ln -sf {,"${ROOT}"}/etc/passwd
 			else
 				getent passwd > "${ROOT}"/etc/passwd
@@ -344,7 +313,7 @@ bootstrap_setup() {
 			fi
 		fi
 		if [[ ! -f ${ROOT}/etc/group ]]; then
-			if grep -q $(id -gn) /etc/group; then
+			if grep -q "^$(id -gn):" /etc/group; then
 				ln -sf {,"${ROOT}"}/etc/group
 			else
 				getent group > "${ROOT}"/etc/group
@@ -388,9 +357,14 @@ bootstrap_profile() {
 			rev=${CHOST##*darwin}
 			profile="prefix/darwin/macos/10.$((rev - 4))/ppc"
 			;;
-		i*86-apple-darwin1[578])
+		i*86-apple-darwin9)
 			rev=${CHOST##*darwin}
 			profile="prefix/darwin/macos/10.$((rev - 4))/x86"
+			;;
+		i*86-apple-darwin1[578])
+			eerror "REMOVED ARCH: this 32-bit MacOS architecture was removed,"
+			eerror "bootstrapping is impossible"
+			exit 1
 			;;
 		x86_64-apple-darwin1[5789])
 			rev=${CHOST##*darwin}
@@ -411,7 +385,7 @@ bootstrap_profile() {
 		i*86-pc-linux-gnu)
 			profile=${profile_linux/ARCH/x86}
 			;;
-		riscv64-pc-linux-gnu)
+		riscv64-*-linux-gnu)
 			profile=${profile_linux/ARCH/riscv}
 			profile=${profile/17.0/20.0/rv64gc/lp64d}
 			;;
@@ -435,8 +409,9 @@ bootstrap_profile() {
 		aarch64-unknown-linux-gnu)
 			profile=${profile_linux/ARCH/arm64}
 			;;
-		armv7l-pc-linux-gnu)
+		armv7*-unknown-linux-gnueabi*)
 			profile=${profile_linux/ARCH/arm}
+			profile=${profile/17.0/17.0/armv7a}
 			;;
 		x86_64-pc-solaris2.11)
 			profile="prefix/sunos/solaris/5.11/x64"
@@ -461,12 +436,34 @@ bootstrap_profile() {
 	if [[ ${CHOST} == *-darwin* ]] ; then
 		# setup MacOSX.sdk symlink for GCC, this should probably be
 		# managed using an eselect module in the future
+		# FWIW, just use system (/) if it seems OK, for some reason
+		# early versions of TAPI-based SDKs did not include some symbols
+		# like fclose, which ld64 is able to resolve from the dylibs
+		# although they are unvisible using e.g. nm.
 		rm -f "${ROOT}"/MacOSX.sdk
-		local SDKPATH=$(xcrun --show-sdk-path --sdk macosx)
-		if [[ ! -e ${SDKPATH} ]] ; then
-			SDKPATH=$(xcodebuild -showsdks | sort -nr \
-				| grep -o "macosx.*" | head -n1)
-			SDKPATH=$(xcode-select -print-path)/SDKs/MacOSX${SDKPATH#macosx}.sdk
+		local SDKPATH
+		if [[ -e /usr/lib/libSystem.B.dylib && -d /usr/include ]] ; then
+			SDKPATH=/
+		else
+			SDKPATH=$(xcrun --show-sdk-path --sdk macosx)
+			if [[ -L ${SDKPATH} ]] ; then
+				# try and find a matching OS SDK
+				local fsdk=$(readlink -f "${SDKPATH}")
+				local osvers=$(sw_vers -productVersion)
+				if [[ ${osvers%%.*} -le 10 ]] ; then
+					osvers=$(echo ${osvers} | cut -d'.' -f1-2)
+				else
+					osvers=${osvers%%.*}
+				fi
+				fsdk=${fsdk%/MacOSX*.sdk}
+				fsdk=${fsdk}/MacOSX${osvers}.sdk
+				[[ -e ${fsdk} ]] && SDKPATH=${fsdk}
+			fi
+			if [[ ! -e ${SDKPATH} ]] ; then
+				SDKPATH=$(xcodebuild -showsdks | sort -nr \
+					| grep -o "macosx.*" | head -n1)
+				SDKPATH=$(xcode-select -print-path)/SDKs/MacOSX${SDKPATH#macosx}.sdk
+			fi
 		fi
 		( cd "${ROOT}" && ln -s "${SDKPATH}" MacOSX.sdk )
 		einfo "using system sources from ${SDKPATH}"
@@ -546,11 +543,12 @@ do_tree() {
 		# latest tree cannot be fetched from mirrors, always have to
 		# respect the source to get the latest
 		if [[ -n ${LATEST_TREE_YES} ]] ; then
-			echo "$1"
 			( export GENTOO_MIRRORS= DISTFILES_G_O= DISTFILES_PFX= ;
 			  efetch "$1/$2" ) || return 1
 		else
-			efetch "$1/$2" || return 1
+			# use only Prefix mirror
+			( export GENTOO_MIRRORS= DISTFILES_G_O= ;
+			  efetch "$1/$2" ) || return 1
 		fi
 		einfo "Unpacking, this may take a while"
 		estatus "stage1: unpacking Portage tree"
@@ -561,14 +559,18 @@ do_tree() {
 }
 
 bootstrap_tree() {
+	#                      retain this comment and the line below to
+	#                      keep this snapshot around in the snapshots
+	# MKSNAPSHOT-ANCHOR -- directory of rsync slaves
+	local PV="20240218"
+
 	# RAP uses the latest gentoo main repo snapshot to bootstrap.
 	is-rap && LATEST_TREE_YES=1
-	local PV="20230601"
-	if [[ -n ${LATEST_TREE_YES} ]]; then
-		do_tree "${SNAPSHOT_URL}" portage-latest.tar.bz2
-	else
-		do_tree http://dev.gentoo.org/~grobian/distfiles prefix-overlay-${PV}.tar.bz2
-	fi
+
+	[[ -n ${LATEST_TREE_YES} ]] && PV=latest
+
+	do_tree "${SNAPSHOT_URL}" portage-${PV}.tar.bz2
+
 	local ret=$?
 	if [[ -n ${TREE_FROM_SRC} ]]; then
 		estatus "stage1: rsyncing Portage tree"
@@ -630,8 +632,8 @@ bootstrap_portage() {
 	# STABLE_PV that is known to work. Intended for power users only.
 	## It is critical that STABLE_PV is the lastest (non-masked) version that is
 	## included in the snapshot for bootstrap_tree.
-	STABLE_PV="3.0.30.1"
-	[[ ${TESTING_PV} == latest ]] && TESTING_PV="3.0.30.1"
+	STABLE_PV="3.0.56.1"
+	[[ ${TESTING_PV} == latest ]] && TESTING_PV="3.0.56.1"
 	PV="${TESTING_PV:-${STABLE_PV}}"
 	A=prefix-portage-${PV}.tar.bz2
 	einfo "Bootstrapping ${A%.tar.*}"
@@ -868,18 +870,34 @@ bootstrap_gnu() {
 		myconf="${myconf} --disable-perl-regexp"
 	fi
 
+	if [[ ${PN} == "mpfr" || ${PN} == "mpc" || ${PN} == "gcc" ]] ; then
+		[[ -e "${ROOT}"/tmp/usr/include/gmp.h ]] \
+			&& myconf="${myconf} --with-gmp=${ROOT}/tmp/usr"
+	fi
+	if [[ ${PN} == "mpc" || ${PN} == "gcc" ]] ; then
+		[[ -e "${ROOT}"/tmp/usr/include/mpfr.h ]] \
+			&& myconf="${myconf} --with-mpfr=${ROOT}/tmp/usr"
+	fi
+	if [[ ${PN} == "gcc" ]] ; then
+		[[ -e "${ROOT}"/tmp/usr/include/mpc.h ]] \
+			&& myconf="${myconf} --with-mpc=${ROOT}/tmp/usr"
+
+		myconf="${myconf} --enable-languages=c,c++"
+		myconf="${myconf} --disable-bootstrap"
+		myconf="${myconf} --disable-multilib"
+		myconf="${myconf} --disable-nls"
+
+		export CFLAGS="-O1 -pipe"
+		export CXXFLAGS="-O1 -pipe"
+	fi
+
 	# pod2man may be too old (not understanding --utf8) but we don't
 	# care about manpages at this stage
 	export ac_cv_path_POD2MAN=no
 
-	# Darwin9 in particular doesn't compile when using system readline,
-	# but we don't need any groovy input handling at all, so just disable it
-	[[ ${PN} == "bash" ]] && myconf="${myconf} --disable-readline"
-
 	# On e.g. musl systems bash will crash with a malloc error if we use
 	# bash' internal malloc, so disable it during it this stage
-	[[ ${PN} == "bash" ]] && \
-		myconf="${myconf} --without-bash-malloc"
+	[[ ${PN} == "bash" ]] && myconf="${myconf} --without-bash-malloc"
 
 	# Ensure we don't read system-wide shell initialisation, it may
 	# contain cruft, bug #650284
@@ -964,11 +982,14 @@ python_ver() {
 	# snapshot for stage3, else packages will break with some python
 	# mismatch error due to Portage using a different version after it
 	# upgraded itself with a newer Python
-	echo 3.11   # keep this number in line with PV below for stage1,2
+	echo 3.11
+	export PYTHON_FULL_VERSION="3.11.7-gentoo-prefix-patched"
+	# keep this number in line with PV below for stage1,2
 }
 
 bootstrap_python() {
-	PV=$(python_ver).3-gentoo-prefix-patched
+	python_ver  # to get full version
+	PV=${PYTHON_FULL_VERSION}
 	A=Python-${PV}.tar.xz
 	einfo "Bootstrapping ${A%.tar.*}"
 
@@ -1015,11 +1036,11 @@ bootstrap_python() {
 		# make Python's selectors resort to poll() or select() for the
 		# time being
 		sed -i \
-			-e 's/KQUEUE/KQUEUE_DISABLED/' \
+			-e 's/kqueue/kqueue_DISABLED/' \
 			configure
 		# fixup thread id detection (only needed on vanilla Python tar)
-		#efetch "https://dev.gentoo.org/~sam/distfiles/dev-lang/python/python-3.9.6-darwin9_pthreadid.patch"
-		#patch -p1 < "${DISTDIR}"/python-3.9.6-darwin9_pthreadid.patch
+		efetch "https://dev.gentoo.org/~sam/distfiles/dev-lang/python/python-3.9.6-darwin9_pthreadid.patch"
+		patch -p1 < "${DISTDIR}"/python-3.9.6-darwin9_pthreadid.patch
 		;;
 	(*-openbsd*)
 		# OpenBSD is not a multilib system
@@ -1242,8 +1263,27 @@ bootstrap_zlib() {
 }
 
 bootstrap_libffi() {
+	# 3.0.8: last version to bootstrap on Darwin 9 x86
 	bootstrap_gnu libffi 3.3 || \
-	bootstrap_gnu libffi 3.2.1
+	bootstrap_gnu libffi 3.2.1 || \
+	bootstrap_gnu libffi 3.0.8
+}
+
+bootstrap_gmp() {
+	bootstrap_gnu gmp 6.2.1
+}
+
+bootstrap_mpfr() {
+	bootstrap_gnu mpfr 4.1.0
+}
+
+bootstrap_mpc() {
+	bootstrap_gnu mpc 1.2.1
+}
+
+bootstrap_gcc5() {
+	# bootstraps with gcc-4.0.1 (Darwin 8), provides C11
+	bootstrap_gnu gcc 5.5.0
 }
 
 bootstrap_sed() {
@@ -1252,6 +1292,7 @@ bootstrap_sed() {
 }
 
 bootstrap_findutils() {
+	bootstrap_gnu findutils 4.9.0 ||
 	bootstrap_gnu findutils 4.7.0 ||
 	bootstrap_gnu findutils 4.5.10 ||
 	bootstrap_gnu findutils 4.2.33
@@ -1314,9 +1355,9 @@ bootstrap_texinfo() {
 }
 
 bootstrap_bash() {
+	bootstrap_gnu bash 5.2 ||
 	bootstrap_gnu bash 5.1 ||
-	bootstrap_gnu bash 4.3 ||
-	bootstrap_gnu bash 4.2
+	bootstrap_gnu bash 5.0
 }
 
 bootstrap_bison() {
@@ -1336,6 +1377,7 @@ bootstrap_gzip() {
 }
 
 bootstrap_xz() {
+	GNU_URL=http://tukaani.org/xz bootstrap_gnu xz 5.4.5 || \
 	GNU_URL=http://tukaani.org/xz bootstrap_gnu xz 5.2.4 || \
 	GNU_URL=http://tukaani.org/xz bootstrap_gnu xz 5.2.3
 }
@@ -1401,6 +1443,27 @@ bootstrap_stage1() {
 		[[ -e ${ROOT}/tmp/${x} ]] || ( cd "${ROOT}"/tmp && ln -s usr/${x} )
 	done
 
+	# we could check compiler version here, but we just know
+	# it's Darwin 8 and 9 being affected here, so handle them to
+	# get a GCC-5 which is sufficient to compile the current tree
+	# packages
+	# see also configure_toolchain
+	if [[ ${CHOST} == *-darwin[89] ]] ; then
+		# benefit from 4.2 if it's present
+		if [[ -e /usr/bin/gcc-4.2 ]] ; then
+			export CC=gcc-4.2
+			export CXX=g++-4.2
+		fi
+		[[ -e ${ROOT}/tmp/usr/include/gmp.h ]] \
+			|| (bootstrap_gmp) || return 1
+		[[ -e ${ROOT}/tmp/usr/include/mpfr.h ]] \
+			|| (bootstrap_mpfr) || return 1
+		[[ -e ${ROOT}/tmp/usr/include/mpc.h ]] \
+			|| (bootstrap_mpc) || return 1
+		[[ -x ${ROOT}/tmp/usr/bin/gcc ]] \
+			|| (bootstrap_gcc5) || return 1
+	fi
+
 	configure_toolchain
 	export CC CXX
 
@@ -1458,7 +1521,7 @@ bootstrap_stage1() {
 		|| (bootstrap_grep) || return 1
 	[[ -x ${ROOT}/tmp/usr/bin/gawk ]] \
 		|| [[ $(awk --version < /dev/null 2>&1) == *GNU" Awk "[456789]* ]] \
-		|| bootstrap_gawk || return 1
+		|| (bootstrap_gawk) || return 1
 	# always build our own bash, for we don't know what devilish thing
 	# we're working with now, bug #650284
 	[[ -x ${ROOT}/tmp/usr/bin/bash ]] \
@@ -1490,20 +1553,33 @@ bootstrap_stage1() {
 				# If the version of our binutils an older one, they may not
 				# provide what the system gcc is configured to use.
 				# We need to direct the system gcc to find the system binutils.
+				EXEC="$(PATH="${ORIGINAL_PATH}" type -P gcc)"
+				if [[ -z ${EXEC} ]] ; then
+					eerror "could not find 'gcc' in your PATH!"
+					eerror "please install gcc or provide access via PATH or symlink"
+					return 1
+				fi
 				cat >> "${ROOT}"/tmp/usr/local/bin/gcc <<-EOF
 					#! /bin/sh
 					PATH="${ORIGINAL_PATH}" export PATH
-					exec "$(type -P gcc)" "\$@"
+					exec "${EXEC}" "\$@"
 				EOF
+				EXEC="$(PATH="${ORIGINAL_PATH}" type -P g++)"
+				if [[ -z ${EXEC} ]] ; then
+					eerror "could not find 'g++' in your PATH!"
+					eerror "please install g++ or provide access via PATH or symlink"
+					return 1
+				fi
 				cat >> "${ROOT}"/tmp/usr/local/bin/g++ <<-EOF
 					#! /bin/sh
 					PATH="${ORIGINAL_PATH}" export PATH
-					exec "$(type -P g++)" "\$@"
+					exec "${EXEC}" "\$@"
 				EOF
 				chmod 755 "${ROOT}"/tmp/usr/local/bin/g{cc,++}
 			fi
 			;;
 	esac
+
 	# Host compiler can output a variety of libdirs.  At stage1,
 	# they should be the same as lib.  Otherwise libffi may not be
 	# found by python.
@@ -1568,6 +1644,12 @@ bootstrap_stage1() {
 }
 
 bootstrap_stage1_log() {
+	{
+		echo "===== stage 1 -- $(date -u +%Y-%m-%dT%H:%M:%SZ) ====="
+		echo "CHOST:     ${CHOST}"
+		echo "IDENT:     ${CHOST_IDENTIFY}"
+		echo "==========================================="
+	} >> ${ROOT}/stage1.log
 	bootstrap_stage1 "${@}" 2>&1 | tee -a ${ROOT}/stage1.log
 	local ret=${PIPESTATUS[0]}
 	[[ ${ret} == 0 ]] && touch ${ROOT}/.stage1-finished
@@ -1614,6 +1696,7 @@ do_emerge_pkgs() {
 			-gdbm
 			-git
 			-libcxx
+			-http2
 			-nls
 			-pcre
 			-python
@@ -1651,8 +1734,8 @@ do_emerge_pkgs() {
 
 		# Disable the STALE warning because the snapshot frequently gets stale.
 		#
-		# Need need to spam the user about news until the emerge -e system
-		# because the tools aren't available to read the news item yet anyway.
+		# No need to spam the user about news until the final emerge @world
+		# because the tools aren't available to read the news items yet anyway.
 		#
 		# Avoid circular deps caused by the default profiles (and IUSE
 		# defaults).
@@ -1745,8 +1828,9 @@ bootstrap_stage2() {
 
 	# Disable RAP directory hacks of binutils and gcc.  If libc.so
 	# linker script provides no hint of ld-linux*.so*, ld should
-	# look into its default library path.  Prefix library pathes
+	# look into its default library path.  Prefix library paths
 	# are taken care of by LDFLAGS in configure_cflags().
+	# see profiles/features/prefix/standalone/profile.bashrc
 	export BOOTSTRAP_RAP_STAGE2=yes
 
 	# Build a basic compiler and portage dependencies in $ROOT/tmp.
@@ -1760,7 +1844,6 @@ bootstrap_stage2() {
 		app-arch/xz-utils
 		sys-apps/sed
 		sys-apps/baselayout
-		dev-libs/libffi
 		sys-devel/m4
 		sys-devel/flex
 		sys-apps/diffutils # needed by bison-3 build system
@@ -1768,15 +1851,6 @@ bootstrap_stage2() {
 		sys-devel/patch
 		sys-devel/binutils-config
 	)
-
-	# Old versions of gcc has been masked.  We need gcc-4.7 to bootstrap
-	# on systems without a c++ compiler.
-	echo '<sys-devel/gcc-4.8' >> "${ROOT}"/tmp/etc/portage/package.unmask
-
-	# libffi-3.0_rc0 has broken Solaris ld support, which we still
-	# use at this stage (host compiler)
-	[[ ${CHOST} == *-solaris* ]] && echo "=dev-libs/libffi-3.3_rc0" \
-		>> "${ROOT}"/tmp/etc/portage/package.mask
 
 	# provide active SDK link on Darwin
 	if [[ ${CHOST} == *-darwin* ]] ; then
@@ -1786,7 +1860,7 @@ bootstrap_stage2() {
 
 	# cmake has some external dependencies which require autoconf, etc.
 	# unless we only build the buildtool, bug #603012
-	echo "dev-util/cmake -server" >> "${ROOT}"/tmp/etc/portage/package.use
+	echo "dev-build/cmake -server" >> "${ROOT}"/tmp/etc/portage/package.use
 
 	emerge_pkgs --nodeps "${pkgs[@]}" || return 1
 
@@ -1827,7 +1901,7 @@ bootstrap_stage2() {
 		EXTRA_ECONF="--disable-bootstrap $(rapx --with-linker-hash-style=both) --with-local-prefix=${ROOT} ${disable_darwin_rpath}" \
 		MYCMAKEARGS="-DCMAKE_USE_SYSTEM_LIBRARY_LIBUV=OFF" \
 		GCC_MAKE_TARGET=all \
-		OVERRIDE_CXXFLAGS="${CPPFLAGS} -O2 -pipe" \
+		OVERRIDE_CXXFLAGS="${CPPFLAGS} ${OVERRIDE_CXXFLAGS}" \
 		TPREFIX="${ROOT}" \
 		PYTHON_COMPAT_OVERRIDE=python$(python_ver) \
 		emerge_pkgs --nodeps ${pkg} || return 1
@@ -1874,6 +1948,12 @@ bootstrap_stage2() {
 }
 
 bootstrap_stage2_log() {
+	{
+		echo "===== stage 2 -- $(date -u +%Y-%m-%dT%H:%M:%SZ) ====="
+		echo "CHOST:     ${CHOST}"
+		echo "IDENT:     ${CHOST_IDENTIFY}"
+		echo "==========================================="
+	} >> ${ROOT}/stage2.log
 	bootstrap_stage2 "${@}" 2>&1 | tee -a ${ROOT}/stage2.log
 	local ret=${PIPESTATUS[0]}
 	[[ ${ret} == 0 ]] && touch "${ROOT}/.stage2-finished"
@@ -1883,10 +1963,25 @@ bootstrap_stage2_log() {
 bootstrap_stage3() {
 	export PORTAGE_CONFIGROOT="${ROOT}"
 
+	# We need the stage2 in PATH for bootstrapping.  We rely on
+	# emerge running on some benign package before running anything
+	# that would rely on 98stage2 coming before 99host
+	mkdir -p "${ROOT}"/etc/env.d/
+	cat > "${ROOT}"/etc/env.d/98stage2 <<-EOF
+		PATH="$(unset PATH;
+			source "${ROOT}"/tmp/etc/profile.env;
+			echo "$PATH")"
+	EOF
+
 	if ! type -P emerge > /dev/null ; then
 		eerror "emerge not found, did you bootstrap stage1?"
 		return 1
 	fi
+
+	# At this point, we should have a proper GCC, and don't need to
+	# rely on the system wrappers.  Let's get rid of them, so that
+	# they stop mucking up builds.
+	rm -f "${ROOT}"/tmp/usr/local/bin/*
 
 	configure_toolchain || return 1
 
@@ -1917,6 +2012,10 @@ bootstrap_stage3() {
 		echo ${l}
 	}
 
+	# Remember: binutils-config and gcc were built in ROOT/tmp, so they
+	# are looking for includes and libraries under ROOT/tmp, *NOT* ROOT,
+	# therefore we need to export search paths for ROOT (the final
+	# destination Prefix) here until we've installed the toolchain
 	export CONFIG_SHELL="${ROOT}"/tmp/bin/bash
 	[[ ${compiler_type} == gcc ]] && \
 		export CPPFLAGS="-isystem ${ROOT}/usr/include"
@@ -1942,6 +2041,10 @@ bootstrap_stage3() {
 		do_emerge_pkgs "$@"
 	}
 
+	# retained in case we *do* need this, but using this will cause
+	# packages installed end up in ROOT/tmp, which means we keep using
+	# stage2 area and config which breaks things like binutils-config'
+	# path search, so don't use this
 	with_stack_emerge_pkgs() {
 		# keep FEATURES=stacked-prefix until we bump portage in stage1
 		FEATURES="${FEATURES} stacked-prefix" \
@@ -1950,16 +2053,11 @@ bootstrap_stage3() {
 		emerge_pkgs "$@"
 	}
 
-	without_stack_emerge_pkgs() {
+	# pre_emerge_pkgs relies on stage 2 portage, but installs into the
+	# final destination Prefix
+	pre_emerge_pkgs() {
 		PORTAGE_OVERRIDE_EPREFIX="${ROOT}" \
 		emerge_pkgs "$@"
-	}
-
-	# pre_emerge_pkgs relies on stage 2 portage.
-	pre_emerge_pkgs() {
-		is-rap \
-			&& without_stack_emerge_pkgs "$@" \
-			|| with_stack_emerge_pkgs "$@"
 	}
 
 	# Some packages fail to properly depend on sys-apps/texinfo.
@@ -2013,6 +2111,7 @@ bootstrap_stage3() {
 		fi
 
 		pkgs=(
+			sys-devel/gnuconfig
 			sys-apps/baselayout
 			sys-apps/gentoo-functions
 			app-portage/elt-patches
@@ -2026,6 +2125,18 @@ bootstrap_stage3() {
 			rm "${ROOT}"/usr/bin/perl
 		grep -q 'esac' "${ROOT}"/usr/bin/rsync && \
 			rm "${ROOT}"/usr/bin/rsync
+
+		# sys-apps/baselayout will install a dummy openrc-run wrapper
+		# for any package that installs an init.d script, like rsync and
+		# python will need openrc-run to exist, else we'll die with a QA
+		# error, bug #858596.  However it only does this for
+		# prefix-guest, so NOT For RAP, which results in bug #913856.
+		if [[ ! -x "${ROOT}"/sbin/openrc-run ]]; then
+			[[ -e "${ROOT}"/sbin ]] || mkdir -p "${ROOT}"/sbin
+			echo "We need openrc-run at ${ROOT}/sbin to merge some packages." \
+				> "${ROOT}"/sbin/openrc-run
+			chmod +x "${ROOT}"/sbin/openrc-run
+		fi
 
 		pkgs=(
 			sys-devel/binutils-config
@@ -2053,6 +2164,7 @@ bootstrap_stage3() {
 		pre_emerge_pkgs --nodeps "${pkgs[@]}" || return 1
 	else
 		pkgs=(
+			sys-devel/gnuconfig
 			sys-apps/gentoo-functions
 			app-portage/elt-patches
 			app-arch/xz-utils
@@ -2109,7 +2221,7 @@ bootstrap_stage3() {
 		ln -s bash "${ROOT}"/bin/sh
 	fi
 
-	# Start using apps from new target
+	# Start using apps from the final destination Prefix
 	export PREROOTPATH="${ROOT}/usr/bin:${ROOT}/bin"
 
 	# Get a sane bash, overwriting tmp symlinks
@@ -2125,7 +2237,7 @@ bootstrap_stage3() {
 		app-arch/gzip
 		app-arch/tar
 		sys-apps/grep
-		sys-devel/make
+		dev-build/make
 		sys-apps/file
 		app-admin/eselect
 	)
@@ -2137,19 +2249,13 @@ bootstrap_stage3() {
 	TIME_T_32_BIT_OK=yes \
 	pre_emerge_pkgs "" "${pkgs[@]}" || return 1
 
-	if [[ ! -x "${ROOT}"/sbin/openrc-run ]]; then
-		echo "We need openrc-run at ${ROOT}/sbin to merge rsync." \
-			> "${ROOT}"/sbin/openrc-run
-		chmod +x "${ROOT}"/sbin/openrc-run
-	fi
-
 	pkgs=(
 		virtual/os-headers
 		sys-devel/gettext
 		sys-apps/portage
 	)
 
-	without_stack_emerge_pkgs "" "${pkgs[@]}" || return 1
+	pre_emerge_pkgs "" "${pkgs[@]}" || return 1
 
 	# Switch to the proper portage.
 	hash -r
@@ -2173,10 +2279,10 @@ bootstrap_stage3() {
 	export USE="-git -crypt -http2"
 
 	# Portage should figure out itself what it needs to do, if anything.
-	einfo "running emerge -uDNv system"
-	estatus "stage3: emerge -uDNv system"
-	unset CFLAGS CXXFLAGS CPPFLAGS
-	emerge --color n -uDNv system || return 1
+	eflags="--deep --update --changed-use @system"
+	einfo "running emerge ${eflags}"
+	estatus "stage3: emerge ${eflags}"
+	emerge --color n -v ${eflags} || return 1
 
 	# Remove anything that we don't need (compilers most likely)
 	einfo "running emerge --depclean"
@@ -2187,11 +2293,21 @@ bootstrap_stage3() {
 	# (--depclean may fail, which is ok)
 	sed -i -e 's/resume/cleared/' "${ROOT}"/var/cache/edb/mtimedb
 
+	# Remove the stage2 hack from above.  A future emerge run will
+	# get env-update to happen.
+	rm "${ROOT}"/etc/env.d/98stage2
+
 	estatus "stage3 finished"
 	einfo "stage3 successfully finished"
 }
 
 bootstrap_stage3_log() {
+	{
+		echo "===== stage 3 -- $(date -u +%Y-%m-%dT%H:%M:%SZ) ====="
+		echo "CHOST:     ${CHOST}"
+		echo "IDENT:     ${CHOST_IDENTIFY}"
+		echo "==========================================="
+	} >> ${ROOT}/stage3.log
 	bootstrap_stage3 "${@}" 2>&1 | tee -a ${ROOT}/stage3.log
 	local ret=${PIPESTATUS[0]}
 	[[ ${ret} == 0 ]] && touch "${ROOT}/.stage3-finished"
@@ -2209,7 +2325,7 @@ set_helper_vars() {
 	DISTFILES_G_O="http://distfiles.prefix.bitzolder.nl"
 	DISTFILES_PFX="http://distfiles.prefix.bitzolder.nl/prefix"
 	GENTOO_MIRRORS=${GENTOO_MIRRORS:="http://distfiles.gentoo.org"}
-	SNAPSHOT_HOST=$(rapx ${DISTFILES_G_O} http://rsync.prefix.bitzolder.nl)
+	SNAPSHOT_HOST=$(rapx http://distfiles.gentoo.org http://rsync.prefix.bitzolder.nl)
 	SNAPSHOT_URL=${SNAPSHOT_URL:-"${SNAPSHOT_HOST}/snapshots"}
 	GCC_APPLE_URL="http://www.opensource.apple.com/darwinsource/tarballs/other"
 
@@ -2483,7 +2599,7 @@ EOF
 	if type -P xcode-select > /dev/null ; then
 		if [[ -d /usr/include ]] ; then
 			# if we have /usr/include we're on an older system
-			if [[ ${CHOST} == powerpc* ]]; then
+			if [[ ${CHOST} == *-darwin[89] ]]; then
 				# ancient Xcode (3.0/3.1)
 				cat << EOF
 
@@ -2531,12 +2647,9 @@ EOF
 	esac
 	# get rid of excess spaces (at least Solaris wc does)
 	ncpu=$((ncpu + 0))
-	# Suggest usage of 100% to 60% of the available CPUs in the range
-	# from 1 to 14.  We limit to no more than 8, since we easily flood
-	# the bus on those heavy-core systems and only slow down in that
-	# case anyway.
-	local tcpu=$((ncpu / 2 + 1))
-	[[ ${tcpu} -gt 8 ]] && tcpu=8
+	# Suggest usage of 50% to 75% of the available CPUs
+	[[ ${tcpu} -eq 0 ]] && tcpu=1
+	local tcpu=$((((ncpu * 3) + 1) / 4))
 	[[ -n ${USE_CPU_CORES} ]] && tcpu=${USE_CPU_CORES}
 	cat << EOF
 
@@ -2585,9 +2698,11 @@ EOF
 	local candomultilib=no
 	local t64 t32
 	case "${CHOST}" in
-		*86*-darwin9|*86*-darwin1[012345])
+		*86*-darwin1[012345])
 			# PPC/Darwin only works in 32-bits mode, so this is Intel
-			# only, and only starting from Leopard (10.5, darwin9)
+			# only, and officially starting from Leopard (10.5, darwin9)
+			# but this is broken, so stick to 32-bits there, and use it
+			# from Snow Lepard (10.6).
 			# with Big Sur (11.0, darwin20) we have x64 or arm64 only
 			candomultilib=yes
 			t64=x86_64-${CHOST#*-}
@@ -2701,7 +2816,7 @@ I can limit your Prefix to use only packages keyworded for stable amd64
 by default.  Of course, you can still enable testing ~amd64 for
 the packages you want, when the need arises.
 EOF
-			[[ ${TODO} == 'noninteractive' ]] && ans=no ||
+			[[ ${TODO} == 'noninteractive' ]] && ans=yes ||
 			read -p "  Do you want to use stable Prefix? [Yn] " ans
 			case "${ans}" in
 				[Yy][Ee][Ss]|[Yy]|"")
@@ -2806,8 +2921,7 @@ EOF
 	done
 	export PATH="$EPREFIX/usr/bin:$EPREFIX/bin:$EPREFIX/tmp/usr/bin:$EPREFIX/tmp/bin:$EPREFIX/tmp/usr/local/bin:${PATH}"
 
-	if [[ -z ${PARTIAL_BOOTSTRAP} ]]; then
-		cat << EOF
+	cat << EOF
 
 OK!  I'm going to give it a try, this is what I have collected sofar:
   EPREFIX=${EPREFIX}
@@ -2818,18 +2932,27 @@ OK!  I'm going to give it a try, this is what I have collected sofar:
 I'm now going to make an awful lot of noise going through a sequence of
 stages to make your box as groovy as I am myself, setting up your
 Prefix.  In short, I'm going to run stage1, stage2, stage3, followed by
-emerge -e system.  If any of these stages fail, both you and me are in
-deep trouble.  So let's hope that doesn't happen.
+an emerge to do a final update to your system.  If any of these stages
+fail, both you and me are in deep trouble.  So let's hope that doesn't
+happen.
 EOF
-		echo
-		[[ ${TODO} == 'noninteractive' ]] && ans="" ||
-		read -p "Type here what you want to wish me [luck] " ans
-		if [[ -n ${ans} && ${ans} != "luck" ]] ; then
-			echo "Huh?  You're not serious, are you?"
-			sleep 3
-		fi
-		echo
-  fi
+	echo
+	[[ ${TODO} == 'noninteractive' ]] && ans="" ||
+	read -p "Type here what you want to wish me [luck] " ans
+	if [[ -n ${ans} && ${ans} != "luck" ]] ; then
+		echo "Huh?  You're not serious, are you?"
+		sleep 3
+	fi
+	echo
+
+	# because we unset ROOT from environment above, and we didn't set
+	# ROOT as argument in the script, we set ROOT here to the EPREFIX we
+	# just harvested
+	ROOT="${EPREFIX}"
+	set_helper_vars
+
+	# stop here if all we wanted was the env to be setup correctly
+	[[ -n ${SETUP_ENV_ONLY} ]] && return 0
 
 	if [[ -d ${HOST_GENTOO_EROOT} ]]; then
 		if ! [[ -x ${EPREFIX}/tmp/usr/lib/portage/bin/emerge ]] && ! ${BASH} ${BASH_SOURCE[0]} "${EPREFIX}" stage_host_gentoo ; then
@@ -2842,30 +2965,14 @@ but that failed :(  I have no clue, really.  Please find friendly folks
 in #gentoo-prefix on irc.gentoo.org, gentoo-alt@lists.gentoo.org mailing list,
 or file a bug at bugs.gentoo.org under Gentoo/Alt, Prefix Support.
 Sorry that I have failed you master.  I shall now return to my humble cave.
+
+  CHOST:     ${CHOST}
+  IDENT:     ${CHOST_IDENTIFY}
 EOF
 			exit 1
 		fi
 	fi
 	
-	# because we unset ROOT from environment above, and we didn't set
-	# ROOT as argument in the script, we set ROOT here to the EPREFIX we
-	# just harvested
-	ROOT="${EPREFIX}"
-	set_helper_vars
-
-	if [[ -n ${PARTIAL_BOOTSTRAP} ]]; then
-	cat << EOF
-
-OK! All necessary tools and ENV variables were installed:
-  EPREFIX=${EPREFIX}
-  CHOST=${CHOST}
-  PATH=${PATH}
-  MAKEOPTS=${MAKEOPTS}
-Now I'm going to  run an <action> you asked me to.
-EOF
-		return 0;
-	fi
-
 	if ! [[ -e ${EPREFIX}/.stage1-finished ]] && ! bootstrap_stage1_log ; then
 		# stage 1 fail
 		cat << EOF
@@ -2877,6 +2984,9 @@ in #gentoo-prefix on irc.gentoo.org, gentoo-alt@lists.gentoo.org mailing list,
 or file a bug at bugs.gentoo.org under Gentoo/Alt, Prefix Support.
 Sorry that I have failed you master.  I shall now return to my humble cave.
 You can find a log of what happened in ${EPREFIX}/stage1.log
+
+  CHOST:     ${CHOST}
+  IDENT:     ${CHOST_IDENTIFY}
 EOF
 		exit 1
 	fi
@@ -2928,6 +3038,9 @@ I have no clue, really.  Please find friendly folks in #gentoo-prefix on
 irc.gentoo.org, gentoo-alt@lists.gentoo.org mailing list, or file a bug
 at bugs.gentoo.org under Gentoo/Alt, Prefix Support.
 Remember you might find some clues in ${EPREFIX}/stage2.log
+
+  CHOST:     ${CHOST}
+  IDENT:     ${CHOST_IDENTIFY}
 EOF
 		exit 1
 	fi
@@ -2968,13 +3081,16 @@ irc.gentoo.org, gentoo-alt@lists.gentoo.org mailing list, or file a bug
 at bugs.gentoo.org under Gentoo/Alt, Prefix Support.  This is most
 inconvenient, and it crushed my ego.  Sorry, I give up.
 Should you want to give it a try, there is ${EPREFIX}/stage3.log
+
+  CHOST:     ${CHOST}
+  IDENT:     ${CHOST_IDENTIFY}
 EOF
 		exit 1
 	fi
 
 	[[ ${STOP_BOOTSTRAP_AFTER} == stage3 ]] && exit 0
 
-	local cmd="emerge -v -e system"
+	local cmd="emerge -v --deep --update --changed-use @world"
 	if [[ -e ${EPREFIX}/var/cache/edb/mtimedb ]] && \
 		grep -q resume "${EPREFIX}"/var/cache/edb/mtimedb ;
 	then
@@ -2982,7 +3098,7 @@ EOF
 	fi
 	einfo "running ${cmd}"
 	if ${cmd} ; then
-		# Now, after 'emerge -e system', we can get rid of the temporary tools.
+		# Now, we've got everything in $ROOT, we can get rid of /tmp
 		if [[ -d ${EPREFIX}/tmp/var/tmp ]] ; then
 			rm -Rf "${EPREFIX}"/tmp || return 1
 			mkdir -p "${EPREFIX}"/tmp || return 1
@@ -2990,7 +3106,7 @@ EOF
 
 		hash -r  # tmp/* stuff is removed in stage3
 	else
-		# emerge -e system fail
+		# emerge @world fail
 		cat << EOF
 
 Oh yeah, I thought I was almost there, and then this!  I did
@@ -3008,6 +3124,9 @@ irc.gentoo.org, gentoo-alt@lists.gentoo.org mailing list, or file a bug
 at bugs.gentoo.org under Gentoo/Alt, Prefix Support.
 You know, I got the feeling you just started to like me, but I guess
 that's all gone now.  I'll bother you no longer.
+
+  CHOST:     ${CHOST}
+  IDENT:     ${CHOST_IDENTIFY}
 EOF
 		exit 1
 	fi
@@ -3020,7 +3139,7 @@ Ok, let's be honest towards each other.  If
   $(type -P bash) ${BASH_SOURCE[0]} "${EPREFIX}" startscript
 fails, then who cheated on who?  Either you use an obscure shell, or
 your PATH isn't really sane afterall.  Despite, I can't really
-congratulate you here, you basically made it to the end.
+congratulate you here, but you basically made it to the end.
 Please find friendly folks in #gentoo-prefix on irc.gentoo.org,
 gentoo-alt@lists.gentoo.org mailing list, or file a bug at
 bugs.gentoo.org under Gentoo/Alt, Prefix Support.
@@ -3051,20 +3170,28 @@ if [[ -z ${CHOST} ]]; then
 	if [[ x$(type -t uname) == "xfile" ]]; then
 		case `uname -s` in
 			Linux)
-				plt="gnu"
-                                for f in /lib/ld-musl-*.so.1; do
-				  [[ -e "$f" ]] && plt="musl"
-                                done
-				sfx="unknown-linux-${plt}"
-				case `uname -m` in
-					ppc*)
-						CHOST="`uname -m | sed -e 's/^ppc/powerpc/'`-${sfx}"
-						;;
-					powerpc*|aarch64*)
-						CHOST="`uname -m`-${sfx}"
-						;;
+				CHOST=$(uname -m)
+				CHOST=${CHOST/#ppc/powerpc}
+				case "${CHOST}" in
+					x86_64|i*86)
+						CHOST+=-pc ;;
 					*)
-						CHOST="`uname -m`-${sfx/unknown/pc}"
+						CHOST+=-unknown ;;
+				esac
+				plt=gnu
+				for f in /lib/ld-musl-*.so.1; do
+					[[ -e $f ]] && plt=musl
+				done
+				CHOST+=-linux-${plt}
+				case "${CHOST}" in
+					arm*)
+						CHOST+=eabi
+						for f in /lib/ld-*hf.so.*; do
+							if [[ -e $f ]]; then
+								CHOST+=hf
+								break
+							fi
+						done
 						;;
 				esac
 				;;
@@ -3117,6 +3244,40 @@ if [[ -z ${CHOST} ]]; then
 				;;
 		esac
 	fi
+fi
+
+CHOST_IDENTIFY=${CHOST}
+# massage CHOST on Linux systems
+if [[ ${CHOST} == *-linux-* ]] ; then
+	# two choices here: x86_64_ubuntu16-linux-gnu
+	#                   x86_64-pc-linux-ubuntu16
+	# I choose the latter because it is compatible with most
+	# UNIX vendors and it allows to fit RAP into platform
+	dist=$(lsb_release -si)
+	rel=$(lsb_release -sr)
+	if [[ -z ${dist} ]] || [[ -z ${rel} ]] ; then
+		source /etc/os-release  # this may fail if the file isn't there
+		[[ -z ${dist} ]] && dist=${ID}
+		[[ -z ${dist} ]] && dist=${NAME}
+		[[ -z ${rel} ]] && rel=${VERSION_ID}
+	fi
+	[[ -z ${dist} ]] && dist=linux
+
+	# Gentoo's versioning isn't really relevant, since it is
+	# a rolling distro
+	if [[ ${dist,,} == "gentoo" ]] ; then
+		rel=
+		[[ ${chost##*-} == "musl" ]] && rel="musl"
+	fi
+
+	# leave rel unset/empty if we don't know about it
+	while [[ ${rel} == *.*.* ]] ; do
+		rel=${rel%.*}
+	done
+
+	platform=${CHOST#*-}; platform=${platform%%-*}
+	platform=$(rapx rap ${platform})
+	CHOST_IDENTIFY=${CHOST%%-*}-${platform}-linux-${dist,,}${rel}
 fi
 
 # Now based on the CHOST set some required variables.  Doing it here
@@ -3206,7 +3367,15 @@ case $ROOT in
 	chost.guess)
 		# undocumented feature that sort of is our own config.guess, if
 		# CHOST was unset, it now contains the guessed CHOST
-		echo "$CHOST"
+		echo "${CHOST}"
+		exit 0
+	;;
+	chost.identify)
+		# another undocumented feature, produces a pseudo CHOST that
+		# identifies the system for bootstraps, currently only Linux is
+		# different from CHOST
+
+		echo "${CHOST_IDENTIFY}"
 		exit 0
 	;;
 	/*) ;;
@@ -3219,6 +3388,7 @@ esac
 
 einfo "Bootstrapping Gentoo prefixed portage installation using"
 einfo "host:   ${CHOST}"
+einfo "ident:  ${CHOST_IDENTIFY}"
 einfo "prefix: ${ROOT}"
 
 TODO=${2}
@@ -3244,17 +3414,19 @@ fi
 
 einfo "ready to bootstrap ${TODO}"
 
-# part of bootstrap_interactive should be executed before any bootstrap_${TODO}
-# to properly setup environment variables and guarantee that bootstrap_${TODO}
-# executes inside a prefix
-if [[ ${TODO} != "noninteractive" && $(type -t bootstrap_${TODO} == "function") ]]; then
-	PARTIAL_BOOTSTRAP=true
-	TODO='noninteractive' bootstrap_interactive || exit 1
-	bootstrap_${TODO} || exit 1
-	exit 0
+# When we call individual stages separately (e.g. not from
+# bootstrap_interactive) we might need some env to be setup in order to
+# function properly.  Basically do a non-interactive call for each stage
+# that will only set whatever needs to be set.
+if [[ ${TODO} != "interactive" && ${TODO} != "noninteractive" ]] ; then
+	# squelch the output, we've seen it already when running from
+	# interactive proper
+	SETUP_ENV_ONLY=true TODO=noninteractive \
+		bootstrap_interactive > /dev/null || exit 1
 fi
 
-# bootstrap_interactive proceeds with guessed defaults when TODO=noninteractive
+# call the appropriate function,
+# beware noninteractive is just a mode of interactive
 bootstrap_${TODO#non} || exit 1
 
 # Local Variables:
