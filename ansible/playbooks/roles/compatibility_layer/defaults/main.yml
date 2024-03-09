@@ -63,8 +63,10 @@ prefix_locales:
   - en_US.UTF-8 UTF-8
 
 # By default, we install an architecture-specific set
+# The one for RISC-V is still named 2023.06, so we need to hardcode that here
 package_sets:
-  - "eessi-{{ eessi_version }}-{{ eessi_host_os }}-{{ eessi_host_arch }}"
+  - "eessi-2023.06-{{ eessi_host_os }}-{{ eessi_host_arch }}"
+#  - "eessi-{{ eessi_version }}-{{ eessi_host_os }}-{{ eessi_host_arch }}"
 
 prefix_packages:
 
