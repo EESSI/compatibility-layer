@@ -17,7 +17,7 @@ gentoo_git_repo: https://github.com/gentoo/gentoo.git
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
 # March 7: latest commit (includes a RISC-V fix for GCC)
-gentoo_git_commit: 7e595dc3c3330522878452ea98906046c0d0f45b
+gentoo_git_commit: 67abd4f05d32aa8ed4246afb5a165eed8a38dbfe
 prefix_required_space: 15 GB
 prefix_user_defined_trusted_dirs:
   - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
