@@ -27,6 +27,15 @@ echo "Checking out ${eessi_commit} in ${PWD}..."
 time git checkout ${eessi_commit}
 cd -
 
+# remove the host symlinks that are no longer needed
+# see: https://github.com/EESSI/compatibility-layer/pull/199
+rm ${EPREFIX}/etc/nsswitch.conf
+rm ${EPREFIX}/lib64/libnss_ldap.so.2
+rm ${EPREFIX}/lib64/libnss_sss.so.2
+rm ${EPREFIX}/var/run
+# the following symlink is in our playbook, but it hadn't been added to the production repository yet
+# rm ${EPREFIX}/var/log/wtmp
+
 # reinstall the currently installed version of glibc to apply the changes from https://github.com/EESSI/gentoo-overlay/pull/99
 emerge --verbose =$(qlist -IRv sys-libs/glibc)
 
@@ -47,15 +56,6 @@ sys-auth/sssd -daemon -man
 EOF
 emerge --verbose sys-auth/nss-pam-ldapd::eessi
 emerge --verbose sys-auth/sssd::eessi
-
-# remove the host symlinks that are no longer needed
-# see: https://github.com/EESSI/compatibility-layer/pull/199
-rm ${EPREFIX}/etc/nsswitch.conf
-rm ${EPREFIX}/lib64/libnss_ldap.so.2
-rm ${EPREFIX}/lib64/libnss_sss.so.2
-rm ${EPREFIX}/var/run
-# the following symlink is in our playbook, but it hadn't been added to the production repository yet
-# rm ${EPREFIX}/var/log/wtmp
 
 # collect list of installed packages after updating packages
 list_installed_pkgs_post_update=${mytmpdir}/installed-pkgs-post-update.txt
