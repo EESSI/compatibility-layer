@@ -165,15 +165,13 @@ class Utf8LocaleTest(RunInGentooPrefixTest):
 
 @rfm.simple_test
 class SymlinksToHostFilesTest(RunInGentooPrefixTest):
+    # see https://github.com/EESSI/compatibility-layer/blob/main/ansible/playbooks/roles/compatibility_layer/defaults/main.yml
     symlink_to_host = parameter([
         'etc/group',
         'etc/passwd',
         'etc/hosts',
-        'etc/nsswitch.conf',
         'etc/resolv.conf',
         'lib64/libnss_centrifydc.so.2',
-        'lib64/libnss_ldap.so.2',
-        'lib64/libnss_sss.so.2',
     ])
 
     def __init__(self):
