@@ -11,9 +11,7 @@ class RunInGentooPrefixTestError(rfm.core.exceptions.ReframeError):
 
 
 class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
-    eessi_repo_dir = parameter(
-        os.environ.get('EESSI_REPO_DIR', EESSI_REPO_DIR)
-    )
+    eessi_repo_dir = os.environ.get('EESSI_REPO_DIR', EESSI_REPO_DIR)
     eessi_version = parameter(
         os.environ.get('EESSI_VERSION', 'latest').split(',')
     )
@@ -28,17 +26,10 @@ class RunInGentooPrefixTest(rfm.RunOnlyRegressionTest):
 
         self.valid_systems = ['*']
         self.valid_prog_environs = ['*']
-        if self.eessi_version == 'latest':
-            # resolve the "latest" symlink to the actual version
-            self.eessi_version = os.readlink(os.path.join(eessi_repo_dir, 'latest'))
-        # 2021.06 did not have the 'versions' subdirectory yet
-        if self.eessi_version == '2021.06':
-            self.eessi_repo_dir = eessi_repo_dir
-        else:
-            self.eessi_repo_dir = os.path.join(eessi_repo_dir, 'versions')
 
         self.compat_dir = os.path.join(
             self.eessi_repo_dir,
+            'versions',
             self.eessi_version,
             'compat',
             self.eessi_os,
@@ -174,15 +165,13 @@ class Utf8LocaleTest(RunInGentooPrefixTest):
 
 @rfm.simple_test
 class SymlinksToHostFilesTest(RunInGentooPrefixTest):
+    # see https://github.com/EESSI/compatibility-layer/blob/main/ansible/playbooks/roles/compatibility_layer/defaults/main.yml
     symlink_to_host = parameter([
         'etc/group',
         'etc/passwd',
         'etc/hosts',
-        'etc/nsswitch.conf',
         'etc/resolv.conf',
         'lib64/libnss_centrifydc.so.2',
-        'lib64/libnss_ldap.so.2',
-        'lib64/libnss_sss.so.2',
     ])
 
     def __init__(self):
@@ -229,7 +218,7 @@ class GlibcEnvFileTest(RunInGentooPrefixTest):
         self.command = 'equery has --package glibc EXTRA_EMAKE'
 
         trusted_dir = os.path.join(
-            eessi_repo_dir,
+            self.eessi_repo_dir,
             'host_injections',
             self.eessi_version,
             'compat',
