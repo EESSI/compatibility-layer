@@ -10,7 +10,7 @@ REPOSITORY="software.eessi.io"
 RESUME=
 RETAIN_TMP=0
 STORAGE=
-VERSION=2023.06
+VERSION=2025.01
 VERBOSE=
 
 display_help() {
