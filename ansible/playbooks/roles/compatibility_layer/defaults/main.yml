@@ -35,8 +35,8 @@ prefix_bootstrap_use_flags: |
   # make sure that gold linker is installed with binutils
   sys-devel/binutils gold
   # only install Python 3.11
-  */* PYTHON_TARGETS: -* python3_11
-  */* PYTHON_SINGLE_TARGET: -* python3_11
+  */* PYTHON_TARGETS: -* python3_12
+  */* PYTHON_SINGLE_TARGET: -* python3_12
 prefix_use_builtin_bootstrap: false
 prefix_custom_bootstrap_script:
   local: "{{ playbook_dir }}/../../bootstrap-prefix.sh"
