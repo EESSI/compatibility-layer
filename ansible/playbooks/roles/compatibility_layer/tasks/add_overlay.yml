@@ -5,10 +5,10 @@
     cmd: emerge gentoolkit
     creates: "{{ gentoo_prefix_path }}/usr/bin/equery"
 
-- name: Install eselect-repository
-  community.general.portage:
-    package: eselect-repository
-    state: present
+#- name: Install eselect-repository
+#  community.general.portage:
+#    package: eselect-repository
+#    state: present
 
 # We need git in order to add Gentoo overlays hosted on git repositories.
 - name: Install git
@@ -21,10 +21,17 @@
   register: repositories_installed
   changed_when: false
 
-- name: Add custom overlay configuration
-  ansible.builtin.command:
-    cmd: "eselect repository add {{ item.name }} {{ item.source }} {{ item.url }}"
-  when: item.name not in repositories_installed.stdout
+#- name: Add custom overlay configuration
+#  ansible.builtin.command:
+#    cmd: "eselect repository add {{ item.name }} {{ item.source }} {{ item.url }}"
+#  when: item.name not in repositories_installed.stdout
+#  loop: "{{ custom_overlays }}"
+
+- name: Add configuration files for custom overlays
+  ansible.builtin.template:
+    src: overlay.conf.j2
+    dest: "{{ gentoo_prefix_path }}/etc/portage/repos.conf/{{ item.name }}.conf"
+    mode: "0644"
   loop: "{{ custom_overlays }}"
 
 - name: Make configuration file with overlays that can override eclasses
