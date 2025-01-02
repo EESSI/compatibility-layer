@@ -1,0 +1,7 @@
+[{{ item.name }}]
+location = {{ gentoo_prefix_path }}/var/db/repos/{{ item.name }}
+sync-type = {{ item.source }}
+sync-uri = {{ item.url }}
+{% if item.branch is defined %}
+sync-git-clone-extra-opts = --branch {{ item.branch }}
+{% endif %}
