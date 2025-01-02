@@ -3147,7 +3147,7 @@ I can limit your Prefix to use only packages keyworded for stable amd64
 by default.  Of course, you can still enable testing ~amd64 for
 the packages you want, when the need arises.
 EOF
-			[[ ${TODO} == 'noninteractive' ]] && ans=yes ||
+			[[ ${TODO} == 'noninteractive' ]] && ans=no ||
 			read -r -p "  Do you want to use stable Prefix? [Yn] " ans
 			case "${ans}" in
 				[Yy][Ee][Ss]|[Yy]|"")
