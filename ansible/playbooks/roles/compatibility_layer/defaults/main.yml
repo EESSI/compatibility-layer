@@ -5,7 +5,8 @@ eessi_version: "2025.01"
 custom_overlays:
   - name: eessi
     source: git
-    url: https://github.com/EESSI/gentoo-overlay.git
+    url: https://github.com/bedroge/gentoo-overlay.git
+    branch: 2025.01_set
     eclass-overrides: true
 
 cvmfs_repository: software.eessi.io
