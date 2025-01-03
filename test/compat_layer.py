@@ -63,7 +63,7 @@ class EchoTest(RunInGentooPrefixTest):
 
 @rfm.simple_test
 class ToolsAvailableTest(RunInGentooPrefixTest):
-    tool = parameter(['archspec', 'emerge', 'equery', 'ld.gold', 'make', 'patch', 'patchelf'])
+    tool = parameter(['archspec', 'emerge', 'equery', 'ld.bfd', 'make', 'patch', 'patchelf']) # removed ld.gold
 
     def __init__(self):
         # patchelf is only installed since 2021.06 compat layer
