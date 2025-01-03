@@ -16,10 +16,10 @@
     package: dev-vcs/git
     state: present
 
-#- name: Check which repositories have been installed
-#  ansible.builtin.command: eselect repository list -i
-#  register: repositories_installed
-#  changed_when: false
+# - name: Check which repositories have been installed
+#   ansible.builtin.command: eselect repository list -i
+#   register: repositories_installed
+#   changed_when: false
 
 # - name: Add custom overlay configuration
 #   ansible.builtin.command:
