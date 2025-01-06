@@ -80,6 +80,7 @@ prefix_remove_packages:
   - dev-lang/rust-bin
   - dev-python/setuptools-rust
   - dev-util/cmake
+  - dev-util/hermes
   - dev-util/ninja
   - virtual/rust
 
