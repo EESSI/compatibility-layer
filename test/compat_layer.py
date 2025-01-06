@@ -233,3 +233,15 @@ class GlibcEnvFileTest(RunInGentooPrefixTest):
             f'user-defined-trusted-dirs={trusted_dir}',
             self.stdout
         )
+
+
+@rfm.simple_test
+class PipCheckTest(RunInGentooPrefixTest):
+    def __init__(self):
+        super().__init__()
+        self.descr = 'Verify that "pip check" does not return any errors.'
+        self.command = 'pip check'
+        self.sanity_patterns = sn.all([
+            sn.assert_eq(self.exit_code, 0),
+            sn.assert_found('\nNo broken requirements found.\n', self.stdout),
+        ])
