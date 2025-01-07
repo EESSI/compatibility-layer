@@ -63,7 +63,7 @@ LOCAL_TMP=$(cfg_get_value "site_config" "local_tmp")
 echo "bot/test.sh: LOCAL_TMP='${LOCAL_TMP}'"
 
 # try to determine tmp directory from build job
-EESSI_TMPDIR=$(grep -oP "To resume work add '--resume \K.*(?=')" slurm-${SLURM_JOBID}.out)
+EESSI_TMPDIR=$(grep -oP "To resume work add '--resume \K.*(?=')" slurm-${SLURM_JOB_ID}.out)
 
 if [[ -z ${EESSI_TMPDIR} ]]; then
   echo "bot/test.sh: no information about tmp directory build step; --> giving up"
