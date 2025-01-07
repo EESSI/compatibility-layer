@@ -63,7 +63,7 @@ class EchoTest(RunInGentooPrefixTest):
 
 @rfm.simple_test
 class ToolsAvailableTest(RunInGentooPrefixTest):
-    tool = parameter(['archspec', 'emerge', 'equery', 'ld.gold', 'make', 'patch', 'patchelf'])
+    tool = parameter(['archspec', 'emerge', 'equery', 'ld.bfd', 'make', 'patch', 'patchelf']) # removed ld.gold
 
     def __init__(self):
         # patchelf is only installed since 2021.06 compat layer
@@ -231,3 +231,15 @@ class GlibcEnvFileTest(RunInGentooPrefixTest):
             f'user-defined-trusted-dirs={trusted_dir}',
             self.stdout
         )
+
+
+@rfm.simple_test
+class PipCheckTest(RunInGentooPrefixTest):
+    def __init__(self):
+        super().__init__()
+        self.descr = 'Verify that "pip check" does not return any errors.'
+        self.command = 'pip check'
+        self.sanity_patterns = sn.all([
+            sn.assert_eq(self.exit_code, 0),
+            sn.assert_found('\nNo broken requirements found.\n', self.stdout),
+        ])

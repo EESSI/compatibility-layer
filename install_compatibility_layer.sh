@@ -10,7 +10,7 @@ REPOSITORY="software.eessi.io"
 RESUME=
 RETAIN_TMP=0
 STORAGE=
-VERSION=2023.06
+VERSION=2025.01
 VERBOSE=
 
 display_help() {
@@ -188,7 +188,7 @@ ${RUNTIME} shell ${CONTAINER} <<EOF
 # The Gentoo Prefix bootstrap script will complain if $LD_LIBRARY_PATH is set
 unset LD_LIBRARY_PATH
 unset PKG_CONFIG_PATH
-${ANSIBLE_COMMAND}
+${ANSIBLE_COMMAND} | tee /tmp/ansible.log
 EOF
 
 if [[ ${RETAIN_TMP} -eq 1 ]]; then
