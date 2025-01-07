@@ -90,7 +90,8 @@ host_arch=$(uname -m)
 eessi_arch=${cpu_target_arch:-${host_arch}}
 eessi_os=linux
 job_version=$(cfg_get_value "repository" "repo_version")
-eessi_version=${job_version:-2023.06}
+#eessi_version=${job_version:-2023.06}
+eessi_version=2025.01
 job_repo=$(cfg_get_value "repository" "repo_name")
 eessi_repo=${job_repo:-software.eessi.io}
 tar_topdir=/cvmfs/${eessi_repo}/versions
@@ -110,7 +111,7 @@ if [[ -z ${APPTAINER_CACHEDIR} ]]; then
   export APPTAINER_CACHEDIR=${EESSI_TMPDIR}/apptainer_cache
   [[ ${VERBOSE} == '-vvv' ]] && echo "APPTAINER_CACHEDIR='${APPTAINER_CACHEDIR}'"
 fi
-export APPTAINER_BIND="${EESSI_TMPDIR}/cvmfs:/cvmfs,${PWD}:/compatibility-layer"
+export APPTAINER_BIND="${EESSI_TMPDIR}/cvmfs:/cvmfs,${PWD}"
 export APPTAINER_BIND="${APPTAINER_BIND},${EESSI_TMPDIR}/tmp:/tmp"
 [[ ${VERBOSE} == '-vvv' ]] && echo "APPTAINER_BIND='${APPTAINER_BIND}'"
 export APPTAINER_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
@@ -121,7 +122,7 @@ if [[ -z ${SINGULARITY_CACHEDIR} ]]; then
   export SINGULARITY_CACHEDIR=${EESSI_TMPDIR}/apptainer_cache
   [[ ${VERBOSE} == '-vvv' ]] && echo "SINGULARITY_CACHEDIR='${SINGULARITY_CACHEDIR}'"
 fi
-export SINGULARITY_BIND="${EESSI_TMPDIR}/cvmfs:/cvmfs,${PWD}:/compatibility-layer"
+export SINGULARITY_BIND="${EESSI_TMPDIR}/cvmfs:/cvmfs,${PWD}"
 export SINGULARITY_BIND="${SINGULARITY_BIND},${EESSI_TMPDIR}/tmp:/tmp"
 [[ ${VERBOSE} == '-vvv' ]] && echo "SINGULARITY_BIND='${SINGULARITY_BIND}'"
 export SINGULARITY_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
@@ -129,15 +130,6 @@ export SINGULARITY_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 
 CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian11
 
-${RUNTIME} shell ${CONTAINER} <<EOF
-pip3 install --ignore-installed --prefix=/tmp/reframe reframe-hpc
-export PYTHONPATH=/tmp/reframe/lib/python3.9/site-packages
-export EESSI_REPO_DIR="/cvmfs/${eessi_repo}"
-export EESSI_VERSION=${eessi_version}
-export EESSI_ARCH=${host_arch}
-export EESSI_OS=linux
-export RFM_PREFIX=/compatibility-layer/reframe_runs
-/tmp/reframe/bin/reframe --nocolor -r -v -c /compatibility-layer/test/compat_layer.py
-EOF
+${RUNTIME} exec ${CONTAINER} ./test_compatibility_layer.sh -a ${host_arch} -o linux -r ${eessi_repo} -v ${eessi_version}
 
 exit 0
