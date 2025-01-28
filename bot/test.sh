@@ -90,11 +90,10 @@ host_arch=$(uname -m)
 eessi_arch=${cpu_target_arch:-${host_arch}}
 eessi_os=linux
 job_version=$(cfg_get_value "repository" "repo_version")
-#eessi_version=${job_version:-2023.06}
-eessi_version=2025.01
 job_repo=$(cfg_get_value "repository" "repo_name")
 eessi_repo=${job_repo:-software.eessi.io}
 tar_topdir=/cvmfs/${eessi_repo}/versions
+eessi_version=$(ls -1 ${EESSI_TMPDIR}/${tar_topdir})
 
 if [ "${eessi_arch}" != "${host_arch}" ]; then
   echo "Requested architecture (${eessi_arch}) is different from this machine's architecture ($(uname -m))!"
