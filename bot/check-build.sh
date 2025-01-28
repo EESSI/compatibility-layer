@@ -88,8 +88,8 @@ host_arch=$(uname -m)
 eessi_arch=${cpu_target_arch:-${host_arch}}
 # eessi_os=linux
 job_version=$(cfg_get_value "repository" "repo_version")
-eessi_version=${job_version:-2023.09}
-eessi_version=2025.01
+e# essi_version=${job_version:-2023.09}
+# eessi_version=2025.01
 # job_repo=$(cfg_get_value "repository" "repo_name")
 # eessi_repo=${job_repo:-pilot.nessi.no}
 # tar_topdir=/cvmfs/${eessi_repo}/versions
@@ -135,7 +135,7 @@ if [[ ${SLURM} -eq 1 ]]; then
 fi
 
 found_tarballs=0
-tarballs=$(ls eessi-${eessi_version}-compat-linux-${eessi_arch}-*.tar.gz 2>&1)
+tarballs=$(ls eessi-*-compat-linux-${eessi_arch}-*.tar.gz 2>&1)
 ec=$?
 [[ ${VERBOSE} -ne 0 ]] && echo "TARBALLS.ec=${ec}"
 if [[ ${ec} -eq 0 ]]; then
