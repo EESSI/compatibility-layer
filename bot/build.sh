@@ -81,8 +81,6 @@ host_arch=$(uname -m)
 eessi_arch=${cpu_target_arch:-${host_arch}}
 eessi_os=linux
 job_version=$(cfg_get_value "repository" "repo_version")
-#eessi_version=${job_version:-2023.06}
-eessi_version=2025.01
 job_repo=$(cfg_get_value "repository" "repo_name")
 eessi_repo=${job_repo:-software.eessi.io}
 tar_topdir=/cvmfs/${eessi_repo}/versions
@@ -96,7 +94,9 @@ fi
 # store output in local file such that the temporary directory ${STORAGE}/eessi.XXXXXXXXXX
 # can be determined
 script_out="install_stdout.log"
-./install_compatibility_layer.sh -a ${eessi_arch} -v ${eessi_version} -r ${eessi_repo} -g ${STORAGE} -k 2>&1 | tee -a ${script_out}
+./install_compatibility_layer.sh -a ${eessi_arch} -r ${eessi_repo} -g ${STORAGE} -k 2>&1 | tee -a ${script_out}
+
+eessi_version=$(ls -1 ${eessi_tmp}${tar_topdir})
 
 # TODO handle errors (no outfile, no tmp directory found)
 eessi_tmp=$(cat ${script_out} | grep 'To resume work add' | cut -f 2 -d \' | cut -f 2 -d ' ')
