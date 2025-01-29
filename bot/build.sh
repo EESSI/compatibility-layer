@@ -96,10 +96,9 @@ fi
 script_out="install_stdout.log"
 ./install_compatibility_layer.sh -a ${eessi_arch} -r ${eessi_repo} -g ${STORAGE} -k 2>&1 | tee -a ${script_out}
 
-eessi_version=$(ls -1 ${eessi_tmp}${tar_topdir})
-
 # TODO handle errors (no outfile, no tmp directory found)
 eessi_tmp=$(cat ${script_out} | grep 'To resume work add' | cut -f 2 -d \' | cut -f 2 -d ' ')
+eessi_version=$(ls -1 ${eessi_tmp}${tar_topdir})
 # create tarball -> should go into a separate script when this is supported by the bot
 target_tgz=eessi-${eessi_version}-compat-linux-${eessi_arch}-$(date +%s).tar.gz
 if [ -d ${eessi_tmp}${tar_topdir}/${eessi_version} ]; then
