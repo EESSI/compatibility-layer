@@ -62,12 +62,13 @@ class EchoTest(RunInGentooPrefixTest):
 
 
 @rfm.simple_test
-class ToolsAvailableTest(RunInGentooPrefixTest):
-    tool = parameter(['archspec', 'emerge', 'equery', 'ld.bfd', 'make', 'patch', 'patchelf']) # removed ld.gold
+    tool = parameter(['archspec', 'emerge', 'equery', 'ld.bfd', 'ld.gold', 'make', 'patch', 'patchelf'])
 
     def __init__(self):
         # patchelf is only installed since 2021.06 compat layer
         self.skip_if(self.tool == 'patchelf' and self.eessi_version == '2021.03')
+        # 2023.06 still had both ld.bfd and ld.gold, but the latter will not be included in future versions
+        self.skip_if(self.tool == 'ld.gold' and self.eessi_version != '2023.06')
         super().__init__()
         self.descr = 'Verify that some required tools are available'
         self.command = f'which {self.tool}'
