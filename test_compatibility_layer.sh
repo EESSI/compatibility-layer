@@ -12,10 +12,6 @@ display_help() {
   echo "        Architecture of compatibility layer to be tested"
   echo "        [default: \$EESSI_CPU_FAMILY or current host's architecture]"
   echo ""
-  echo "    -g | --storage DIRECTORY"
-  echo "        directory space on host machine (used for"
-  echo "        temporary data) [default: 1. TMPDIR, 2. /tmp]"
-  echo ""
   echo "    -h | --help"
   echo "        display this usage information"
   echo ""
@@ -41,10 +37,6 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     -a|--arch)
       EESSI_ARCH="$2"
-      shift 2
-      ;;
-    -g|--storage)
-      STORAGE="$2"
       shift 2
       ;;
     -h|--help)
@@ -89,6 +81,7 @@ if [ ! -f ${COMPAT_LAYER_PREFIX}/startprefix ]; then
     echo "Cannot find a startprefix file in ${COMPAT_LAYER_PREFIX}!"
     exit 1
 fi
+[[ ${VERBOSE} == '-vvv' ]] && echo "Using compatibility layer in ${COMPAT_LAYER_PREFIX}."
 
 # We assume that this script is located in a directory containing a full checkout of the git repo,
 # and verify this by checking for the existance of the ReFrame test script.
@@ -99,28 +92,32 @@ if [ ! -f "${SCRIPT_DIR}/test/compat_layer.py" ]; then
     exit 1
 fi
 
-if [ -z ${EESSI_TMPDIR} ];
-then
-  EESSI_TMPDIR=$(mktemp -t -d eessi.XXXXXXXXXX)
+# Check if ReFrame is already available, and otherwise we try to pip install it
+if ! command -v "reframe" &> /dev/null; then
+  REFRAME_TMPDIR=$(mktemp -t -d eessi.XXXXXXXXXX)
+  [[ ${VERBOSE} == '-vvv' ]] && echo "ReFrame command not found, trying to install it to a temporary directory ${REFRAME_TMPDIR}..."
+  if command -v "pip3" &> /dev/null; then
+    pip3 install --ignore-installed -t ${REFRAME_TMPDIR} reframe-hpc &> /dev/null
+    export PYTHONPATH=${REFRAME_TMPDIR}
+    export PATH="${REFRAME_TMPDIR}/bin/:${PATH}"
+  else
+    echo "Neither Reframe nor pip3 is available, please install ReFrame manually and add it to your \$PATH."
+    exit 1
+  fi
 fi
 
-echo "Using ${EESSI_TMPDIR} as temporary directory."
-
-if ! command -v "reframe" &>/dev/null; then
-  echo "ReFrame command not found, trying to install it to a temporary directory..."
-  pip3 install --ignore-installed -t ${EESSI_TMPDIR}/reframe reframe-hpc
-  export PYTHONPATH=${EESSI_TMPDIR}/reframe
-  export PATH="${EESSI_TMPDIR}/reframe/bin/:${PATH}"
-fi
-
-echo "Trying to run 'reframe --version' as sanity check..."
-if ! reframe --version; then
+[[ ${VERBOSE} == '-vvv' ]] && echo "Trying to run 'reframe --version' as sanity check..."
+if ! reframe --version &> /dev/null; then
   echo "Cannot run ReFrame, giving up. Please install it manually and add it to your \$PATH."
   exit 1
 fi
 
-echo "Running the tests with: ${EESSI_TMPDIR}/reframe/bin/reframe -r -v -c ${SCRIPT_DIR}/test/compat_layer.py"
+[[ ${VERBOSE} == '-vvv' ]] && echo "Running the tests with: reframe -r -v -c ${SCRIPT_DIR}/test/compat_layer.py"
 export EESSI_REPO_DIR EESSI_VERSION EESSI_ARCH EESSI_OS
 export RFM_PREFIX=$PWD/reframe_runs
-${EESSI_TMPDIR}/reframe/bin/reframe --nocolor -r -v -c ${SCRIPT_DIR}/test/compat_layer.py
+reframe --nocolor -r -v -c ${SCRIPT_DIR}/test/compat_layer.py
 
+if [ ! -z ${REFRAME_TMPDIR} ] && [ -d ${REFRAME_TMPDIR} ]; then
+  [[ ${VERBOSE} == '-vvv' ]] && echo "Removing temporary ReFrame installation directory ${REFRAME_TMPDIR}..."
+  rm -rf ${REFRAME_TMPDIR}
+fi

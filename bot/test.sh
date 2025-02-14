@@ -129,6 +129,6 @@ export SINGULARITY_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 
 CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian11
 
-${RUNTIME} exec ${CONTAINER} ./test_compatibility_layer.sh -a ${host_arch} -o linux -r ${eessi_repo} -v ${eessi_version}
+${RUNTIME} exec ${CONTAINER} ./test_compatibility_layer.sh -a ${host_arch} -o linux -r ${eessi_repo} -v ${eessi_version} --verbose
 
 exit 0
