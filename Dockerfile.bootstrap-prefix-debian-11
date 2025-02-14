@@ -1,5 +1,6 @@
 FROM debian:11-slim
 
+
 COPY bootstrap-prefix.sh /usr/local/bin/bootstrap-prefix.sh
 
 RUN apt-get update
