@@ -23,9 +23,9 @@ prefix_required_space: 15 GB
 prefix_user_defined_trusted_dirs:
   - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
 prefix_mask_packages: |
-  # stick to GCC 14.x; using a too recent compiler in the compat layer may complicate stuff in the software layer,
+  # stick to GCC 13.x; using a too recent compiler in the compat layer may complicate stuff in the software layer,
   # see for example https://github.com/EESSI/software-layer/issues/151
-  >=sys-devel/gcc-15
+  >=sys-devel/gcc-14
 prefix_unmask_packages: |
   # unmask older GCC to make it installable
   # =sys-devel/gcc-11*
