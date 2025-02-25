@@ -20,7 +20,7 @@ permissions: read-all
 jobs:
   build_and_publish:
     name: Build and publish image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     permissions:
       packages: write
     steps:
