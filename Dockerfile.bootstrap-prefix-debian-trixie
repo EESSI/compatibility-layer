@@ -1,5 +1,4 @@
-# Should move to Trixie whenever riscv64 images are available
-FROM debian:sid-20240330-slim
+FROM debian:trixie-20250224-slim
 
 COPY bootstrap-prefix.sh /usr/local/bin/bootstrap-prefix.sh
 
