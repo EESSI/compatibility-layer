@@ -20,7 +20,7 @@ permissions: read-all
 jobs:
   build_and_publish:
     name: Build and publish image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     permissions:
       packages: write
     steps:
@@ -29,9 +29,6 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@4574d27a4764455b42196d70a065bc6853246a25 # v3.4.0
-        # (temporary) workaround for https://github.com/docker/setup-qemu-action/issues/198
-        with:
-          image: tonistiigi/binfmt:qemu-v7.0.0-28
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
@@ -59,7 +56,7 @@ jobs:
       - name: Build and push to GitHub Packages
         uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 #v3.2.0
         with:
-          tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/bootstrap-prefix:debian-sid
-          file: Dockerfile.bootstrap-prefix-debian-sid
+          tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/bootstrap-prefix:debian-trixie
+          file: Dockerfile.bootstrap-prefix-debian-trixie
           platforms: linux/amd64, linux/arm64, linux/riscv64
           push: ${{ github.event_name != 'pull_request' }}
