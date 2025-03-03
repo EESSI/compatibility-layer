@@ -127,7 +127,12 @@ export SINGULARITY_BIND="${SINGULARITY_BIND},${EESSI_TMPDIR}/tmp:/tmp"
 export SINGULARITY_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 [[ ${VERBOSE} == '-vvv' ]] && echo "SINGULARITY_HOME='${SINGULARITY_HOME}'"
 
+
 CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian11
+# Debian 11 does not support RISC-V, so we use a Debian Trixie container instead.
+if [[ $(uname -m) = "riscv64" ]]; then
+  CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian-trixie
+fi
 
 ${RUNTIME} exec ${CONTAINER} ./test_compatibility_layer.sh -a ${host_arch} -o linux -r ${eessi_repo} -v ${eessi_version} --verbose
 
