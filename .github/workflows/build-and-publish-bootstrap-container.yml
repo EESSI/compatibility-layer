@@ -57,6 +57,6 @@ jobs:
         uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 #v3.2.0
         with:
           tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/bootstrap-prefix:debian-13
-          file: Dockerfile.bootstrap-prefix-debian-trixie
+          file: Dockerfile.bootstrap-prefix-debian-13
           platforms: linux/amd64, linux/arm64, linux/riscv64
           push: ${{ github.event_name != 'pull_request' }}
