@@ -21,7 +21,9 @@ gentoo_git_repo: https://github.com/gentoo/gentoo.git
 gentoo_git_commit: f82b04ca44dcbbca8a7afa3134fa18c48b2ba334
 prefix_required_space: 15 GB
 prefix_user_defined_trusted_dirs:
-  - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
+  - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/override"
+  - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/nvidia"
+  - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/amd"
 prefix_mask_packages: |
   # stick to GCC 13.x; using a too recent compiler in the compat layer may complicate stuff in the software layer,
   # see for example https://github.com/EESSI/software-layer/issues/151
