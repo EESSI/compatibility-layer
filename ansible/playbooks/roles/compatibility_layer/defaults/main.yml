@@ -17,8 +17,8 @@ gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/c
 gentoo_git_repo: https://github.com/gentoo/gentoo.git
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
-# February 13 2025 (f82b04ca44dcbbca8a7afa3134fa18c48b2ba334) commit that includes Lmod 8.7.55 and glibc 2.41
-gentoo_git_commit: f82b04ca44dcbbca8a7afa3134fa18c48b2ba334
+# June 6 2025 (6c64b0693572d25ee87ffba030cd345204365f05) commit that includes Lmod 8.7.55 and glibc 2.41
+gentoo_git_commit: 6c64b0693572d25ee87ffba030cd345204365f05
 prefix_required_space: 15 GB
 prefix_user_defined_trusted_dirs:
   - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/override"
