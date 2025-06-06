@@ -37,7 +37,7 @@ prefix_bootstrap_use_flags: |
   # don't build the SSSD daemon (and man pages) either
   sys-auth/sssd -daemon -man
   # make sure that gold linker is installed with binutils
-  sys-devel/binutils gold
+  # sys-devel/binutils gold
   # only install Python 3.11
   */* PYTHON_TARGETS: -* python3_12
   */* PYTHON_SINGLE_TARGET: -* python3_12
