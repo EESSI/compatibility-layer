@@ -13,9 +13,9 @@ STORAGE=
 VERSION=
 VERBOSE=
 
-# Debian 11 does not support RISC-V, so we use a Debian Trixie container instead.
+# Debian 11 does not support RISC-V, so we use a Debian 13 container instead.
 if [[ $(uname -m) = "riscv64" ]]; then
-  CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian-trixie
+  CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian13
 fi
 
 display_help() {
