@@ -129,9 +129,9 @@ export SINGULARITY_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 
 
 CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian11
-# Debian 11 does not support RISC-V, so we use a Debian Trixie container instead.
+# Debian 11 does not support RISC-V, so we use a Debian 13 container instead.
 if [[ $(uname -m) = "riscv64" ]]; then
-  CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian-trixie
+  CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian13
 fi
 
 ${RUNTIME} exec ${CONTAINER} ./test_compatibility_layer.sh -a ${host_arch} -o linux -r ${eessi_repo} -v ${eessi_version} --verbose
