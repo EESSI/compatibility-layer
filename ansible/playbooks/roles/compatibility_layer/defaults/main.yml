@@ -29,15 +29,12 @@ prefix_mask_packages: |
   # see for example https://github.com/EESSI/software-layer/issues/151
   >=sys-devel/gcc-14
 prefix_unmask_packages: |
-  # unmask older GCC to make it installable
-  # =sys-devel/gcc-11*
+  # if necessary, unmask for instance an older GCC to make it installable
 prefix_bootstrap_use_flags: |
   # only build libnss, don't build the daemon (use the one from the host)
   sys-auth/nss-pam-ldapd -nslcd
   # don't build the SSSD daemon (and man pages) either
   sys-auth/sssd -daemon -man
-  # make sure that gold linker is installed with binutils
-  # sys-devel/binutils gold
   # only install Python 3.13
   */* PYTHON_TARGETS: -* python3_13
   */* PYTHON_SINGLE_TARGET: -* python3_13
