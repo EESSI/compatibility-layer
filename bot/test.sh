@@ -134,6 +134,7 @@ if [[ $(uname -m) = "riscv64" ]]; then
   CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian13
 fi
 
-${RUNTIME} exec ${CONTAINER} ./test_compatibility_layer.sh -a ${host_arch} -o linux -r ${eessi_repo} -v ${eessi_version} --verbose
+# use --cleanenv to make sure that unwanted environment variables (e.g. $TMPDIR) are forwarded
+${RUNTIME} exec --cleanenv ${CONTAINER} ./test_compatibility_layer.sh -a ${host_arch} -o linux -r ${eessi_repo} -v ${eessi_version} --verbose
 
 exit 0
