@@ -15,7 +15,7 @@ VERBOSE=
 
 # Debian 11 does not support RISC-V, so we use a Debian 13 container instead.
 if [[ $(uname -m) = "riscv64" ]]; then
-  CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian13
+  CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian-13
 fi
 
 display_help() {
