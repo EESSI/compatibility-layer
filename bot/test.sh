@@ -131,7 +131,7 @@ export SINGULARITY_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian11
 # Debian 11 does not support RISC-V, so we use a Debian 13 container instead.
 if [[ $(uname -m) = "riscv64" ]]; then
-  CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian13
+  CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian-13
 fi
 
 # use --cleanenv to make sure that unwanted environment variables (e.g. $TMPDIR) are forwarded
