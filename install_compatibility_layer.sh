@@ -13,6 +13,11 @@ STORAGE=
 VERSION=
 VERBOSE=
 
+# Debian 11 does not support RISC-V, so we use a Debian 13 container instead.
+if [[ $(uname -m) = "riscv64" ]]; then
+  CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian-13
+fi
+
 display_help() {
   echo "usage: $0 [OPTIONS]"
   echo "OPTIONS:"
@@ -188,7 +193,7 @@ ${RUNTIME} shell ${CONTAINER} <<EOF
 # The Gentoo Prefix bootstrap script will complain if $LD_LIBRARY_PATH is set
 unset LD_LIBRARY_PATH
 unset PKG_CONFIG_PATH
-${ANSIBLE_COMMAND}
+${ANSIBLE_COMMAND} | tee /tmp/ansible.log
 EOF
 
 if [[ ${RETAIN_TMP} -eq 1 ]]; then

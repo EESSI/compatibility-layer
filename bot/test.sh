@@ -90,7 +90,6 @@ host_arch=$(uname -m)
 eessi_arch=${cpu_target_arch:-${host_arch}}
 eessi_os=linux
 job_version=$(cfg_get_value "repository" "repo_version")
-eessi_version=2025.01
 job_repo=$(cfg_get_value "repository" "repo_name")
 eessi_repo=${job_repo:-software.eessi.io}
 tar_topdir=/cvmfs/${eessi_repo}/versions
@@ -128,8 +127,14 @@ export SINGULARITY_BIND="${SINGULARITY_BIND},${EESSI_TMPDIR}/tmp:/tmp"
 export SINGULARITY_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 [[ ${VERBOSE} == '-vvv' ]] && echo "SINGULARITY_HOME='${SINGULARITY_HOME}'"
 
-CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian11
 
-${RUNTIME} exec ${CONTAINER} ./test_compatibility_layer.sh -a ${host_arch} -o linux -r ${eessi_repo} -v ${eessi_version} --verbose
+CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian-11
+# Debian 11 does not support RISC-V, so we use a Debian 13 container instead.
+if [[ $(uname -m) = "riscv64" ]]; then
+  CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian-13
+fi
+
+# use --cleanenv to make sure that unwanted environment variables (e.g. $TMPDIR) are forwarded
+${RUNTIME} exec --cleanenv ${CONTAINER} ./test_compatibility_layer.sh -a ${host_arch} -o linux -r ${eessi_repo} -v ${eessi_version} --verbose
 
 exit 0

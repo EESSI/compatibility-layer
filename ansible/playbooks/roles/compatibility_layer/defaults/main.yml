@@ -1,6 +1,6 @@
 # Defaults file for the compatibility layer role.
 ---
-eessi_version: "2023.06"
+eessi_version: "2025.06"
 
 custom_overlays:
   - name: eessi
@@ -16,34 +16,27 @@ gentoo_prefix_path: /cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/c
 gentoo_git_repo: https://github.com/gentoo/gentoo.git
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
-# April 17 (29492845e41ea6a0a4a9769c7e0ce287d106079b) commit is after fix for Lmod
-# gentoo_git_commit: 29492845e41ea6a0a4a9769c7e0ce287d106079b
-# June 8 (aab8473aa90e0287553b3348a5c5b17872df4b7b) commit that was current when fetching luaposix
-gentoo_git_commit: aab8473aa90e0287553b3348a5c5b17872df4b7b
+# June 7 2025 (083e38cef302128d595e9f9cfd029ad8f67ec2b7) commit that includes Lmod 8.7.60 and glibc 2.41
+gentoo_git_commit: 083e38cef302128d595e9f9cfd029ad8f67ec2b7
 prefix_required_space: 15 GB
 prefix_user_defined_trusted_dirs:
-  - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
+  - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/override"
+  - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/nvidia"
+  - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/amd"
 prefix_mask_packages: |
-  # stick to GCC 10.x; using a too recent compiler in the compat layer complicates stuff in the software layer,
+  # stick to GCC 13.x; using a too recent compiler in the compat layer may complicate stuff in the software layer,
   # see for example https://github.com/EESSI/software-layer/issues/151
-  >=sys-devel/gcc-11
-  # mask OpenSSL 3.x, stick to OpenSSL 1.1.x for now to avoid problems with:
-  # - older versions of Rust (see https://github.com/EESSI/software-layer/issues/257)
-  # - older versions of cryptograhy in Python (see https://github.com/EESSI/software-layer/issues/258)
-  >=dev-libs/openssl-3
+  >=sys-devel/gcc-14
 prefix_unmask_packages: |
-  # unmask older GCC to make it installable
-  =sys-devel/gcc-9*
+  # if necessary, unmask for instance an older GCC to make it installable
 prefix_bootstrap_use_flags: |
   # only build libnss, don't build the daemon (use the one from the host)
   sys-auth/nss-pam-ldapd -nslcd
   # don't build the SSSD daemon (and man pages) either
   sys-auth/sssd -daemon -man
-  # make sure that gold linker is installed with binutils
-  sys-devel/binutils gold
-  # only install Python 3.11
-  */* PYTHON_TARGETS: -* python3_11
-  */* PYTHON_SINGLE_TARGET: -* python3_11
+  # only install Python 3.13
+  */* PYTHON_TARGETS: -* python3_13
+  */* PYTHON_SINGLE_TARGET: -* python3_13
 prefix_use_builtin_bootstrap: false
 prefix_custom_bootstrap_script:
   local: "{{ playbook_dir }}/../../bootstrap-prefix.sh"
