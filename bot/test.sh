@@ -128,7 +128,7 @@ export SINGULARITY_HOME="${EESSI_TMPDIR}/home:/home/${USER}"
 [[ ${VERBOSE} == '-vvv' ]] && echo "SINGULARITY_HOME='${SINGULARITY_HOME}'"
 
 
-CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian11
+CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian-11
 # Debian 11 does not support RISC-V, so we use a Debian 13 container instead.
 if [[ $(uname -m) = "riscv64" ]]; then
   CONTAINER=docker://ghcr.io/eessi/bootstrap-prefix:debian-13
