@@ -1,3 +1,4 @@
+# stick to awscli v1.x, 2.x is not available through PyPI (see https://github.com/aws/aws-cli/issues/4947)
 ARG awscliversion=1.32.22
 
 FROM debian:trixie-20250520-slim
@@ -17,8 +18,12 @@ RUN python3 -m venv --system-site-packages /opt/ansible && \
 RUN chmod 755 /usr/local/bin/bootstrap-prefix.sh
 # tools for deploying tarballs
 RUN apt-get install -y curl jq
-# stick to awscli v1.x, 2.x is not available through PyPI (see https://github.com/aws/aws-cli/issues/4947)
-RUN pip3 install awscli==${awscliversion}
+RUN python3 -m venv --system-site-packages /opt/awscli && \
+    . /opt/awscli/bin/activate && \
+    pip3 install --upgrade pip && \
+    pip3 install awscli==${awscliversion} && \
+    ln -s /opt/awscli/bin/aws /usr/local/bin/ && \
+    deactivate
 
 ENV LC_ALL=C.UTF-8
 ENV PATH=/usr/local/bin:$PATH
