@@ -255,7 +255,7 @@ class GlibcTrustedDirs(RunInGentooPrefixTest):
         # in 2023.06 we had a single trusted directory,
         # in 2025.06 we introduced three subdirectories (override, nvidia, amd).
         if self.eessi_version == '2023.06':
-            trusted_dirs = libdir
+            trusted_dirs = [libdir]
         else:
             trusted_dirs = [
                 os.path.join(libdir, 'override'),
