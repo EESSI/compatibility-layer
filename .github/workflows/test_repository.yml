@@ -18,13 +18,18 @@ jobs:
         EESSI_VERSION:
         # note: use string quotes here, to avoid values being interpreted as floating point values...
         - '2023.06'
+        - '2025.06'
         EESSI_ARCH:
         - aarch64
+        - riscv64
         - x86_64
         EESSI_OS:
         - linux
         python:
-        - 3.8
+        - 3.12
+        exclude:
+          - EESSI_VERSION: '2023.06'
+            EESSI_ARCH: riscv64
     steps:
         - name: Check out code
           uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
