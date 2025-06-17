@@ -236,6 +236,44 @@ class GlibcEnvFileTest(RunInGentooPrefixTest):
 
 
 @rfm.simple_test
+class GlibcTrustedDirs(RunInGentooPrefixTest):
+    def __init__(self):
+        super().__init__()
+        self.descr = 'Verify that glibc was compiled with the custom user-defined trusted dirs.'
+        self.command = 'ld.so --help'
+
+        libdir = os.path.join(
+            self.eessi_repo_dir,
+            'host_injections',
+            self.eessi_version,
+            'compat',
+            self.eessi_os,
+            self.eessi_arch,
+            'lib'
+        )
+
+        # in 2023.06 we had a single trusted directory,
+        # in 2025.06 we introduced three subdirectories (override, nvidia, amd).
+        if self.eessi_version == '2023.06':
+            trusted_dirs = libdir
+        else:
+            trusted_dirs = [
+                os.path.join(libdir, 'override'),
+                os.path.join(libdir, 'nvidia'),
+                os.path.join(libdir, 'amd'),
+            ]
+
+        # ld.so --help prints the trusted directories as:
+        #   /path/to/dir (system search path)
+        trusted_dirs_pattern = '\n'.join(['  ' + td + ' \(system search path\)' for td in trusted_dirs])
+
+        self.sanity_patterns = sn.assert_found(
+            trusted_dirs_pattern,
+            self.stdout
+        )
+
+
+@rfm.simple_test
 class PipCheckTest(RunInGentooPrefixTest):
     def __init__(self):
         super().__init__()
