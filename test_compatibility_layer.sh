@@ -96,14 +96,9 @@ fi
 if ! command -v "reframe" &> /dev/null; then
   REFRAME_TMPDIR=$(mktemp -t -d eessi.XXXXXXXXXX)
   [[ ${VERBOSE} == '-vvv' ]] && echo "ReFrame command not found, trying to install it to a temporary directory ${REFRAME_TMPDIR}..."
-  if command -v "pip3" &> /dev/null; then
-    pip3 install --ignore-installed -t ${REFRAME_TMPDIR} reframe-hpc &> /dev/null
-    export PYTHONPATH=${REFRAME_TMPDIR}
-    export PATH="${REFRAME_TMPDIR}/bin/:${PATH}"
-  else
-    echo "Neither Reframe nor pip3 is available, please install ReFrame manually and add it to your \$PATH."
-    exit 1
-  fi
+  ${COMPAT_LAYER_PREFIX}/usr/bin/python3 -m venv ${REFRAME_TMPDIR}
+  source ${REFRAME_TMPDIR}/bin/activate
+  pip3 install reframe-hpc &> /dev/null
 fi
 
 [[ ${VERBOSE} == '-vvv' ]] && echo "Trying to run 'reframe --version' as sanity check..."
