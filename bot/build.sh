@@ -94,7 +94,7 @@ fi
 # store output in local file such that the temporary directory ${STORAGE}/eessi.XXXXXXXXXX
 # can be determined
 script_out="install_stdout.log"
-./install_compatibility_layer.sh -a ${eessi_arch} -r ${eessi_repo} -g ${STORAGE} -k 2>&1 | tee -a ${script_out}
+./install_compatibility_layer.sh -a ${eessi_arch} -r ${eessi_repo} -g ${STORAGE} -k --verbose 2>&1 | tee -a ${script_out}
 
 # TODO handle errors (no outfile, no tmp directory found)
 eessi_tmp=$(cat ${script_out} | grep 'To resume work add' | cut -f 2 -d \' | cut -f 2 -d ' ')
