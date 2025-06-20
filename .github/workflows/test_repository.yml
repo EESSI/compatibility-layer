@@ -16,17 +16,17 @@ jobs:
       fail-fast: false
       matrix:
         EESSI_VERSION:
-        # note: use string quotes here, to avoid values being interpreted as floating point values...
-        - '2023.06'
-        - '2025.06'
+          # note: use string quotes here, to avoid values being interpreted as floating point values...
+          - '2023.06'
+          - '2025.06'
         EESSI_ARCH:
-        - aarch64
-        - riscv64
-        - x86_64
+          - aarch64
+          - riscv64
+          - x86_64
         EESSI_OS:
-        - linux
+          - linux
         python:
-        - 3.12
+          - 3.12
         exclude:
           - EESSI_VERSION: '2023.06'
             EESSI_ARCH: riscv64
