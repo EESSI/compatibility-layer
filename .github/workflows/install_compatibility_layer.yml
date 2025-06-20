@@ -6,15 +6,15 @@ on:
   push:
     branches: [main]
     paths:
-    - 'ansible/playbooks/**'
-    - '.github/actions/install_compatibility_layer/**'
-    - '.github/workflows/install_compatibility_layer.yml'
+      - 'ansible/playbooks/**'
+      - '.github/actions/install_compatibility_layer/**'
+      - '.github/workflows/install_compatibility_layer.yml'
   pull_request:
     branches: [main]
     paths:
-    - 'ansible/playbooks/**'
-    - '.github/actions/install_compatibility_layer/**'
-    - '.github/workflows/install_compatibility_layer.yml'
+      - 'ansible/playbooks/**'
+      - '.github/actions/install_compatibility_layer/**'
+      - '.github/workflows/install_compatibility_layer.yml'
 
 # Declare default permissions as read only.
 permissions: read-all
