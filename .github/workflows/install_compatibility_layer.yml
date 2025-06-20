@@ -4,13 +4,13 @@ name: Install compatibility layer
 # events but only for the main branch
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
     - 'ansible/playbooks/**'
     - '.github/actions/install_compatibility_layer/**'
     - '.github/workflows/install_compatibility_layer.yml'
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
     - 'ansible/playbooks/**'
     - '.github/actions/install_compatibility_layer/**'
