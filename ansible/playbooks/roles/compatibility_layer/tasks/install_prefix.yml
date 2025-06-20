@@ -31,7 +31,7 @@
   ansible.builtin.copy:
     src: "{{ prefix_custom_bootstrap_script.local }}"
     dest: "{{ prefix_custom_bootstrap_script.remote }}"
-    mode: 0755
+    mode: "0755"
   when: not prefix_use_builtin_bootstrap
   tags:
     - build_prefix
@@ -40,7 +40,7 @@
   ansible.builtin.file:
     path: "{{ gentoo_prefix_path }}/etc/portage/repos.conf"
     state: directory
-    mode: 0755
+    mode: "0755"
   tags:
     - build_prefix
 
@@ -68,7 +68,7 @@
   ansible.builtin.file:
     path: "{{ gentoo_prefix_path }}/etc/portage/repo.postsync.d"
     state: directory
-    mode: '0755'
+    mode: "0755"
   tags:
     - build_prefix
 
@@ -76,7 +76,7 @@
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ gentoo_prefix_path }}/etc/portage/repo.postsync.d/{{ item }}"
-    mode: 0755
+    mode: "0755"
   with_items:
     - sync_gentoo_cache
     - sync_gentoo_dtd
@@ -89,7 +89,7 @@
 - name: "Make directory for the Gentoo overlay"
   ansible.builtin.file:
     path: "{{ gentoo_prefix_path }}/var/db/repos"
-    mode: '0755'
+    mode: "0755"
     state: directory
   tags:
     - build_prefix
