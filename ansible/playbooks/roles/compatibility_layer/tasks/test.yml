@@ -24,7 +24,7 @@
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../../test/compat_layer.py"
     dest: "{{ reframe_venv_dir }}/compat_layer.py"
-    mode: 0644
+    mode: "0644"
   tags:
     - test
 
