@@ -18,4 +18,6 @@ jobs:
         # replace "master" with any valid ref
         uses: ansible/ansible-lint@4114ad63edbc25dcd9afc4f41b29dbcbebdf21ca # v25.5.0
         with:
-          args: ""
+          # demote var-naming[no-role-prefix] to warnings, as we only have a single role,
+          # and prefixing all variables in that role with the role name is really ugly
+          args: "--warn-list var-naming[no-role-prefix]"
