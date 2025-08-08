@@ -2,7 +2,7 @@
 name: 'Install EESSI compatibility layer'
 description: 'Use Ansible playbook to install the EESSI compatibility layer inside a Gentoo Prefix Docker container'
 inputs:
-  gentoo-prefix-path:  
+  gentoo-prefix-path:
     description: 'Path to the Gentoo Prefix installation'
     required: true
     default: '/tmp/gentoo'
