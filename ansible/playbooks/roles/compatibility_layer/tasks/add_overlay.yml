@@ -17,7 +17,7 @@
     dest: "{{ gentoo_prefix_path }}/etc/portage/repos.conf/{{ item.name }}.conf"
     mode: "0644"
   loop: "{{ custom_overlays }}"
-  register: overlay_config_files
+  notify: Sync overlays
 
 - name: Make configuration file with overlays that can override eclasses
   ansible.builtin.copy:
@@ -29,12 +29,6 @@
         custom_overlays | selectattr('eclass-overrides', 'defined') |
         selectattr('eclass-overrides', 'equalto', True) | map(attribute='name') | join(' ')
       }}
-
-- name: Sync the repositories
-  community.general.portage:
-    sync: 'yes'
-    verbose: true
-  when: overlay_config_files is changed
 
 - name: Find all files and directories in the etc/portage directory of the overlay
   ansible.builtin.find:
