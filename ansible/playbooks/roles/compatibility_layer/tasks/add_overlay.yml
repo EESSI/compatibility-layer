@@ -31,7 +31,7 @@
       }}
 
 - name: Flush handlers to make sure that overlays are synced
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers
 
 - name: Find all files and directories in the etc/portage directory of the overlay
   ansible.builtin.find:
