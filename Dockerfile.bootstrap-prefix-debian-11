@@ -1,8 +1,10 @@
 # stick to awscli v1.x, 2.x is not available through PyPI (see https://github.com/aws/aws-cli/issues/4947)
 ARG awscliversion=1.32.22
+ARG unionfsfuseversion=3.7
 
 FROM debian:11-slim
 ARG awscliversion
+ARG unionfsfuseversion
 
 COPY bootstrap-prefix.sh /usr/local/bin/bootstrap-prefix.sh
 
@@ -24,6 +26,20 @@ RUN python3 -m venv --system-site-packages /opt/awscli && \
     pip3 install awscli==${awscliversion} && \
     ln -s /opt/awscli/bin/aws /usr/local/bin/ && \
     deactivate
+# unionfs-fuse
+RUN apt-get install -y cmake pkg-config libfuse3-dev \
+  && curl -OL https://github.com/rpodgorny/unionfs-fuse/archive/refs/tags/v${unionfsfuseversion}.tar.gz \
+  && tar xfvz v${unionfsfuseversion}.tar.gz \
+  && cd unionfs-fuse-${unionfsfuseversion} \
+  && mkdir build \
+  && cd build \
+  && cmake .. \
+  && make install \
+  && command -v unionfs \
+  && unionfs --version \
+  && unionfs --help \
+  && apt-get remove -y cmake pkg-config libfuse3-dev
+
 
 ENV LC_ALL=C.UTF-8
 ENV PATH=/usr/local/bin:$PATH
