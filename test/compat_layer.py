@@ -219,15 +219,20 @@ class GlibcEnvFileTest(RunInGentooPrefixTest):
         self.descr = 'Verify that the env file for sys-libs/glibc was created and is picked up by emerge.'
         self.command = 'equery has --package glibc EXTRA_EMAKE'
 
-        trusted_dir = os.path.join(
-            self.eessi_repo_dir,
-            'host_injections',
-            self.eessi_version,
-            'compat',
-            self.eessi_os,
-            self.eessi_arch,
-            'lib'
-        )
+        # in 2023.06 we had a single trusted directory in host_injections,
+        # in 2025.06 we introduced three subdirectories (override, nvidia, amd) in the lib dir of the compat layer itself.
+        if self.eessi_version == '2023.06':
+            trusted_dirs = os.path.join(
+                self.eessi_repo_dir,
+                'host_injections',
+                self.eessi_version,
+                'compat',
+                self.eessi_os,
+                self.eessi_arch,
+                'lib'
+            )
+        else:
+            trusted_dirs = [os.path.join(self.compat_dir, 'lib', subdir) for subdir in ['override', 'nvidia', 'amd']]
 
         self.sanity_patterns = sn.assert_found(
             f'user-defined-trusted-dirs={trusted_dir}',
@@ -242,26 +247,20 @@ class GlibcTrustedDirs(RunInGentooPrefixTest):
         self.descr = 'Verify that glibc was compiled with the custom user-defined trusted dirs.'
         self.command = 'ld.so --help'
 
-        libdir = os.path.join(
-            self.eessi_repo_dir,
-            'host_injections',
-            self.eessi_version,
-            'compat',
-            self.eessi_os,
-            self.eessi_arch,
-            'lib'
-        )
-
-        # in 2023.06 we had a single trusted directory,
-        # in 2025.06 we introduced three subdirectories (override, nvidia, amd).
+        # in 2023.06 we had a single trusted directory in host_injections,
+        # in 2025.06 we introduced three subdirectories (override, nvidia, amd) in the lib dir of the compat layer itself.
         if self.eessi_version == '2023.06':
-            trusted_dirs = [libdir]
+            trusted_dirs = os.path.join(
+                self.eessi_repo_dir,
+                'host_injections',
+                self.eessi_version,
+                'compat',
+                self.eessi_os,
+                self.eessi_arch,
+                'lib'
+            )
         else:
-            trusted_dirs = [
-                os.path.join(libdir, 'override'),
-                os.path.join(libdir, 'nvidia'),
-                os.path.join(libdir, 'amd'),
-            ]
+            trusted_dirs = [os.path.join(self.compat_dir, 'lib', subdir) for subdir in ['override', 'nvidia', 'amd']]
 
         # ld.so --help prints the trusted directories as:
         #   /path/to/dir (system search path)
