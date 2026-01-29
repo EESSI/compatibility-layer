@@ -85,27 +85,47 @@ job_repo=$(cfg_get_value "repository" "repo_name")
 eessi_repo=${job_repo:-software.eessi.io}
 tar_topdir=/cvmfs/${eessi_repo}/versions
 
-if [ "${eessi_arch}" != "${host_arch}" ]; then
-  echo "Requested architecture (${eessi_arch}) is different from this machine's architecture ($(uname -m))!"
+# Check the architecture, which has to match the architecture of the build host
+if [[ "${eessi_arch}" != "${host_arch}" ]]; then
+  echo "bot/build.sh: requested architecture (${eessi_arch}) is different from this machine's architecture ($(uname -m))!"
   exit 1
 fi
 
-# option -k is used for retaining ${eessi_tmp}
-# store output in local file such that the temporary directory ${STORAGE}/eessi.XXXXXXXXXX
-# can be determined
-script_out="install_stdout.log"
-./install_compatibility_layer.sh -a ${eessi_arch} -r ${eessi_repo} -g ${STORAGE} -k --verbose 2>&1 | tee -a ${script_out}
+# Read and check the build type (new or update, case-insensitive)
+if [[ ! -f bot/build_type ]]; then
+    echo 'bot/build.sh: cannot determine build type, please add a file "bot/build_type" containing either "new" or "update".'
+    exit 1
+fi
+build_type=$(cat bot/build_type | tr '[:upper:]' '[:lower:]')
+if [[ "${build_type}" != "new" && "${build_type}" != "update" ]]; then
+    echo 'bot/build.sh: invalid build type! It has to be "new" or "update".'
+    exit 1
+fi
+echo "bot/build.sh: requested build type '${build_type}'"
 
-# TODO handle errors (no outfile, no tmp directory found)
-eessi_tmp=$(cat ${script_out} | grep 'To resume work add' | cut -f 2 -d \' | cut -f 2 -d ' ')
-eessi_version=$(ls -1 ${eessi_tmp}${tar_topdir})
-# create tarball -> should go into a separate script when this is supported by the bot
-target_tgz=eessi-${eessi_version}-compat-linux-${eessi_arch}-$(date +%s).tar.gz
-if [ -d ${eessi_tmp}${tar_topdir}/${eessi_version} ]; then
-  echo ">> Creating tarball ${target_tgz} from ${eessi_tmp}${tar_topdir}..."
-  tar cfvz ${target_tgz} -C ${eessi_tmp}${tar_topdir} ${eessi_version}/compat/${eessi_os}/${eessi_arch}
-  echo ${target_tgz} created!
-else
-  echo "Directory ${eessi_tmp}${tar_topdir}/${eessi_version} was not created, not creating tarball."
-  exit 1
+# Set up the script arguments and run the installation script
+script_out="install_stdout.log"
+script_args=(-a ${eessi_arch} -r ${eessi_repo} -g ${STORAGE} -k)
+# for (very!) verbose output, uncomment:
+#script_args+=(--verbose)
+if [[ "${build_type}" == "update" ]]; then
+    script_args+=(-u)
+fi
+./install_compatibility_layer.sh ${script_args[@]} 2>&1 | tee -a ${script_out}
+
+# Create a tarball of the new or updated build
+# TODO handle errors (no outfile, no tmp directory found, etc)
+eessi_tmp=$(grep '^To resume work add' ${script_out} | cut -f 2 -d \' | cut -f 2 -d ' ' | tail -n 1)
+echo "bot/build.sh: creating compatibility layer tarball..."
+if [[ "${build_type}" == "update" ]]; then
+    # Resume the build container session and tar the entire /cvmfs/$repo tree
+    container_tmp=$(grep -oP '(?<=^Using ).*(?= as tmp directory)' ${script_out} | tail -n 1)
+    eessi_version=$(ls -1 ${container_tmp}/${eessi_repo}/overlay-upper/versions)
+    target_tgz=eessi-${eessi_version}-compat-linux-${eessi_arch}-$(date +%s).tar.gz
+    ${eessi_tmp}/software-layer-scripts/eessi_container.sh --mode exec --resume ${container_tmp} -r ${eessi_repo} -b ${PWD}:/eessi_job -- tar cfvz /eessi_job/${target_tgz} -C ${tar_topdir} ${eessi_version}/compat/${eessi_os}/${eessi_arch}
+elif [[ "${build_type}" == "new" ]]; then
+    # For a new build, we simply tar the used host directory that was bind mounted as /cvmfs/$repo
+    eessi_version=$(ls -1 ${eessi_tmp}${tar_topdir})
+    target_tgz=eessi-${eessi_version}-compat-linux-${eessi_arch}-$(date +%s).tar.gz
+    tar cfvz ${target_tgz} -C ${eessi_tmp}${tar_topdir} ${eessi_version}/compat/${eessi_os}/${eessi_arch}
 fi
