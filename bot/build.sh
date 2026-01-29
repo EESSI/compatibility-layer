@@ -120,9 +120,10 @@ echo "bot/build.sh: creating compatibility layer tarball..."
 if [[ "${build_type}" == "update" ]]; then
     # Resume the build container session and tar the entire /cvmfs/$repo tree
     container_tmp=$(grep -oP '(?<=^Using ).*(?= as tmp directory)' ${script_out} | tail -n 1)
+    container_image=$(ls -1t ${container_tmp}/*.sif | head -n 1)
     eessi_version=$(ls -1 ${container_tmp}/${eessi_repo}/overlay-upper/versions)
     target_tgz=eessi-${eessi_version}-compat-linux-${eessi_arch}-$(date +%s).tar.gz
-    ${eessi_tmp}/software-layer-scripts/eessi_container.sh --mode exec --resume ${container_tmp} -r ${eessi_repo} -b ${PWD}:/eessi_job -- tar cfvz /eessi_job/${target_tgz} -C ${tar_topdir} ${eessi_version}/compat/${eessi_os}/${eessi_arch}
+    ${eessi_tmp}/software-layer-scripts/eessi_container.sh -c ${container_img} --mode exec --resume ${container_tmp} -r ${eessi_repo} -b ${PWD}:/eessi_job -- tar cfvz /eessi_job/${target_tgz} -C ${tar_topdir} ${eessi_version}/compat/${eessi_os}/${eessi_arch}
 elif [[ "${build_type}" == "new" ]]; then
     # For a new build, we simply tar the used host directory that was bind mounted as /cvmfs/$repo
     eessi_version=$(ls -1 ${eessi_tmp}${tar_topdir})
