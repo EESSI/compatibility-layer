@@ -1,9 +1,15 @@
 # Store some information and scripts that were used for this installation.
 ---
 
-- name: Make a subdirectory for storing build information
+- name: Determine timestamped reprod directory for storing information about this build
+  ansible.builtin.set_fact:
+    reprod_dir: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}/{{ '%Y%m%d_%H%M%SUTC' | strftime(ansible_facts.date_time.epoch | int, utc=True) }}"
+  tags:
+    - reprod
+
+- name: Make a timestamped subdirectory for storing build information
   ansible.builtin.file:
-    path: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}"
+    path: "{{ reprod_dir }}"
     state: directory
     mode: '0755'
   tags:
@@ -16,6 +22,7 @@
     mode: '0644'
   tags:
     - reprod
+  when: not startprefix.stat.exists
 
 - name: Get list of installed packages
   ansible.builtin.command: "qlist -IRv"
