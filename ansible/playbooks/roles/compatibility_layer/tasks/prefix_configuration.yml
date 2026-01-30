@@ -2,6 +2,27 @@
 # for instance locale support.
 ---
 
+- name: "Update package.mask file"
+  ansible.builtin.copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/package.mask"
+    content: "{{ prefix_mask_packages }}"
+    mode: "0644"
+  when: prefix_mask_packages is defined and prefix_mask_packages | length > 0
+
+- name: "Update package.unmask file"
+  ansible.builtin.copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/package.unmask"
+    content: "{{ prefix_unmask_packages }}"
+    mode: "0644"
+  when: prefix_unmask_packages is defined and prefix_unmask_packages | length > 0
+
+- name: "Update package.use file"
+  ansible.builtin.copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/package.use"
+    content: "{{ prefix_bootstrap_use_flags }}"
+    mode: "0644"
+  when: prefix_bootstrap_use_flags is defined and prefix_bootstrap_use_flags | length > 0
+
 - name: Add locales to configuration file
   ansible.builtin.lineinfile:
     path: "{{ gentoo_prefix_path }}/etc/locale.gen"
