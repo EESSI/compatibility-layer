@@ -37,6 +37,9 @@ prefix_bootstrap_use_flags: |
   # only install Python 3.13
   */* PYTHON_TARGETS: -* python3_13
   */* PYTHON_SINGLE_TARGET: -* python3_13
+  # Modules: disable installation of man pages and shell setup files to be able
+  # to also install Lmod. enable *conflict unload* and *require via* features.
+  sys-cluster/modules -shell-setup -man-install +new-features
 prefix_use_builtin_bootstrap: false
 prefix_custom_bootstrap_script:
   local: "{{ playbook_dir }}/../../bootstrap-prefix.sh"
