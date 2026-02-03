@@ -181,7 +181,8 @@ fi
 # Finally, run Ansible inside the container to do the actual installation
 echo "Executing ${ANSIBLE_COMMAND} in ${CONTAINER}, this will take a while..."
 ${EESSI_TMPDIR}/software-layer-scripts/eessi_container.sh ${CONTAINER_OPTIONS} <<EOF
-# The Gentoo Prefix bootstrap script will complain if $LD_LIBRARY_PATH is set
+# The Gentoo Prefix bootstrap script and/or ReFrame may fail if certain environment variables are (not) set,
+# so make sure that we start with a proper environment.
 unset LD_LIBRARY_PATH
 unset PKG_CONFIG_PATH
 unset RFM_CONFIG_FILES
