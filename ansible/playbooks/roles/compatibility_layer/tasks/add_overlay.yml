@@ -29,7 +29,9 @@
         selectattr('eclass-overrides', 'equalto', True) | map(attribute='name') | join(' ')
       }}
 
-- name: Sync the repositories
+# We do an explicit sync here (instead of using a handler),
+# so we can be sure that the overlays are up-to-date.
+- name: Sync the overlays to make sure that they are up to date
   community.general.portage:
     sync: 'yes'
     verbose: true

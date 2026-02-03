@@ -1,9 +1,18 @@
-# Store some information and scripts that were used for this installation.
+# Store some information and scripts that were used for this installation
+# in $EPREFIX/reprod/YYYYMMDD_hhmmssUTC.
+# The timestamped subdir ensures that updates of the compatibility layer
+# don't overwrite these files; instead they end up in their own subdir.
 ---
 
-- name: Make a subdirectory for storing build information
+- name: Determine timestamped reprod directory for storing information about this build
+  ansible.builtin.set_fact:
+    reprod_dir: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}/{{ '%Y%m%d_%H%M%SUTC' | strftime(ansible_facts.date_time.epoch | int, utc=True) }}"
+  tags:
+    - reprod
+
+- name: Make a timestamped subdirectory for storing build information
   ansible.builtin.file:
-    path: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}"
+    path: "{{ reprod_dir }}"
     state: directory
     mode: '0755'
   tags:
@@ -12,10 +21,12 @@
 - name: Copy the used bootstrap script
   ansible.builtin.copy:
     src: "{{ prefix_use_builtin_bootstrap | ternary('/usr/local/bin/bootstrap-prefix.sh', prefix_custom_bootstrap_script.remote) }}"
-    dest: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}/bootstrap-prefix.sh"
+    dest: "{{ reprod_dir }}/bootstrap-prefix.sh"
     mode: '0644'
   tags:
     - reprod
+  # Skip this step for updates, as these don't use the bootstrap script anyway
+  when: not startprefix.stat.exists
 
 - name: Get list of installed packages
   ansible.builtin.command: "qlist -IRv"
@@ -27,7 +38,7 @@
 - name: Dump list of installed packages to a file
   ansible.builtin.copy:
     content: "{{ qlist.stdout }}"
-    dest: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}/{{ prefix_packages_file }}"
+    dest: "{{ reprod_dir }}/{{ prefix_packages_file }}"
     mode: '0644'
   tags:
     - reprod
@@ -35,7 +46,7 @@
 - name: Store other metadata of build in a json file
   ansible.builtin.copy:
     content: "{{ metadata | to_nice_json }}"
-    dest: "{{ gentoo_prefix_path }}/{{ prefix_reprod_dir }}/{{ prefix_metadata_json }}"
+    dest: "{{ reprod_dir }}/{{ prefix_metadata_json }}"
     mode: '0644'
   vars:
     metadata:

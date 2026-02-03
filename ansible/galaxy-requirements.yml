@@ -1,0 +1,8 @@
+#
+# Install roles and collections from the default Ansible Galaxy server.
+#
+---
+collections:
+  - name: community.general
+    version: '>=10.7.3'
+...
