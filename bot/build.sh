@@ -121,12 +121,14 @@ if [[ "${build_type}" == "update" ]]; then
     # Resume the build container session and tar the entire /cvmfs/$repo tree
     container_tmp=$(grep -oP '(?<=^Using ).*(?= as tmp directory)' ${script_out} | tail -n 1)
     container_image=$(ls -1t ${container_tmp}/*.sif | head -n 1)
+    # Find the EESSI version by checking which version was changed by the installation script (only one version could have been changed)
     eessi_version=$(ls -1 ${container_tmp}/${eessi_repo}/overlay-upper/versions)
     target_tgz=eessi-${eessi_version}-compat-linux-${eessi_arch}-$(date +%s).tar.gz
     # note: "--access rw" is important, as we need to (re)use the overlay!
     ${eessi_tmp}/software-layer-scripts/eessi_container.sh -c ${container_image} --mode exec --resume ${container_tmp} -r ${eessi_repo} -b ${PWD}:/eessi_job --access rw -- tar cfvz /eessi_job/${target_tgz} -C ${tar_topdir} ${eessi_version}/compat/${eessi_os}/${eessi_arch}
 elif [[ "${build_type}" == "new" ]]; then
     # For a new build, we simply tar the used host directory that was bind mounted as /cvmfs/$repo
+    # Find the EESSI version by checking which version was created by the installation script in the host directory
     eessi_version=$(ls -1 ${eessi_tmp}${tar_topdir})
     target_tgz=eessi-${eessi_version}-compat-linux-${eessi_arch}-$(date +%s).tar.gz
     tar cfvz ${target_tgz} -C ${eessi_tmp}${tar_topdir} ${eessi_version}/compat/${eessi_os}/${eessi_arch}
