@@ -2,6 +2,8 @@
 # for instance locale support.
 ---
 
+# To avoid code duplication, the tasks for updating these portage files could be moved to a separate file,
+# which is then included by both prefix_configuration.yml and install_prefix.yml.
 - name: "Update package.mask file"
   ansible.builtin.copy:
     dest: "{{ gentoo_prefix_path }}/etc/portage/package.mask"
