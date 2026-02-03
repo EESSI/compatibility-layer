@@ -25,6 +25,7 @@
     mode: '0644'
   tags:
     - reprod
+  # Skip this step for updates, as these don't use the bootstrap script anyway
   when: not startprefix.stat.exists
 
 - name: Get list of installed packages
