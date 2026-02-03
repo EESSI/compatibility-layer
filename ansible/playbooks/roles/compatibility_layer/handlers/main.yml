@@ -1,10 +1,14 @@
 # Handlers for this role
 ---
 
+# Handler for (re)generating locales
 - name: Generate locales
   ansible.builtin.command: locale-gen
   changed_when: true
 
+# Handler for syncing the Gentoo overlays;
+# note that it's currently not used, as we do an explicit sync anyway in the playbook,
+# but it could still be useful
 - name: Sync overlays
   community.general.portage:
     sync: 'yes'
