@@ -1,4 +1,7 @@
-# Store some information and scripts that were used for this installation.
+# Store some information and scripts that were used for this installation
+# in $EPREFIX/reprod/YYYYMMDD_hhmmssUTC.
+# The timestamped subdir ensures that updates of the compatibility layer
+# don't overwrite these files; instead they end up in their own subdir.
 ---
 
 - name: Determine timestamped reprod directory for storing information about this build
