@@ -6,3 +6,10 @@ sync-uri = {{ item.url }}
 {% if item.branch is defined %}
 sync-git-clone-extra-opts = --branch {{ item.branch }}
 {% endif %}
+{% if item.auto-sync is defined %}
+auto-sync = {{ item.auto-sync }}
+{% elif item.source == 'git' %}
+auto-sync = no
+{% else %}
+auto-sync = yes
+{% endif %}
