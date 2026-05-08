@@ -29,9 +29,34 @@
         selectattr('eclass-overrides', 'equalto', True) | map(attribute='name') | join(' ')
       }}
 
+- name: "Clone the git repositories of git-based overlays into the prefix overlay directory"
+  ansible.builtin.git:
+    repo: "{{ item.url }}"
+    dest: "{{ gentoo_prefix_path }}/var/db/repos/{{ item.name }}"
+    depth: 1
+    force: true
+    version: "{{ item.branch | default('HEAD') }}"
+  with_items: "{{ custom_overlays | selectattr('source', 'equalto', 'git') }}"
+
+- name: "Fetch the specific git commit to be used for the git-based overlays"
+  ansible.builtin.git:
+    repo: "{{ item.url }}"
+    dest: "{{ gentoo_prefix_path }}/var/db/repos/{{ item.name }}"
+    clone: false
+    refspec: "{{ item.commit }}"
+    depth: 1
+    version: "{{ item.branch | default('HEAD') }}"
+
+- name: "Checkout the fetched git commit"
+  ansible.builtin.git:
+    repo: "{{ item.url }}"
+    dest: "{{ gentoo_prefix_path }}/var/db/repos/{{ item.name }}"
+    clone: false
+    version: "{{ item.commit }}"
+
 # We do an explicit sync here (instead of using a handler),
-# so we can be sure that the overlays are up-to-date.
-- name: Sync the overlays to make sure that they are up to date
+# so we can be sure that non-git overlays are also up-to-date.
+- name: Sync overlays with auto-sync enabled to make sure that they are up to date
   community.general.portage:
     sync: 'yes'
     verbose: true
