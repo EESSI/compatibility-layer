@@ -11,6 +11,22 @@
       target CPU architecture {{ eessi_host_arch }}.
   when: not (ansible_architecture == eessi_host_arch)
 
+- name: Check for a vars file for this EESSI version
+  ansible.builtin.stat:
+    path: "{{ role_path }}/vars/{{ eessi_version }}.yml"
+  delegate_to: localhost
+  register: eessi_vars_file
+
+- name: Fail if no vars file is available for the specified/default EESSI version
+  ansible.builtin.fail:
+    msg: |
+      There is no vars file for EESSI version {{ eessi_version }} in the role's vars subdirectory.
+      Please create one and try again.
+  when: not eessi_vars_file.stat.exists
+
+- name: Include the variables file for this EESSI version
+  ansible.builtin.include_vars: "{{ role_path }}/vars/{{ eessi_version }}.yml"
+
 - name: Check if a Prefix installation is found at the specified location
   ansible.builtin.stat:
     path: "{{ gentoo_prefix_path }}/startprefix"
