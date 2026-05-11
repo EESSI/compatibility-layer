@@ -1,6 +1,6 @@
 # Defaults file for the compatibility layer role.
 ---
-eessi_version: "2025.06"
+eessi_version: "2026.06"
 eessi_host_os: "linux"
 eessi_host_arch: "x86_64"
 
