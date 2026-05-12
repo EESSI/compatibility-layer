@@ -36,7 +36,7 @@
     depth: 1
     force: true
     version: "{{ item.branch | default('HEAD') }}"
-  with_items: "{{ custom_overlays | selectattr('source', 'equalto', 'git') }}"
+  loop: "{{ custom_overlays | selectattr('source', 'equalto', 'git') }}"
 
 - name: "Fetch the specific git commit to be used for the git-based overlays"
   ansible.builtin.git:
@@ -46,6 +46,7 @@
     refspec: "{{ item.commit }}"
     depth: 1
     version: "{{ item.branch | default('HEAD') }}"
+  loop: "{{ custom_overlays | selectattr('source', 'equalto', 'git') }}"
 
 - name: "Checkout the fetched git commit"
   ansible.builtin.git:
@@ -53,6 +54,7 @@
     dest: "{{ gentoo_prefix_path }}/var/db/repos/{{ item.name }}"
     clone: false
     version: "{{ item.commit }}"
+  loop: "{{ custom_overlays | selectattr('source', 'equalto', 'git') }}"
 
 # We do an explicit sync here (instead of using a handler),
 # so we can be sure that non-git overlays are also up-to-date.
