@@ -44,54 +44,54 @@ prefix_bootstrap_use_flags: |
 
 package_sets: []
 prefix_packages:
-      - name: app-arch/xz-utils
-        version: 5.8.2
-        overlay: eessi
-      - name: app-misc/elfx86exts
-        version: 0.6.2
-        overlay: eessi
-      - name: app-shells/bash-completion
-      - name: dev-python/pip
-      - name: dev-python/pycodestyle
-      - name: dev-python/pyyaml
-      - name: dev-python/rich
-      - name: dev-util/direnv
-        version: 2.36.0
-        overlay: eessi
-      - name: dev-util/patchelf
-      - name: media-fonts/dejavu
-      - name: media-fonts/liberation-fonts
-      - name: sys-apps/archspec
-        version: 0.2.5
-        overlay: eessi
-      - name: sys-apps/dbus
-      - name: sys-auth/nss-pam-ldapd
-        version: 0.9.13
-        overlay: eessi
-      - name: sys-auth/munge
-        version: 0.5.16
-        overlay: eessi
-      - name: sys-auth/sssd
-        version: 2.11.0
-        overlay: eessi
-      - name: sys-cluster/lmod
-      - name: sys-cluster/modules
-        version: 5.6.1
-        overlay: eessi
-      - name: sys-cluster/rdma-core
-        exclude_on:
-          - macos-aarch64
-          - macos-x86_64
-      - name: sys-fabric/opa-psm2
-        version: 12.0.1
-        overlay: eessi
-        include_on:
-          - linux-x86_64
-      - name: sys-libs/pam
-        exclude_on:
-          - macos-aarch64
-          - macos-x86_64
-      - name: sys-process/numactl
+  - name: app-arch/xz-utils
+    version: 5.8.2
+    overlay: eessi
+  - name: app-misc/elfx86exts
+    version: 0.6.2
+    overlay: eessi
+  - name: app-shells/bash-completion
+  - name: dev-python/pip
+  - name: dev-python/pycodestyle
+  - name: dev-python/pyyaml
+  - name: dev-python/rich
+  - name: dev-util/direnv
+    version: 2.36.0
+    overlay: eessi
+  - name: dev-util/patchelf
+  - name: media-fonts/dejavu
+  - name: media-fonts/liberation-fonts
+  - name: sys-apps/archspec
+    version: 0.2.5
+   overlay: eessi
+  - name: sys-apps/dbus
+  - name: sys-auth/nss-pam-ldapd
+    version: 0.9.13
+    overlay: eessi
+  - name: sys-auth/munge
+    version: 0.5.16
+    overlay: eessi
+  - name: sys-auth/sssd
+    version: 2.11.0
+    overlay: eessi
+  - name: sys-cluster/lmod
+  - name: sys-cluster/modules
+    version: 5.6.1
+    overlay: eessi
+  - name: sys-cluster/rdma-core
+    exclude_on:
+      - macos-aarch64
+      - macos-x86_64
+  - name: sys-fabric/opa-psm2
+    version: 12.0.1
+    overlay: eessi
+    include_on:
+      - linux-x86_64
+  - name: sys-libs/pam
+    exclude_on:
+      - macos-aarch64
+      - macos-x86_64
+  - name: sys-process/numactl
 
 prefix_remove_packages:
   - app-eselect/eselect-rust
