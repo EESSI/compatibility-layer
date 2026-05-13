@@ -1,12 +1,12 @@
 # Install a specified list of sets and packages.
 ---
-#- name: Install package set {{ package_sets }}
-#  community.general.portage:
-#    package: "@{{ item }}"
-#    state: present
-#  with_items: "{{ package_sets }}"
-#  tags:
-#    - set
+- name: Install package set {{ package_sets }}
+  community.general.portage:
+    package: "@{{ item }}"
+    state: present
+  with_items: "{{ package_sets }}"
+  tags:
+    - set
 
 - name: Determine packages to be installed for this architecture
   ansible.builtin.set_fact:
