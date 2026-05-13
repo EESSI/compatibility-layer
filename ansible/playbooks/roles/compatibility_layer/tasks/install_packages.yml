@@ -1,6 +1,6 @@
 # Install a specified list of sets and packages.
 ---
-- name: Install package set {{ package_sets }}
+- name: Install package sets
   community.general.portage:
     package: "@{{ item }}"
     state: present
@@ -15,13 +15,13 @@
     #   - packages with a "include_on" constraint that includes this architecture
     #   - packages with a "exclude_on" constraint that don't include this architecture
     eessi_os_arch_packages: |
-      packages
+      prefix_packages
         | rejectattr('include_on', 'defined')
         | rejectattr('exclude_on', 'defined')
-      + packages
+      + prefix_packages
         | selectattr('include_on', 'defined')
         | selectattr('include_on', 'contains', eessi_host_os + '-' + eessi_host_arch)
-      + packages
+      + prefix_packages
         | rejectattr('include_on', 'defined')
         | selectattr('exclude_on', 'defined')
         | rejectattr('exclude_on', 'contains', eessi_host_os + '-' + eessi_host_arch)
