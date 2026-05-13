@@ -42,6 +42,7 @@ prefix_bootstrap_use_flags: |
   # to also install Lmod. enable *conflict unload* and *require via* features.
   sys-cluster/modules -shell-setup -man-install +new-features
 
+package_sets: []
 prefix_packages:
       - name: app-arch/xz-utils
         version: 5.8.2
