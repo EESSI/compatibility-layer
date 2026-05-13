@@ -63,7 +63,7 @@ prefix_packages:
   - name: media-fonts/liberation-fonts
   - name: sys-apps/archspec
     version: 0.2.5
-   overlay: eessi
+    overlay: eessi
   - name: sys-apps/dbus
   - name: sys-auth/nss-pam-ldapd
     version: 0.9.13
