@@ -124,6 +124,8 @@ class LmodTest(RunInGentooPrefixTest):
 @rfm.simple_test
 class EessiSetTest(RunInGentooPrefixTest):
     def __init__(self):
+        # Only EESSI 2025.06 and older used package sets
+        self.skip_if(self.eessi_version not in ['2023.06', '2025.06'])
         super().__init__()
         self.descr = 'Test whether a EESSI set is available for the given architecture, operating system, and version.'
         self.command = 'emerge --list-sets'
@@ -137,6 +139,8 @@ class EessiSetTest(RunInGentooPrefixTest):
 @rfm.simple_test
 class EessiSetInstalledTest(RunInGentooPrefixTest):
     def __init__(self):
+        # Only EESSI 2025.06 and older used package sets
+        self.skip_if(self.eessi_version not in ['2023.06', '2025.06'])
         super().__init__()
         self.descr = 'Test whether a the packages of the EESSI set have been installed.'
         self.command = 'qlist -IRv'
