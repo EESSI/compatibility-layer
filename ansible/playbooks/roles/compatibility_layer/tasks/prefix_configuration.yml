@@ -32,3 +32,7 @@
     state: present
   with_items: "{{ prefix_locales }}"
   notify: Generate locales
+
+- name: Flush handlers to generate new locales.
+  ansible.builtin.meta: flush_handlers
+...
