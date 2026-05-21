@@ -19,8 +19,8 @@
 
 - name: Make symlinks
   ansible.builtin.file:
-    src: "{{ item }}"
-    dest: "{{ gentoo_prefix_path }}{{ item }}"
+    src: "{{ item.src | default(item) }}"
+    dest: "{{ item.dest | default(gentoo_prefix_path + item) }}"
     state: link
     force: true
   with_items: "{{ symlinks_to_host }}"
