@@ -38,6 +38,7 @@
       custom_overlays | selectattr('source', 'equalto', 'git') }} +
       # also include the Gentoo git repo here in case we want to switch to a different commit
       [{'name': 'gentoo', 'url': gentoo_git_repo, 'branch': gentoo_git_branch, 'commit': gentoo_git_commit}]
+      | list
     }}
 
 # We do an explicit sync here (instead of using a handler),
