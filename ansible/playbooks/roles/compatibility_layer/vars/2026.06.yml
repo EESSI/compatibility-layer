@@ -105,41 +105,101 @@ prefix_remove_packages:
   - dev-util/ninja
   - virtual/rust
 
-# List of locations that should get a symlink $EPREFIX/$LOCATION -> $LOCATION.
+# List of locations that should get a (variant) symlink $EPREFIX/$LOCATION -> $LOCATION.
 # This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.
 symlinks_to_host:
   # required to ensure local user groups are known
-  - /etc/group
+  - dest: "{{ gentoo_prefix_path }}/etc/ethers"
+    src: "$(EESSI_COMPAT_ETC_ETHERS):-/etc/ethers"
 
-  # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
-  - /etc/passwd
+  - dest: "{{ gentoo_prefix_path }}/etc/fstab"
+    src: "$(EESSI_COMPAT_ETC_FSTAB):-/etc/fstab"
+
+  - dest: "{{ gentoo_prefix_path }}/etc/group"
+    src: "$(EESSI_COMPAT_ETC_GROUP):-/etc/group"
+
+  - dest: "{{ gentoo_prefix_path }}/etc/gshadow"
+    src: "$(EESSI_COMPAT_ETC_GSHADOW):-/etc/gshadow"
 
   # required to ensure that hosts specified in the host's hosts file can be resolved by tools in the Prefix
-  - /etc/hosts
+  - dest: "{{ gentoo_prefix_path }}/etc/hosts"
+    src: "$(EESSI_COMPAT_ETC_HOSTS):-/etc/hosts"
 
-  # required to ensure name-service information is taken from the right source (e.g. ldap)
-  # - /etc/nsswitch.conf
+  - dest: "{{ gentoo_prefix_path }}/etc/hosts.equiv"
+    src: "$(EESSI_COMPAT_ETC_HOSTS_EQUIV):-/etc/hosts.equiv"
 
-  # required to use the DNS resolver from the host (should be done automatically)
-  - /etc/resolv.conf
+  - dest: "{{ gentoo_prefix_path }}/etc/ld.so.preload"
+    src: "$(EESSI_COMPAT_ETC_LD_SO_PRELOAD):-/etc/ld.so.preload"
 
   # required to pick up the right timezone from the host
-  - /etc/localtime
+  - dest: "{{ gentoo_prefix_path }}/etc/localtime"
+    src: "$(EESSI_COMPAT_ETC_LOCALTIME):-/etc/localtime"
 
-  # required if Centrify is used in nsswitch.conf
-  - /lib64/libnss_centrifydc.so.2
+  - dest: "{{ gentoo_prefix_path }}/etc/netgroup"
+    src: "$(EESSI_COMPAT_ETC_NETGROUP):-/etc/netgroup"
 
-  # required if LDAP is used in nsswitch.conf
-  # - /lib64/libnss_ldap.so.2
+  - dest: "{{ gentoo_prefix_path }}/etc/networks"
+    src: "$(EESSI_COMPAT_ETC_NETWORKS):-/etc/networks"
 
-  # required if SSSD is used in nsswitch.conf
-  # - /lib64/libnss_sss.so.2
+  # required to ensure name-service information is taken from the right source (e.g. ldap)
+  - dest: "{{ gentoo_prefix_path }}/etc/nsswitch.conf"
+    src: "$(EESSI_COMPAT_ETC_NSSWITCH_CONF):-/etc/nsswitch.conf"
 
-  # required to make runtime data available for lots of tools (including who and w)
-  # - /var/run
+  # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
+  - dest: "{{ gentoo_prefix_path }}/etc/passwd"
+    src: "$(EESSI_COMPAT_ETC_PASSWD):-/etc/passwd"
+
+  - dest: "{{ gentoo_prefix_path }}/etc/protocols"
+    src: "$(EESSI_COMPAT_ETC_PROTOCOLS):-/etc/protocols"
+
+  # required to use the DNS resolver from the host (should be done automatically)
+  - dest: "{{ gentoo_prefix_path }}/etc/resolv.conf"
+    src: "$(EESSI_COMPAT_ETC_RESOLV_CONF):-/etc/resolv.conf"
+
+  - dest: "{{ gentoo_prefix_path }}/etc/rpc"
+    src: "$(EESSI_COMPAT_ETC_RPC):-/etc/rpc"
+
+  - dest: "{{ gentoo_prefix_path }}/etc/services"
+    src: "$(EESSI_COMPAT_ETC_SERVICES):-/etc/services"
+
+  - dest: "{{ gentoo_prefix_path }}/etc/shadow"
+    src: "$(EESSI_COMPAT_ETC_SHADOW):-/etc/shadow"
+
+  - dest: "{{ gentoo_prefix_path }}/etc/shadow"
+    src: "$(EESSI_COMPAT_ETC_SHADOW):-/etc/shadow"
+
+  - dest: "{{ gentoo_prefix_path }}/usr/sbin/sendmail"
+    src: "$(EESSI_COMPAT_SENDMAIL):-/usr/sbin/sendmail"
+
+  - dest: "{{ gentoo_prefix_path }}/var/db"
+    src: "$(EESSI_COMPAT_VAR_DB):-/var/db"
+
+  - dest: "{{ gentoo_prefix_path }}/var/lib"
+    src: "$(EESSI_COMPAT_VAR_LIB):-/var/lib"
+
+  - dest: "{{ gentoo_prefix_path }}/var/log/lastlog"
+    src: "$(EESSI_COMPAT_VAR_LOG_LASTLOG):-/var/log/lastlog"
 
   # required by the last command
-  # - /var/log/wtmp
+  - dest: "{{ gentoo_prefix_path }}/var/log/wtmp"
+    src: "$(EESSI_COMPAT_VAR_LOG_WTMP):-/var/log/wtmp"
+
+  - dest: "{{ gentoo_prefix_path }}/var/mail"
+    src: "$(EESSI_COMPAT_VAR_MAIL):-/var/mail"
+
+  # required to make runtime data available for lots of tools (including who and w)
+  - dest: "{{ gentoo_prefix_path }}/var/run"
+    src: "$(EESSI_COMPAT_VAR_RUN):-/var/run"
+
+  - dest: "{{ gentoo_prefix_path }}/var/spool/rwho"
+    src: "$(EESSI_COMPAT_VAR_SPOOL_RWHO):-/var/spool/rwho"
+
+  - dest: "{{ gentoo_prefix_path }}/var/tmp"
+    src: "$(EESSI_COMPAT_VAR_TMP):-/var/tmp"
+
+  # required if Centrify is used in nsswitch.conf
+  - dest: "{{ gentoo_prefix_path }}/lib64/libnss_centrifydc.so.2"
+    src: "$(EESSI_COMPAT_LIBNSS_CENTRIFYDB):-/lib64/libnss_centrifydc.so.2"
 
 #  - /var/lib/munge
 #  - /var/lib/unbound
