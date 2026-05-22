@@ -171,8 +171,8 @@ symlinks_to_host:
   - dest: "{{ gentoo_prefix_path }}/usr/sbin/sendmail"
     src: "$(EESSI_COMPAT_SENDMAIL):-/usr/sbin/sendmail"
 
-  - dest: "{{ gentoo_prefix_path }}/var/db"
-    src: "$(EESSI_COMPAT_VAR_DB):-/var/db"
+  - dest: "{{ gentoo_prefix_path }}/var/db/passwd.db"
+    src: "$(EESSI_COMPAT_VAR_DB_PASSWD_DB):-/var/db/passwd.db"
 
   - dest: "{{ gentoo_prefix_path }}/var/lib"
     src: "$(EESSI_COMPAT_VAR_LIB):-/var/lib"
