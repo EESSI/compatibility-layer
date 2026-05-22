@@ -171,9 +171,6 @@ symlinks_to_host:
   - dest: "{{ gentoo_prefix_path }}/var/db/passwd.db"
     src: "$(EESSI_COMPAT_VAR_DB_PASSWD_DB):-/var/db/passwd.db"
 
-  - dest: "{{ gentoo_prefix_path }}/var/lib"
-    src: "$(EESSI_COMPAT_VAR_LIB):-/var/lib"
-
   - dest: "{{ gentoo_prefix_path }}/var/log/lastlog"
     src: "$(EESSI_COMPAT_VAR_LOG_LASTLOG):-/var/log/lastlog"
 
