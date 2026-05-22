@@ -14,8 +14,8 @@ custom_overlays:
 
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
-# May 12 2026 (346253a5fe4e9a41475ed2fc74a3860b9d2dcae8) commit that includes Lmod 9.2.1
-gentoo_git_commit: 346253a5fe4e9a41475ed2fc74a3860b9d2dcae8
+# May 22 2026: commit that includes Lmod 9.2.2
+gentoo_git_commit: 06c43f523fcc82bb634720e25c91cf2cfa3b5a5c
 
 prefix_user_defined_trusted_dirs:
   - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/override"
