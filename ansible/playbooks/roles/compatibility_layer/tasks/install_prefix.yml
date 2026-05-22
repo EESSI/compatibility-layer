@@ -94,33 +94,14 @@
   tags:
     - build_prefix
 
-- name: "Clone the Gentoo git repository into the overlay directory"
-  ansible.builtin.git:
-    repo: "{{ gentoo_git_repo }}"
-    dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
-    depth: 1
-    force: true
-    version: master
-  tags:
-    - build_prefix
-
-- name: "Fetch the specific git commit to be used for the bootstrap"
-  ansible.builtin.git:
-    repo: "{{ gentoo_git_repo }}"
-    dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
-    clone: false
-    refspec: "{{ gentoo_git_commit }}"
-    depth: 1
-    version: master
-  tags:
-    - build_prefix
-
-- name: "Checkout the fetched git commit"
-  ansible.builtin.git:
-    repo: "{{ gentoo_git_repo }}"
-    dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
-    clone: false
-    version: "{{ gentoo_git_commit }}"
+- name: "Import the task for checking out the specific commit of git-based overlays"
+  ansible.builtin.import_tasks: sync_git_overlay.yml
+  vars:
+    gitrepo:
+      name: "gentoo"
+      url: "{{ gentoo_git_repo }}"
+      branch: "{{ gentoo_git_branch }}"
+      commit: "{{ gentoo_git_commit }}"
   tags:
     - build_prefix
 
