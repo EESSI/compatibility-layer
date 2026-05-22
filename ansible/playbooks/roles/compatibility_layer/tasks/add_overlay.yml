@@ -30,7 +30,7 @@
       }}
 
 - name: "Import the task for checking out the specific commit of git-based overlays"
-  ansible.builtin.import_tasks: sync_git_overlay.yml
+  ansible.builtin.include_tasks: sync_git_overlay.yml
   vars:
     gitrepo: "{{ item }}"
   loop: >-
