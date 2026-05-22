@@ -187,7 +187,8 @@ class SymlinksToHostFilesTest(RunInGentooPrefixTest):
         super().__init__()
         self.descr = 'Verify that all required symlinks to host files have been created.'
         symlink_path = os.path.join(self.compat_dir, self.symlink_to_host)
-        self.command = f'readlink {symlink_path}'
+        # cut off variant symlink output
+        self.command = f"readlink {symlink_path} | sed 's/\$(.*):-//'"
         self.sanity_patterns = sn.all([
             sn.assert_eq(self.exit_code, 0),
             sn.assert_found(f'\n/{self.symlink_to_host}\n', self.stdout),
