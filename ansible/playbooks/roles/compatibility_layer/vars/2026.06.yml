@@ -165,9 +165,6 @@ symlinks_to_host:
   - dest: "{{ gentoo_prefix_path }}/etc/shadow"
     src: "$(EESSI_COMPAT_ETC_SHADOW):-/etc/shadow"
 
-  - dest: "{{ gentoo_prefix_path }}/etc/shadow"
-    src: "$(EESSI_COMPAT_ETC_SHADOW):-/etc/shadow"
-
   - dest: "{{ gentoo_prefix_path }}/usr/sbin/sendmail"
     src: "$(EESSI_COMPAT_SENDMAIL):-/usr/sbin/sendmail"
 
