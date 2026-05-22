@@ -4,13 +4,13 @@
 
 - name: Check type of original files/directories
   ansible.builtin.stat:
-    path: "{{ gentoo_prefix_path }}{{ item }}"
+    path: "{{ item.dest if item is mapping else gentoo_prefix_path + item }}"
   with_items: "{{ symlinks_to_host }}"
   register: orig_types
 
 - name: Remove original files/directories
   ansible.builtin.file:
-    path: "{{ gentoo_prefix_path }}{{ item.item }}"
+    path: "{{ item.item.dest if item is mapping else gentoo_prefix_path + item.item }}"
     state: absent
   with_items: "{{ orig_types.results }}"
   when:
