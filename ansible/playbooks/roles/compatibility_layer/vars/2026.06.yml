@@ -7,7 +7,7 @@ eessi_host_arch: "{{ ansible_architecture }}"
 custom_overlays:
   - name: eessi
     source: git
-    #url: https://github.com/EESSI/gentoo-overlay.git
+    # url: https://github.com/EESSI/gentoo-overlay.git
     url: https://github.com/bedroge/gentoo-overlay.git
     eclass-overrides: true
     autosync: false
