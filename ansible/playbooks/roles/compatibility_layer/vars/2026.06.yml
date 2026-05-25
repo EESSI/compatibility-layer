@@ -46,9 +46,6 @@ prefix_bootstrap_use_flags: |
 
 package_sets: []
 prefix_packages:
-  - name: app-arch/xz-utils
-    version: 5.8.2
-    overlay: eessi
   - name: app-misc/elfx86exts
     version: 0.6.2
     overlay: eessi
@@ -58,23 +55,23 @@ prefix_packages:
   - name: dev-python/pyyaml
   - name: dev-python/rich
   - name: dev-util/direnv
-    version: 2.36.0
+    version: 2.37.1
     overlay: eessi
   - name: dev-util/patchelf
   - name: media-fonts/dejavu
   - name: media-fonts/liberation-fonts
   - name: sys-apps/archspec
-    version: 0.2.5
+    version: 0.2.6
     overlay: eessi
   - name: sys-apps/dbus
   - name: sys-auth/nss-pam-ldapd
     version: 0.9.13
     overlay: eessi
   - name: sys-auth/munge
-    version: 0.5.16
+    version: 0.5.18
     overlay: eessi
   - name: sys-auth/sssd
-    version: 2.11.0
+    version: 2.13.0
     overlay: eessi
   - name: sys-cluster/lmod
   - name: sys-cluster/modules
