@@ -58,6 +58,7 @@ prefix_packages:
     version: 2.37.1
     overlay: eessi
   - name: dev-util/patchelf
+  - name: dev-vcs/git-lfs
   - name: media-fonts/dejavu
   - name: media-fonts/liberation-fonts
   - name: sys-apps/archspec
