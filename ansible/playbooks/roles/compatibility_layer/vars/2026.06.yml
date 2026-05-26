@@ -187,8 +187,8 @@ symlinks_to_host:
   - dest: "{{ gentoo_prefix_path }}/var/spool/rwho"
     src: "$(EESSI_COMPAT_VAR_SPOOL_RWHO):-/var/spool/rwho"
 
-#  - dest: "{{ gentoo_prefix_path }}/var/tmp"
-#    src: "$(EESSI_COMPAT_VAR_TMP):-/var/tmp"
+  - dest: "{{ gentoo_prefix_path }}/var/tmp"
+    src: "$(EESSI_COMPAT_VAR_TMP):-/var/tmp"
 
   # required if Centrify is used in nsswitch.conf
   - dest: "{{ gentoo_prefix_path }}/lib64/libnss_centrifydc.so.2"
