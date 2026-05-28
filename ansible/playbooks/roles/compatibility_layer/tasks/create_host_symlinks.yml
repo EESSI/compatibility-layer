@@ -20,7 +20,7 @@
 - name: Make symlinks
   ansible.builtin.file:
     # Variant symlink destinations look like: $(EESSI_COMPAT_ETC_HOSTS):-/etc/hosts
-    # So, if we don't want to use variant symlinks, we cut off the part after :-
+    # So, if we don't want to use variant symlinks, we use the default source by using the part after :-
     src: "{{ symlink_src if (use_variant_symlinks | default(true)) else (symlink_src | split(':-') | last) }}"
     dest: "{{ symlink_dest }}"
     state: link
