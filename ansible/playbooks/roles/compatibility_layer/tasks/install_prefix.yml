@@ -187,3 +187,13 @@
   when: not startprefix.stat.exists
   tags:
     - build_prefix
+
+# Right after we have built a new Prefix, we create regular symlinks first,
+# as variant symlinks will not resolve here, and it will break things.
+# We replace the regular symlinks by variant symlinks at the end.
+- name: Create (regular) symlinks to host files
+  ansible.builtin.include_tasks: create_host_symlinks.yml
+  vars:
+    use_variant_symlinks: false
+  tags:
+    - build_prefix
