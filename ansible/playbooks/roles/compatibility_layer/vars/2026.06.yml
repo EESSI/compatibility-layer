@@ -122,90 +122,90 @@ symlinks_to_host:
 
   # required to ensure local user groups are known
   - dest: "{{ gentoo_prefix_path }}/etc/ethers"
-    src: "$(EESSI_COMPAT_ETC_ETHERS):-/etc/ethers"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_ETHERS):-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/ethers"
 
   - dest: "{{ gentoo_prefix_path }}/etc/fstab"
-    src: "$(EESSI_COMPAT_ETC_FSTAB):-/etc/fstab"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_FSTAB:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/fstab"
 
   - dest: "{{ gentoo_prefix_path }}/etc/group"
-    src: "$(EESSI_COMPAT_ETC_GROUP):-/etc/group"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_GROUP:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/group"
 
   - dest: "{{ gentoo_prefix_path }}/etc/gshadow"
-    src: "$(EESSI_COMPAT_ETC_GSHADOW):-/etc/gshadow"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_GSHADOW:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/gshadow"
 
   # required to ensure that hosts specified in the host's hosts file can be resolved by tools in the Prefix
   - dest: "{{ gentoo_prefix_path }}/etc/hosts"
-    src: "$(EESSI_COMPAT_ETC_HOSTS):-/etc/hosts"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_HOSTS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/hosts"
 
   - dest: "{{ gentoo_prefix_path }}/etc/hosts.equiv"
-    src: "$(EESSI_COMPAT_ETC_HOSTS_EQUIV):-/etc/hosts.equiv"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_HOSTS_EQUIV:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/hosts.equiv"
 
   - dest: "{{ gentoo_prefix_path }}/etc/ld.so.preload"
-    src: "$(EESSI_COMPAT_ETC_LD_SO_PRELOAD):-/etc/ld.so.preload"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_LD_SO_PRELOAD:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/ld.so.preload"
 
   # required to pick up the right timezone from the host
   - dest: "{{ gentoo_prefix_path }}/etc/localtime"
-    src: "$(EESSI_COMPAT_ETC_LOCALTIME):-/etc/localtime"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_LOCALTIME:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/localtime"
 
   - dest: "{{ gentoo_prefix_path }}/etc/netgroup"
-    src: "$(EESSI_COMPAT_ETC_NETGROUP):-/etc/netgroup"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_NETGROUP:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/netgroup"
 
   - dest: "{{ gentoo_prefix_path }}/etc/networks"
-    src: "$(EESSI_COMPAT_ETC_NETWORKS):-/etc/networks"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_NETWORKS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/networks"
 
   # required to ensure name-service information is taken from the right source (e.g. ldap)
   - dest: "{{ gentoo_prefix_path }}/etc/nsswitch.conf"
-    src: "$(EESSI_COMPAT_ETC_NSSWITCH_CONF):-/etc/nsswitch.conf"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_NSSWITCH_CONF:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/nsswitch.conf"
 
   # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
   - dest: "{{ gentoo_prefix_path }}/etc/passwd"
-    src: "$(EESSI_COMPAT_ETC_PASSWD):-/etc/passwd"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_PASSWD:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/passwd"
 
   - dest: "{{ gentoo_prefix_path }}/etc/protocols"
-    src: "$(EESSI_COMPAT_ETC_PROTOCOLS):-/etc/protocols"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_PROTOCOLS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/protocols"
 
   # required to use the DNS resolver from the host (should be done automatically)
   - dest: "{{ gentoo_prefix_path }}/etc/resolv.conf"
-    src: "$(EESSI_COMPAT_ETC_RESOLV_CONF):-/etc/resolv.conf"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_RESOLV_CONF:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/resolv.conf"
 
   - dest: "{{ gentoo_prefix_path }}/etc/rpc"
-    src: "$(EESSI_COMPAT_ETC_RPC):-/etc/rpc"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_RPC:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/rpc"
 
   - dest: "{{ gentoo_prefix_path }}/etc/services"
-    src: "$(EESSI_COMPAT_ETC_SERVICES):-/etc/services"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_SERVICES:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/services"
 
   - dest: "{{ gentoo_prefix_path }}/etc/shadow"
-    src: "$(EESSI_COMPAT_ETC_SHADOW):-/etc/shadow"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_SHADOW:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/shadow"
 
   - dest: "{{ gentoo_prefix_path }}/usr/sbin/sendmail"
-    src: "$(EESSI_COMPAT_SENDMAIL):-/usr/sbin/sendmail"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_SENDMAIL:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/usr/sbin/sendmail"
 
   - dest: "{{ gentoo_prefix_path }}/var/db/passwd.db"
-    src: "$(EESSI_COMPAT_VAR_DB_PASSWD_DB):-/var/db/passwd.db"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_DB_PASSWD_DB:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/db/passwd.db"
 
   - dest: "{{ gentoo_prefix_path }}/var/log/lastlog"
-    src: "$(EESSI_COMPAT_VAR_LOG_LASTLOG):-/var/log/lastlog"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_LOG_LASTLOG:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/log/lastlog"
 
   # required by the last command
   - dest: "{{ gentoo_prefix_path }}/var/log/wtmp"
-    src: "$(EESSI_COMPAT_VAR_LOG_WTMP):-/var/log/wtmp"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_LOG_WTMP:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/log/wtmp"
 
   - dest: "{{ gentoo_prefix_path }}/var/mail"
-    src: "$(EESSI_COMPAT_VAR_MAIL):-/var/mail"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_MAIL:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/mail"
 
   # required to make runtime data available for lots of tools (including who and w)
   - dest: "{{ gentoo_prefix_path }}/var/run"
-    src: "$(EESSI_COMPAT_VAR_RUN):-/var/run"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_RUN:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/run"
 
   - dest: "{{ gentoo_prefix_path }}/var/spool/rwho"
-    src: "$(EESSI_COMPAT_VAR_SPOOL_RWHO):-/var/spool/rwho"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_SPOOL_RWHO:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/spool/rwho"
 
   - dest: "{{ gentoo_prefix_path }}/var/tmp"
-    src: "$(EESSI_COMPAT_VAR_TMP):-/var/tmp"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_TMP:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/tmp"
 
   # required if Centrify is used in nsswitch.conf
   - dest: "{{ gentoo_prefix_path }}/lib64/libnss_centrifydc.so.2"
-    src: "$(EESSI_COMPAT_LIBNSS_CENTRIFYDB):-/lib64/libnss_centrifydc.so.2"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_LIBNSS_CENTRIFYDB:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/lib64/libnss_centrifydc.so.2"
 
 #  - /var/lib/munge
 #  - /var/lib/unbound
