@@ -21,8 +21,9 @@
   ansible.builtin.file:
     # Variant symlink destinations look like: $(EESSI_202606_COMPAT_ETC_HOSTS):-/cvmfs/software.eessi.io/defaults/compat/etc/hosts
     # So, if we don't want to use variant symlinks, we use the default source by using the part after :-
-    # and we also cut off the defaults directory prefix to get a working symlink.
-    src: "{{ symlink_src if (use_variant_symlinks | default(true)) else (symlink_src | split(':-/cvmfs/{{ cvmfs_repository }}/defaults/compat') | last) }}"
+    # and we also cut off the path to the defaults directory to get a working symlink, i.e. for the example the result would be
+    # /etc/hosts
+    src: "{{ symlink_src if (use_variant_symlinks | default(true)) else (symlink_src | split(':-/cvmfs/' + cvmfs_repository + '/defaults/compat') | last) }}"
     dest: "{{ symlink_dest }}"
     state: link
     force: true
