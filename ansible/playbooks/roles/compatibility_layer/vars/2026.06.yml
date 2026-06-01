@@ -108,6 +108,18 @@ prefix_remove_packages:
 # List of locations that should get a (variant) symlink $EPREFIX/$LOCATION -> $LOCATION.
 # This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.
 symlinks_to_host:
+  # AMD trusted dir, see prefix_user_defined_trusted_dirs
+  - dest: "{{ gentoo_prefix_path }}/lib/amd"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_AMD_OVERRIDE:-/cvmfs/{{ cvmfs_repository }}/defaults/amd)"
+
+  # NVIDIA trusted dir, see prefix_user_defined_trusted_dirs
+  - dest: "{{ gentoo_prefix_path }}/lib/nvidia"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_NVIDIA_OVERRIDE:-/cvmfs/{{ cvmfs_repository }}/defaults/nvidia)"
+
+  # generic override trusted dir, see prefix_user_defined_trusted_dirs
+  - dest: "{{ gentoo_prefix_path }}/lib/override"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_LIB_OVERRIDE:-/cvmfs/{{ cvmfs_repository }}/defaults/override)"
+
   # required to ensure local user groups are known
   - dest: "{{ gentoo_prefix_path }}/etc/ethers"
     src: "$(EESSI_COMPAT_ETC_ETHERS):-/etc/ethers"
