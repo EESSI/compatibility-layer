@@ -105,6 +105,10 @@ prefix_remove_packages:
   - dev-util/ninja
   - virtual/rust
 
+# version of ReFrame to use for running the tests
+# stick to 4.9.3 for now, as 4.10.0 required a newer Rust in the container
+reframe_version: 4.9.3
+
 # List of locations that should get a (variant) symlink $EPREFIX/$LOCATION -> $LOCATION.
 # This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.
 symlinks_to_host:
