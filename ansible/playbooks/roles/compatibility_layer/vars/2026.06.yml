@@ -7,12 +7,11 @@ eessi_host_arch: "{{ ansible_architecture }}"
 custom_overlays:
   - name: eessi
     source: git
-    # url: https://github.com/EESSI/gentoo-overlay.git
-    url: https://github.com/bedroge/gentoo-overlay.git
+    url: https://github.com/EESSI/gentoo-overlay.git
     eclass-overrides: true
     autosync: false
-    branch: 2026.x
-    commit: ba76be27838315af2babf704e41fc7997e1abd5b
+    branch: main
+    commit: 35d807fb15a692741723a9cca916d488a518fc7e
 
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
