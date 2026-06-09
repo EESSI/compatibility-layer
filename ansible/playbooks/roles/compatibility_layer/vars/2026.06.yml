@@ -144,8 +144,8 @@ symlinks_to_host:
   - dest: "{{ gentoo_prefix_path }}/etc/hosts.equiv"
     src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_HOSTS_EQUIV:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/hosts.equiv"
 
-  - dest: "{{ gentoo_prefix_path }}/etc/ld.so.preload"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_LD_SO_PRELOAD:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/ld.so.preload"
+#  - dest: "{{ gentoo_prefix_path }}/etc/ld.so.preload"
+#    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_LD_SO_PRELOAD:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/ld.so.preload"
 
   # required to pick up the right timezone from the host
   - dest: "{{ gentoo_prefix_path }}/etc/localtime"
