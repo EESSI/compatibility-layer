@@ -186,6 +186,9 @@ symlinks_to_host:
   - dest: "{{ gentoo_prefix_path }}/var/db/passwd.db"
     src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_DB_PASSWD_DB:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/db/passwd.db"
 
+  - dest: "{{ gentoo_prefix_path }}/var/lib/sss"
+    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_LIB_SSS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/lib/sss"
+
   - dest: "{{ gentoo_prefix_path }}/var/log/lastlog"
     src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_LOG_LASTLOG:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/log/lastlog"
 
