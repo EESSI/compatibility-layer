@@ -18,6 +18,8 @@ prefix_user_defined_trusted_dirs:
   - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/nvidia"
   - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/amd"
 
+prefix_make_conf_files:
+
 prefix_package_env_files:
     package.env: |
         dev-util/direnv test.conf

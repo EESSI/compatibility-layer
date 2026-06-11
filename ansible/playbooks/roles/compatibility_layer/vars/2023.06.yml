@@ -18,6 +18,8 @@ gentoo_git_commit: aab8473aa90e0287553b3348a5c5b17872df4b7b
 prefix_user_defined_trusted_dirs:
   - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
 
+prefix_make_conf_files:
+
 prefix_package_env_files:
     package.env: |
         dev-util/direnv test.conf
