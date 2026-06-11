@@ -1,0 +1,69 @@
+---
+- name: "Update package.mask file"
+  ansible.builtin.copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/package.mask"
+    content: "{{ prefix_mask_packages }}"
+    mode: "0644"
+  when: prefix_mask_packages is not none and prefix_mask_packages | length > 0
+
+- name: "Update package.unmask file"
+  ansible.builtin.copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/package.unmask"
+    content: "{{ prefix_unmask_packages }}"
+    mode: "0644"
+  when: prefix_unmask_packages is not none and prefix_unmask_packages | length > 0
+
+- name: "Update package.use file"
+  ansible.builtin.copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/package.use"
+    content: "{{ prefix_bootstrap_use_flags }}"
+    mode: "0644"
+  when: prefix_bootstrap_use_flags is not none and prefix_bootstrap_use_flags | length > 0
+
+- name: "Create Portage package.accept_keywords file"
+  ansible.builtin.copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/package.accept_keywords }}"
+    content: "{{ prefix_accept_keywords }}"
+    mode: "0644"
+  when: prefix_accept_keywords is not none and prefix_accept_keywords | length > 0
+
+- name: "Create required subdirectories in $EPREFIX/etc/portage"
+  ansible.builtin.file:
+    path: "{{ gentoo_prefix_path }}/etc/portage/{{ item }}"
+    state: directory
+    mode: "0755"
+  with_items:
+    - make.conf
+    - profile
+
+- name: "Create Portage make.conf files"
+  ansible.builtin.copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/make.conf/{{ item.key }}"
+    content: "{{ item.value }}"
+    mode: "0644"
+  when: item.value is not none and item.value | length > 0
+  loop: "{{ prefix_make_conf_files | dict2items }}"
+
+- name: "Create Portage package.use.mask file"
+  ansible.builtin.copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/profile/package.use.mask }}"
+    content: "{{ prefix_profile_package_use_mask }}"
+    mode: "0644"
+  when: prefix_profile_package_use_mask is not none and prefix_profile_package_use_mask | length > 0
+
+- name: "Create $EPREFIX/etc/portage/env directory and required subdirectories"
+  ansible.builtin.file:
+    path: "{{ gentoo_prefix_path }}/etc/portage/{{ item | dirname }}"
+    state: directory
+    mode: "0755"
+  when: "'/' in item"
+  loop: "{{ prefix_package_env_files.keys() | list }}"
+
+- name: "Create Portage env files"
+  ansible.builtin.copy:
+    dest: "{{ gentoo_prefix_path }}/etc/portage/{{ item.key }}"
+    content: "{{ item.value }}"
+    mode: "0644"
+  when: item.value is not none and item.value | length > 0
+  loop: "{{ prefix_package_env_files | dict2items }}"
+...
