@@ -45,6 +45,7 @@ prefix_bootstrap_use_flags: |
 
 package_sets: []
 prefix_packages:
+  - name: app-arch/p7zip
   - name: app-misc/elfx86exts
     version: 0.6.2
     overlay: eessi
