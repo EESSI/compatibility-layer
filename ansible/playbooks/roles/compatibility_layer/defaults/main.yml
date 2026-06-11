@@ -21,6 +21,8 @@ prefix_required_space: 15 GB
 prefix_user_defined_trusted_dirs: []
 prefix_accept_keywords:
 prefix_make_conf_files:
+    0001_use_rpath.conf: |
+        LDFLAGS="${LDFLAGS} -Wl,-rpath,${EPREFIX}/usr/lib64:${EPREFIX}/usr/lib -Wl,--disable-new-dtags"
 prefix_package_env_files:
     package.env: |
         dev-util/direnv test.conf
