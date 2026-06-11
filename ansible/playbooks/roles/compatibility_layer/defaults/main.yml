@@ -19,6 +19,24 @@ gentoo_git_repo: https://github.com/gentoo/gentoo.git
 gentoo_git_branch: master
 prefix_required_space: 15 GB
 prefix_user_defined_trusted_dirs: []
+prefix_accept_keywords:
+prefix_make_conf_files:
+prefix_package_env_files:
+    package.env: |
+        dev-util/direnv test.conf
+        sys-apps/archspec test.conf
+        sys-cluster/lmod test.conf
+        sys-cluster/reframe test.conf
+    env/test.conf: |
+        FEATURES="test"
+    env/sys-libs/glibc: |
+        # Don't use RPATH for glibc itself
+        LDFLAGS="$(echo \"${LDFLAGS}\" | sed 's|-Wl,-rpath,[^ ]*||g' | sed 's|-Wl,--disable-new-dtags||g')"
+
+prefix_profile_package_use_mask:
+    # unmask the pam USE flag for nss-pam-ldapd and sssd
+    sys-auth/nss-pam-ldapd -pam
+    sys-auth/sssd -pam
 prefix_mask_packages:
 prefix_unmask_packages:
 prefix_bootstrap_use_flags:
