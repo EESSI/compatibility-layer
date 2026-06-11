@@ -18,6 +18,33 @@ gentoo_git_commit: aab8473aa90e0287553b3348a5c5b17872df4b7b
 prefix_user_defined_trusted_dirs:
   - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
 
+prefix_package_env_files:
+    package.env: |
+        dev-util/direnv test.conf
+        sys-apps/archspec test.conf
+        sys-cluster/lmod test.conf
+        sys-cluster/reframe test.conf
+    env/test.conf: |
+        FEATURES="test"
+    env/sys-libs/glibc: |
+        {% raw %}
+        if [[ ${CATEGORY}/${PN} == sys-libs/glibc && ${EBUILD_PHASE} == configure ]]; then
+            cd "${S}"
+            einfo "Deprefixifying hardcoded path for /etc and /var"
+
+            for f in libio/iopopen.c \
+                     shadow/lckpwdf.c resolv/{netdb,resolv}.h elf/rtld.c \
+                     nis/nss_compat/compat-{grp,initgroups,{,s}pwd}.c \
+                     nss/{bug-erange,nss_files/files-{XXX,init{,groups}}}.c \
+                     sysdeps/{{generic,unix/sysv/linux}/paths.h,posix/system.c}
+            do
+                ebegin "  Updating $f"
+                sed -i -r "s,([:\"])${EPREFIX}/(etc|var),\1/\2,g" $f
+                eend $?
+            done
+        fi
+        {% endraw %}
+
 prefix_mask_packages: |
   # stick to GCC 10.x; using a too recent compiler in the compat layer complicates stuff in the software layer,
   # see for example https://github.com/EESSI/software-layer/issues/151
