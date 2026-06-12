@@ -23,7 +23,8 @@
     # So, if we don't want to use variant symlinks, we use the default source by using the part after :- without the ) at the end
     # and we also cut off the path to the defaults directory to get a working symlink, i.e. for the example the result would be
     # /etc/hosts
-    src: "{{ symlink_src if (use_variant_symlinks | default(true)) else (symlink_src | split(':-/cvmfs/' + cvmfs_repository + '/defaults/compat') | last | trim(')')) }}"
+    src: "{{ symlink_src if (use_variant_symlinks | default(true))
+             else (symlink_src | split(':-/cvmfs/' + cvmfs_repository + '/defaults/compat') | last | trim(')')) }}"
     dest: "{{ symlink_dest }}"
     state: link
     force: true
