@@ -5,10 +5,10 @@ eessi_host_os: "linux"
 eessi_host_arch: "x86_64"
 
 custom_overlays:
-  - name: eessi
-    source: git
-    url: https://github.com/EESSI/gentoo-overlay.git
-    eclass-overrides: true
+    - name: eessi
+      source: git
+      url: https://github.com/EESSI/gentoo-overlay.git
+      eclass-overrides: true
 
 cvmfs_repository: software.eessi.io
 
@@ -44,8 +44,8 @@ prefix_unmask_packages:
 prefix_bootstrap_use_flags:
 prefix_use_builtin_bootstrap: false
 prefix_custom_bootstrap_script:
-  local: "{{ playbook_dir }}/../../bootstrap-prefix.sh"
-  remote: /tmp/bootstrap-prefix.sh
+    local: "{{ playbook_dir }}/../../bootstrap-prefix.sh"
+    remote: /tmp/bootstrap-prefix.sh
 prefix_source_options: "{{ gentoo_prefix_path }} noninteractive"
 prefix_install: >-
     {{ prefix_use_builtin_bootstrap | ternary('/usr/local/bin/bootstrap-prefix.sh', prefix_custom_bootstrap_script.remote) }}
@@ -62,11 +62,11 @@ prefix_build_log: "{{ eessi_log_dir }}/prefix-build.log"
 emerge_log: "{{ gentoo_prefix_path }}/var/log/emerge.log"
 
 prefix_locales:
-  - en_US.UTF-8 UTF-8
+    - en_US.UTF-8 UTF-8
 
 # By default, we install an architecture-specific set
 package_sets:
-  - "eessi-{{ eessi_version }}-{{ eessi_host_os }}-{{ eessi_host_arch }}"
+    - "eessi-{{ eessi_version }}-{{ eessi_host_os }}-{{ eessi_host_arch }}"
 
 prefix_packages: []
 prefix_remove_packages: []
