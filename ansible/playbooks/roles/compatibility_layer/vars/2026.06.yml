@@ -5,13 +5,13 @@ eessi_host_os: linux
 eessi_host_arch: "{{ ansible_architecture }}"
 
 custom_overlays:
-  - name: eessi
-    source: git
-    url: https://github.com/EESSI/gentoo-overlay.git
-    eclass-overrides: true
-    autosync: false
-    branch: main
-    commit: 35d807fb15a692741723a9cca916d488a518fc7e
+    - name: eessi
+      source: git
+      url: https://github.com/EESSI/gentoo-overlay.git
+      eclass-overrides: true
+      autosync: false
+      branch: main
+      commit: 35d807fb15a692741723a9cca916d488a518fc7e
 
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
@@ -19,91 +19,91 @@ custom_overlays:
 gentoo_git_commit: 3929f73cfa2ed59a49770d07245143443db7f7c6
 
 prefix_user_defined_trusted_dirs:
-  - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/override"
-  - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/nvidia"
-  - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/amd"
+    - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/override"
+    - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/nvidia"
+    - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/amd"
 
 prefix_mask_packages: |
-  # stick to GCC 14.x; using a too recent compiler in the compat layer may complicate stuff in the software layer,
-  # see for example https://github.com/EESSI/software-layer/issues/151
-  >=sys-devel/gcc-15
+    # stick to GCC 14.x; using a too recent compiler in the compat layer may complicate stuff in the software layer,
+    # see for example https://github.com/EESSI/software-layer/issues/151
+    >=sys-devel/gcc-15
 
 prefix_unmask_packages: |
-  # if necessary, unmask for instance an older GCC to make it installable
+    # if necessary, unmask for instance an older GCC to make it installable
 
 prefix_bootstrap_use_flags: |
-  # only build libnss, don't build the daemon (use the one from the host)
-  sys-auth/nss-pam-ldapd -nslcd
-  # don't build the SSSD daemon (and man pages) either
-  sys-auth/sssd -daemon -man
-  # only install Python 3.13
-  */* PYTHON_TARGETS: -* python3_13
-  */* PYTHON_SINGLE_TARGET: -* python3_13
-  # Modules: disable installation of man pages and shell setup files to be able
-  # to also install Lmod. enable *conflict unload* and *require via* features.
-  sys-cluster/modules -shell-setup -man-install +new-features
+    # only build libnss, don't build the daemon (use the one from the host)
+    sys-auth/nss-pam-ldapd -nslcd
+    # don't build the SSSD daemon (and man pages) either
+    sys-auth/sssd -daemon -man
+    # only install Python 3.13
+    */* PYTHON_TARGETS: -* python3_13
+    */* PYTHON_SINGLE_TARGET: -* python3_13
+    # Modules: disable installation of man pages and shell setup files to be able
+    # to also install Lmod. enable *conflict unload* and *require via* features.
+    sys-cluster/modules -shell-setup -man-install +new-features
 
 package_sets: []
 prefix_packages:
-  - name: app-arch/7zip
-  - name: app-misc/elfx86exts
-    version: 0.6.2
-    overlay: eessi
-  - name: app-shells/bash-completion
-  - name: dev-python/pip
-  - name: dev-python/pycodestyle
-  - name: dev-python/pyyaml
-  - name: dev-python/rich
-  - name: dev-util/direnv
-    version: 2.37.1
-    overlay: eessi
-  - name: dev-util/patchelf
-  - name: dev-vcs/git-lfs
-  - name: media-fonts/dejavu
-  - name: media-fonts/liberation-fonts
-  - name: sys-apps/archspec
-    version: 0.2.6
-    overlay: eessi
-  - name: sys-apps/dbus
-  - name: sys-auth/nss-pam-ldapd
-    version: 0.9.13
-    overlay: eessi
-  - name: sys-auth/munge
-    version: 0.5.18
-    overlay: eessi
-  - name: sys-auth/sssd
-    version: 2.13.0
-    overlay: eessi
-  - name: sys-cluster/lmod
-  - name: sys-cluster/modules
-    version: 5.6.1
-    overlay: eessi
-  - name: sys-cluster/rdma-core
-    exclude_on:
-      - macos-aarch64
-      - macos-x86_64
-  - name: sys-fabric/opa-psm2
-    version: 12.0.1
-    overlay: eessi
-    include_on:
-      - linux-x86_64
-  - name: sys-libs/pam
-    exclude_on:
-      - macos-aarch64
-      - macos-x86_64
-  - name: sys-process/numactl
+    - name: app-arch/7zip
+    - name: app-misc/elfx86exts
+      version: 0.6.2
+      overlay: eessi
+    - name: app-shells/bash-completion
+    - name: dev-python/pip
+    - name: dev-python/pycodestyle
+    - name: dev-python/pyyaml
+    - name: dev-python/rich
+    - name: dev-util/direnv
+      version: 2.37.1
+      overlay: eessi
+    - name: dev-util/patchelf
+    - name: dev-vcs/git-lfs
+    - name: media-fonts/dejavu
+    - name: media-fonts/liberation-fonts
+    - name: sys-apps/archspec
+      version: 0.2.6
+      overlay: eessi
+    - name: sys-apps/dbus
+    - name: sys-auth/nss-pam-ldapd
+      version: 0.9.13
+      overlay: eessi
+    - name: sys-auth/munge
+      version: 0.5.18
+      overlay: eessi
+    - name: sys-auth/sssd
+      version: 2.13.0
+      overlay: eessi
+    - name: sys-cluster/lmod
+    - name: sys-cluster/modules
+      version: 5.6.1
+      overlay: eessi
+    - name: sys-cluster/rdma-core
+      exclude_on:
+          - macos-aarch64
+          - macos-x86_64
+    - name: sys-fabric/opa-psm2
+      version: 12.0.1
+      overlay: eessi
+      include_on:
+          - linux-x86_64
+    - name: sys-libs/pam
+      exclude_on:
+          - macos-aarch64
+          - macos-x86_64
+    - name: sys-process/numactl
 
 prefix_remove_packages:
-  - app-eselect/eselect-rust
-  - dev-lang/go
-  - dev-lang/go-bootstrap
-  - dev-lang/rust
-  - dev-lang/rust-bin
-  - dev-python/setuptools-rust
-  - dev-util/cmake
-  - dev-util/hermes
-  - dev-util/ninja
-  - virtual/rust
+    - app-eselect/eselect-rust
+    - dev-lang/go
+    - dev-lang/go-bootstrap
+    - dev-lang/rust
+    - dev-lang/rust-bin
+    - dev-python/setuptools-rust
+    - dev-util/cmake
+    - dev-util/hermes
+    - dev-util/ninja
+    - virtual/rust
 
 # version of ReFrame to use for running the tests
 # stick to 4.9.3 for now, as 4.10.0 required a newer Rust in the container
@@ -112,107 +112,107 @@ reframe_version: 4.9.3
 # List of locations that should get a (variant) symlink $EPREFIX/$LOCATION -> $LOCATION.
 # This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.
 symlinks_to_host:
-  # AMD trusted dir, see prefix_user_defined_trusted_dirs
-  - dest: "{{ gentoo_prefix_path }}/lib/amd"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_AMD_OVERRIDE:-/cvmfs/{{ cvmfs_repository }}/defaults/amd)"
+    # AMD trusted dir, see prefix_user_defined_trusted_dirs
+    - dest: "{{ gentoo_prefix_path }}/lib/amd"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_AMD_OVERRIDE:-/cvmfs/{{ cvmfs_repository }}/defaults/amd)"
 
-  # NVIDIA trusted dir, see prefix_user_defined_trusted_dirs
-  - dest: "{{ gentoo_prefix_path }}/lib/nvidia"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_NVIDIA_OVERRIDE:-/cvmfs/{{ cvmfs_repository }}/defaults/nvidia)"
+    # NVIDIA trusted dir, see prefix_user_defined_trusted_dirs
+    - dest: "{{ gentoo_prefix_path }}/lib/nvidia"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_NVIDIA_OVERRIDE:-/cvmfs/{{ cvmfs_repository }}/defaults/nvidia)"
 
-  # generic override trusted dir, see prefix_user_defined_trusted_dirs
-  - dest: "{{ gentoo_prefix_path }}/lib/override"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_LIB_OVERRIDE:-/cvmfs/{{ cvmfs_repository }}/defaults/override)"
+    # generic override trusted dir, see prefix_user_defined_trusted_dirs
+    - dest: "{{ gentoo_prefix_path }}/lib/override"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_LIB_OVERRIDE:-/cvmfs/{{ cvmfs_repository }}/defaults/override)"
 
-  # required to ensure local user groups are known
-  - dest: "{{ gentoo_prefix_path }}/etc/ethers"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_ETHERS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/ethers)"
+    # required to ensure local user groups are known
+    - dest: "{{ gentoo_prefix_path }}/etc/ethers"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_ETHERS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/ethers)"
 
-  - dest: "{{ gentoo_prefix_path }}/etc/fstab"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_FSTAB:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/fstab)"
+    - dest: "{{ gentoo_prefix_path }}/etc/fstab"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_FSTAB:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/fstab)"
 
-  - dest: "{{ gentoo_prefix_path }}/etc/group"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_GROUP:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/group)"
+    - dest: "{{ gentoo_prefix_path }}/etc/group"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_GROUP:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/group)"
 
-  - dest: "{{ gentoo_prefix_path }}/etc/gshadow"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_GSHADOW:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/gshadow)"
+    - dest: "{{ gentoo_prefix_path }}/etc/gshadow"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_GSHADOW:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/gshadow)"
 
-  # required to ensure that hosts specified in the host's hosts file can be resolved by tools in the Prefix
-  - dest: "{{ gentoo_prefix_path }}/etc/hosts"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_HOSTS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/hosts)"
+    # required to ensure that hosts specified in the host's hosts file can be resolved by tools in the Prefix
+    - dest: "{{ gentoo_prefix_path }}/etc/hosts"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_HOSTS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/hosts)"
 
-  - dest: "{{ gentoo_prefix_path }}/etc/hosts.equiv"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_HOSTS_EQUIV:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/hosts.equiv)"
+    - dest: "{{ gentoo_prefix_path }}/etc/hosts.equiv"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_HOSTS_EQUIV:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/hosts.equiv)"
 
-#  - dest: "{{ gentoo_prefix_path }}/etc/ld.so.preload"
-#    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_LD_SO_PRELOAD:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/ld.so.preload)"
+    # - dest: "{{ gentoo_prefix_path }}/etc/ld.so.preload"
+    #   src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_LD_SO_PRELOAD:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/ld.so.preload)"
 
-  # required to pick up the right timezone from the host
-  - dest: "{{ gentoo_prefix_path }}/etc/localtime"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_LOCALTIME:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/localtime)"
+    # required to pick up the right timezone from the host
+    - dest: "{{ gentoo_prefix_path }}/etc/localtime"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_LOCALTIME:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/localtime)"
 
-  - dest: "{{ gentoo_prefix_path }}/etc/netgroup"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_NETGROUP:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/netgroup)"
+    - dest: "{{ gentoo_prefix_path }}/etc/netgroup"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_NETGROUP:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/netgroup)"
 
-  - dest: "{{ gentoo_prefix_path }}/etc/networks"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_NETWORKS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/networks)"
+    - dest: "{{ gentoo_prefix_path }}/etc/networks"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_NETWORKS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/networks)"
 
-  # required to ensure name-service information is taken from the right source (e.g. ldap)
-  - dest: "{{ gentoo_prefix_path }}/etc/nsswitch.conf"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_NSSWITCH_CONF:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/nsswitch.conf)"
+    # required to ensure name-service information is taken from the right source (e.g. ldap)
+    - dest: "{{ gentoo_prefix_path }}/etc/nsswitch.conf"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_NSSWITCH_CONF:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/nsswitch.conf)"
 
-  # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
-  - dest: "{{ gentoo_prefix_path }}/etc/passwd"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_PASSWD:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/passwd)"
+    # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
+    - dest: "{{ gentoo_prefix_path }}/etc/passwd"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_PASSWD:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/passwd)"
 
-  - dest: "{{ gentoo_prefix_path }}/etc/protocols"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_PROTOCOLS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/protocols)"
+    - dest: "{{ gentoo_prefix_path }}/etc/protocols"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_PROTOCOLS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/protocols)"
 
-  # required to use the DNS resolver from the host (should be done automatically)
-  - dest: "{{ gentoo_prefix_path }}/etc/resolv.conf"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_RESOLV_CONF:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/resolv.conf)"
+    # required to use the DNS resolver from the host (should be done automatically)
+    - dest: "{{ gentoo_prefix_path }}/etc/resolv.conf"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_RESOLV_CONF:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/resolv.conf)"
 
-  - dest: "{{ gentoo_prefix_path }}/etc/rpc"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_RPC:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/rpc)"
+    - dest: "{{ gentoo_prefix_path }}/etc/rpc"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_RPC:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/rpc)"
 
-  - dest: "{{ gentoo_prefix_path }}/etc/services"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_SERVICES:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/services)"
+    - dest: "{{ gentoo_prefix_path }}/etc/services"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_SERVICES:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/services)"
 
-  - dest: "{{ gentoo_prefix_path }}/etc/shadow"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_SHADOW:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/shadow)"
+    - dest: "{{ gentoo_prefix_path }}/etc/shadow"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_ETC_SHADOW:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/etc/shadow)"
 
-  - dest: "{{ gentoo_prefix_path }}/usr/sbin/sendmail"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_SENDMAIL:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/usr/sbin/sendmail)"
+    - dest: "{{ gentoo_prefix_path }}/usr/sbin/sendmail"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_SENDMAIL:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/usr/sbin/sendmail)"
 
-  - dest: "{{ gentoo_prefix_path }}/var/db/passwd.db"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_DB_PASSWD_DB:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/db/passwd.db)"
+    - dest: "{{ gentoo_prefix_path }}/var/db/passwd.db"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_DB_PASSWD_DB:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/db/passwd.db)"
 
-  - dest: "{{ gentoo_prefix_path }}/var/lib/sss"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_LIB_SSS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/lib/sss)"
+    - dest: "{{ gentoo_prefix_path }}/var/lib/sss"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_LIB_SSS:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/lib/sss)"
 
-  - dest: "{{ gentoo_prefix_path }}/var/log/lastlog"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_LOG_LASTLOG:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/log/lastlog)"
+    - dest: "{{ gentoo_prefix_path }}/var/log/lastlog"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_LOG_LASTLOG:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/log/lastlog)"
 
-  # required by the last command
-  - dest: "{{ gentoo_prefix_path }}/var/log/wtmp"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_LOG_WTMP:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/log/wtmp)"
+    # required by the last command
+    - dest: "{{ gentoo_prefix_path }}/var/log/wtmp"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_LOG_WTMP:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/log/wtmp)"
 
-  - dest: "{{ gentoo_prefix_path }}/var/mail"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_MAIL:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/mail)"
+    - dest: "{{ gentoo_prefix_path }}/var/mail"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_MAIL:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/mail)"
 
-  # required to make runtime data available for lots of tools (including who and w)
-  - dest: "{{ gentoo_prefix_path }}/var/run"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_RUN:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/run)"
+    # required to make runtime data available for lots of tools (including who and w)
+    - dest: "{{ gentoo_prefix_path }}/var/run"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_RUN:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/run)"
 
-  - dest: "{{ gentoo_prefix_path }}/var/spool/rwho"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_SPOOL_RWHO:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/spool/rwho)"
+    - dest: "{{ gentoo_prefix_path }}/var/spool/rwho"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_SPOOL_RWHO:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/spool/rwho)"
 
-  - dest: "{{ gentoo_prefix_path }}/var/tmp"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_TMP:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/tmp)"
+    - dest: "{{ gentoo_prefix_path }}/var/tmp"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_TMP:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/var/tmp)"
 
-  # required if Centrify is used in nsswitch.conf
-  - dest: "{{ gentoo_prefix_path }}/lib64/libnss_centrifydc.so.2"
-    src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_LIBNSS_CENTRIFYDB:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/lib64/libnss_centrifydc.so.2)"
+    # required if Centrify is used in nsswitch.conf
+    - dest: "{{ gentoo_prefix_path }}/lib64/libnss_centrifydc.so.2"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_LIBNSS_CENTRIFYDB:-/cvmfs/{{ cvmfs_repository }}/defaults/compat/lib64/libnss_centrifydc.so.2)"
 
 #  - /var/lib/munge
 #  - /var/lib/unbound
