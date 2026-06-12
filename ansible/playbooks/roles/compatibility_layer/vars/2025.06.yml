@@ -3,10 +3,10 @@
 eessi_version: "2025.06"
 
 custom_overlays:
-  - name: eessi
-    source: git
-    url: https://github.com/EESSI/gentoo-overlay.git
-    eclass-overrides: true
+    - name: eessi
+      source: git
+      url: https://github.com/EESSI/gentoo-overlay.git
+      eclass-overrides: true
 
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
@@ -14,9 +14,9 @@ custom_overlays:
 gentoo_git_commit: 083e38cef302128d595e9f9cfd029ad8f67ec2b7
 
 prefix_user_defined_trusted_dirs:
-  - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/override"
-  - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/nvidia"
-  - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/amd"
+    - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/override"
+    - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/nvidia"
+    - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/amd"
 
 prefix_make_conf_files:
 
@@ -48,72 +48,72 @@ prefix_package_env_files:
         {% endraw %}
 
 prefix_mask_packages: |
-  # stick to GCC 13.x; using a too recent compiler in the compat layer may complicate stuff in the software layer,
-  # see for example https://github.com/EESSI/software-layer/issues/151
-  >=sys-devel/gcc-14
+    # stick to GCC 13.x; using a too recent compiler in the compat layer may complicate stuff in the software layer,
+    # see for example https://github.com/EESSI/software-layer/issues/151
+    >=sys-devel/gcc-14
 
 prefix_unmask_packages: |
-  # if necessary, unmask for instance an older GCC to make it installable
+    # if necessary, unmask for instance an older GCC to make it installable
 
 prefix_bootstrap_use_flags: |
-  # only build libnss, don't build the daemon (use the one from the host)
-  sys-auth/nss-pam-ldapd -nslcd
-  # don't build the SSSD daemon (and man pages) either
-  sys-auth/sssd -daemon -man
-  # only install Python 3.13
-  */* PYTHON_TARGETS: -* python3_13
-  */* PYTHON_SINGLE_TARGET: -* python3_13
-  # Modules: disable installation of man pages and shell setup files to be able
-  # to also install Lmod. enable *conflict unload* and *require via* features.
-  sys-cluster/modules -shell-setup -man-install +new-features
+    # only build libnss, don't build the daemon (use the one from the host)
+    sys-auth/nss-pam-ldapd -nslcd
+    # don't build the SSSD daemon (and man pages) either
+    sys-auth/sssd -daemon -man
+    # only install Python 3.13
+    */* PYTHON_TARGETS: -* python3_13
+    */* PYTHON_SINGLE_TARGET: -* python3_13
+    # Modules: disable installation of man pages and shell setup files to be able
+    # to also install Lmod. enable *conflict unload* and *require via* features.
+    sys-cluster/modules -shell-setup -man-install +new-features
 
 prefix_remove_packages:
-  - app-eselect/eselect-rust
-  - dev-lang/go
-  - dev-lang/go-bootstrap
-  - dev-lang/rust
-  - dev-lang/rust-bin
-  - dev-python/setuptools-rust
-  - dev-util/cmake
-  - dev-util/hermes
-  - dev-util/ninja
-  - virtual/rust
+    - app-eselect/eselect-rust
+    - dev-lang/go
+    - dev-lang/go-bootstrap
+    - dev-lang/rust
+    - dev-lang/rust-bin
+    - dev-python/setuptools-rust
+    - dev-util/cmake
+    - dev-util/hermes
+    - dev-util/ninja
+    - virtual/rust
 
 # List of locations that should get a symlink $EPREFIX/$LOCATION -> $LOCATION.
 # This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.
 symlinks_to_host:
-  # required to ensure local user groups are known
-  - /etc/group
+    # required to ensure local user groups are known
+    - /etc/group
 
-  # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
-  - /etc/passwd
+    # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
+    - /etc/passwd
 
-  # required to ensure that hosts specified in the host's hosts file can be resolved by tools in the Prefix
-  - /etc/hosts
+    # required to ensure that hosts specified in the host's hosts file can be resolved by tools in the Prefix
+    - /etc/hosts
 
-  # required to ensure name-service information is taken from the right source (e.g. ldap)
-  # - /etc/nsswitch.conf
+    # required to ensure name-service information is taken from the right source (e.g. ldap)
+    # - /etc/nsswitch.conf
 
-  # required to use the DNS resolver from the host (should be done automatically)
-  - /etc/resolv.conf
+    # required to use the DNS resolver from the host (should be done automatically)
+    - /etc/resolv.conf
 
-  # required to pick up the right timezone from the host
-  - /etc/localtime
+    # required to pick up the right timezone from the host
+    - /etc/localtime
 
-  # required if Centrify is used in nsswitch.conf
-  - /lib64/libnss_centrifydc.so.2
+    # required if Centrify is used in nsswitch.conf
+    - /lib64/libnss_centrifydc.so.2
 
-  # required if LDAP is used in nsswitch.conf
-  # - /lib64/libnss_ldap.so.2
+    # required if LDAP is used in nsswitch.conf
+    # - /lib64/libnss_ldap.so.2
 
-  # required if SSSD is used in nsswitch.conf
-  # - /lib64/libnss_sss.so.2
+    # required if SSSD is used in nsswitch.conf
+    # - /lib64/libnss_sss.so.2
 
-  # required to make runtime data available for lots of tools (including who and w)
-  # - /var/run
+    # required to make runtime data available for lots of tools (including who and w)
+    # - /var/run
 
-  # required by the last command
-  # - /var/log/wtmp
+    # required by the last command
+    # - /var/log/wtmp
 
 #  - /var/lib/munge
 #  - /var/lib/unbound
