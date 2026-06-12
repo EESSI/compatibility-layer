@@ -240,7 +240,7 @@ class GlibcEnvFileTest(RunInGentooPrefixTest):
             trusted_dirs = [os.path.join(self.compat_dir, 'lib', subdir) for subdir in ['override', 'nvidia', 'amd']]
 
         self.sanity_patterns = sn.assert_found(
-            f'user-defined-trusted-dirs={trusted_dir}',
+            f'user-defined-trusted-dirs={trusted_dirs}',
             self.stdout
         )
 
