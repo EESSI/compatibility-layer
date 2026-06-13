@@ -212,9 +212,14 @@ symlinks_to_host:
 
     # required if Centrify is used in nsswitch.conf
     - dest: "{{ gentoo_prefix_path }}/lib64/libnss_centrifydc.so.2"
-      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_LIBNSS_CENTRIFYDB:-
-            /cvmfs/{{ cvmfs_repository }}/defaults/compat/lib64/libnss_centrifydc.so.2)"
-
+      src: >-
+          {{
+              '$(EESSI_' ~
+              (eessi_version | replace('.', '')) ~
+              '_COMPAT_LIBNSS_CENTRIFYDB:-/cvmfs/' ~
+              cvmfs_repository ~
+              '/defaults/compat/lib64/libnss_centrifydc.so.2)'
+          }}
 #  - /var/lib/munge
 #  - /var/lib/unbound
 #  - /var/lib/VirtualGL
