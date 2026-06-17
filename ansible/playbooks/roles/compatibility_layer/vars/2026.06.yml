@@ -11,12 +11,13 @@ custom_overlays:
       eclass-overrides: true
       autosync: false
       branch: main
-      commit: 35d807fb15a692741723a9cca916d488a518fc7e
+      # 17 Jun 2026: commit that includes SSSD 2.13.1
+      commit: ea41ecc9572555ee8c0a6f2cafff7bef08b32f01
 
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
-# May 29 2026: commit that includes Lmod 9.2.2 and a crates.io rate limit fix (by using its CDN)
-gentoo_git_commit: 3929f73cfa2ed59a49770d07245143443db7f7c6
+# Jun 17 2026: commit that includes Lmod 9.2.4 and a crates.io rate limit fix (by using its CDN)
+gentoo_git_commit: 91ee4d032fd7b2cf2704f542c78ec12899016bef
 
 prefix_user_defined_trusted_dirs:
     - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/override"
