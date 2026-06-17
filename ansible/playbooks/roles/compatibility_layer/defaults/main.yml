@@ -37,7 +37,7 @@ prefix_package_env_files:
         # Don't use RPATH for glibc itself
         LDFLAGS="$(echo \"${LDFLAGS}\" | sed 's|-Wl,-rpath,[^ ]*||g' | sed 's|-Wl,--disable-new-dtags||g')"
 
-prefix_profile_package_use_mask:
+prefix_profile_package_use_mask: |
     # unmask the pam USE flag for nss-pam-ldapd and sssd
     sys-auth/nss-pam-ldapd -pam
     sys-auth/sssd -pam
