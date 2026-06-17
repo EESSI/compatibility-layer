@@ -73,7 +73,7 @@ prefix_packages:
       version: 0.5.18
       overlay: eessi
     - name: sys-auth/sssd
-      version: 2.13.0
+      version: 2.13.1
       overlay: eessi
     - name: sys-cluster/lmod
     - name: sys-cluster/modules
