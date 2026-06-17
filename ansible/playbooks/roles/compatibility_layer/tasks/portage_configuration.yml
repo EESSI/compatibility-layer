@@ -46,7 +46,7 @@
 
 - name: "Create Portage package.use.mask file"
   ansible.builtin.copy:
-    dest: "{{ gentoo_prefix_path }}/etc/portage/profile/package.use.mask }}"
+    dest: "{{ gentoo_prefix_path }}/etc/portage/profile/package.use.mask"
     content: "{{ prefix_profile_package_use_mask }}"
     mode: "0644"
   when: prefix_profile_package_use_mask is not none and prefix_profile_package_use_mask | length > 0
