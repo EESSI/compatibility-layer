@@ -63,7 +63,7 @@
 - name: Replace regular symlinks to host files by variant symlinks
   ansible.builtin.include_tasks: create_host_symlinks.yml
   vars:
-    use_variant_symlinks: "{{ use_variant_symlinks | default(true) | bool }}"
+    use_variant_symlinks: "{{ create_variant_symlinks | default(true) | bool }}"
 
 - name: Save reproducibility information for this build
   ansible.builtin.include_tasks: reprod.yml
