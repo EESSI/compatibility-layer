@@ -31,11 +31,15 @@ prefix_package_env_files:
         sys-apps/archspec test.conf
         sys-cluster/lmod test.conf
         sys-cluster/reframe test.conf
-    env/test.conf: |
-        FEATURES="test"
+    env/sys-cluster/rdma-core-63.0: |
+        post_src_unpack () {
+            sed -i "s@/usr/lib/sysusers.d@${EPREFIX}/usr/lib/sysusers.d@" "$S/CMakeLists.txt"
+        }
     env/sys-libs/glibc: |
         # Don't use RPATH for glibc itself
         LDFLAGS="$(echo \"${LDFLAGS}\" | sed 's|-Wl,-rpath,[^ ]*||g' | sed 's|-Wl,--disable-new-dtags||g')"
+    env/test.conf: |
+        FEATURES="test"
 
 prefix_profile_package_use_mask: |
     # unmask the pam USE flag for nss-pam-ldapd and sssd
