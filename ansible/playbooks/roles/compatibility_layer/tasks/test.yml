@@ -13,6 +13,7 @@
 - name: Install Reframe using pip if it's not installed yet
   ansible.builtin.pip:
     name: ReFrame-HPC
+    version: "{{ reframe_version | default(omit) }}"
     virtualenv: "{{ reframe_venv_dir }}"
     virtualenv_command: python3 -m venv
     state: forcereinstall

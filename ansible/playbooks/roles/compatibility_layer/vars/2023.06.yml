@@ -1,0 +1,128 @@
+# Vars file for the compatibility layer of EESSI version 2023.06
+---
+eessi_version: "2023.06"
+
+custom_overlays:
+    - name: eessi
+      source: git
+      url: https://github.com/EESSI/gentoo-overlay.git
+      eclass-overrides: true
+
+# Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
+# e.g. by checking: https://github.com/gentoo/gentoo/commits/master
+# April 17 (29492845e41ea6a0a4a9769c7e0ce287d106079b) commit is after fix for Lmod
+# gentoo_git_commit: 29492845e41ea6a0a4a9769c7e0ce287d106079b
+# June 8 (aab8473aa90e0287553b3348a5c5b17872df4b7b) commit that was current when fetching luaposix
+gentoo_git_commit: aab8473aa90e0287553b3348a5c5b17872df4b7b
+
+prefix_user_defined_trusted_dirs:
+    - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
+
+prefix_make_conf_files:
+
+prefix_package_env_files:
+    package.env: |
+        dev-util/direnv test.conf
+        sys-apps/archspec test.conf
+        sys-cluster/lmod test.conf
+        sys-cluster/reframe test.conf
+    env/test.conf: |
+        FEATURES="test"
+    env/sys-libs/glibc: |
+        {% raw %}
+        if [[ ${CATEGORY}/${PN} == sys-libs/glibc && ${EBUILD_PHASE} == configure ]]; then
+            cd "${S}"
+            einfo "Deprefixifying hardcoded path for /etc and /var"
+
+            for f in libio/iopopen.c \
+                     shadow/lckpwdf.c resolv/{netdb,resolv}.h elf/rtld.c \
+                     nis/nss_compat/compat-{grp,initgroups,{,s}pwd}.c \
+                     nss/{bug-erange,nss_files/files-{XXX,init{,groups}}}.c \
+                     sysdeps/{{generic,unix/sysv/linux}/paths.h,posix/system.c}
+            do
+                ebegin "  Updating $f"
+                sed -i -r "s,([:\"])${EPREFIX}/(etc|var),\1/\2,g" $f
+                eend $?
+            done
+        fi
+        {% endraw %}
+
+prefix_mask_packages: |
+    # stick to GCC 10.x; using a too recent compiler in the compat layer complicates stuff in the software layer,
+    # see for example https://github.com/EESSI/software-layer/issues/151
+    >=sys-devel/gcc-11
+    # mask OpenSSL 3.x, stick to OpenSSL 1.1.x for now to avoid problems with:
+    # - older versions of Rust (see https://github.com/EESSI/software-layer/issues/257)
+    # - older versions of cryptograhy in Python (see https://github.com/EESSI/software-layer/issues/258)
+    >=dev-libs/openssl-3
+
+prefix_unmask_packages: |
+    # unmask older GCC to make it installable
+    =sys-devel/gcc-9*
+
+prefix_bootstrap_use_flags: |
+    # only build libnss, don't build the daemon (use the one from the host)
+    sys-auth/nss-pam-ldapd -nslcd
+    # don't build the SSSD daemon (and man pages) either
+    sys-auth/sssd -daemon -man
+    # make sure that gold linker is installed with binutils
+    sys-devel/binutils gold
+    # only install Python 3.11
+    */* PYTHON_TARGETS: -* python3_11
+    */* PYTHON_SINGLE_TARGET: -* python3_11
+
+prefix_remove_packages:
+    - app-eselect/eselect-rust
+    - dev-lang/go
+    - dev-lang/go-bootstrap
+    - dev-lang/rust
+    - dev-lang/rust-bin
+    - dev-python/setuptools-rust
+    - dev-util/cmake
+    - dev-util/ninja
+    - virtual/rust
+
+# List of locations that should get a symlink $EPREFIX/$LOCATION -> $LOCATION.
+# This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.
+symlinks_to_host:
+    # required to ensure local user groups are known
+    - /etc/group
+
+    # required to ensure local users are known (see https://github.com/EESSI/compatibility-layer/issues/15)
+    - /etc/passwd
+
+    # required to ensure that hosts specified in the host's hosts file can be resolved by tools in the Prefix
+    - /etc/hosts
+
+    # required to ensure name-service information is taken from the right source (e.g. ldap)
+    # - /etc/nsswitch.conf
+
+    # required to use the DNS resolver from the host (should be done automatically)
+    - /etc/resolv.conf
+
+    # required to pick up the right timezone from the host
+    - /etc/localtime
+
+    # required if Centrify is used in nsswitch.conf
+    - /lib64/libnss_centrifydc.so.2
+
+    # required if LDAP is used in nsswitch.conf
+    # - /lib64/libnss_ldap.so.2
+
+    # required if SSSD is used in nsswitch.conf
+    # - /lib64/libnss_sss.so.2
+
+    # required to make runtime data available for lots of tools (including who and w)
+    # - /var/run
+
+    # required by the last command
+    # - /var/log/wtmp
+
+#  - /var/lib/munge
+#  - /var/lib/unbound
+#  - /var/lib/VirtualGL
+#  - /var/log/munge
+#  - /var/spool
+#  - /var/tmp
+#  - /run/dbus
+#  - /tmp

@@ -29,25 +29,21 @@
         selectattr('eclass-overrides', 'equalto', True) | map(attribute='name') | join(' ')
       }}
 
+- name: "Import the task for checking out the specific commit of git-based overlays"
+  ansible.builtin.include_tasks: sync_git_overlay.yml
+  vars:
+    gitrepo: "{{ item }}"
+  # also include the Gentoo git repo here in case we want to switch to a different commit
+  loop: >-
+    {{
+      custom_overlays | selectattr('source', 'equalto', 'git') +
+      [{'name': 'gentoo', 'url': gentoo_git_repo, 'branch': gentoo_git_branch, 'commit': gentoo_git_commit}]
+    }}
+
 # We do an explicit sync here (instead of using a handler),
-# so we can be sure that the overlays are up-to-date.
-- name: Sync the overlays to make sure that they are up to date
+# so we can be sure that non-git overlays are also up-to-date.
+- name: Sync overlays with auto-sync enabled to make sure that they are up to date
   community.general.portage:
     sync: 'yes'
     verbose: true
-
-- name: Find all files and directories in the etc/portage directory of the overlay
-  ansible.builtin.find:
-    file_type: any
-    paths: "{{ gentoo_prefix_path }}/var/db/repos/{{ item.name }}/etc/portage"
-  loop: "{{ custom_overlays }}"
-  register: find_configs
-
-- name: Make symlinks to the portage settings in the custom overlay
-  ansible.builtin.file:
-    src: "{{ item.path }}"
-    dest: "{{ gentoo_prefix_path }}/etc/portage/{{ item.path | basename }}"
-    state: link
-    force: true
-  with_items:
-    "{{ find_configs.results | rejectattr('files', 'equalto', []) | map(attribute='files') | list }}"
+...

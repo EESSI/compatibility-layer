@@ -124,6 +124,8 @@ class LmodTest(RunInGentooPrefixTest):
 @rfm.simple_test
 class EessiSetTest(RunInGentooPrefixTest):
     def __init__(self):
+        # Only EESSI 2025.06 and older used package sets
+        self.skip_if(self.eessi_version not in ['2023.06', '2025.06'])
         super().__init__()
         self.descr = 'Test whether a EESSI set is available for the given architecture, operating system, and version.'
         self.command = 'emerge --list-sets'
@@ -137,6 +139,8 @@ class EessiSetTest(RunInGentooPrefixTest):
 @rfm.simple_test
 class EessiSetInstalledTest(RunInGentooPrefixTest):
     def __init__(self):
+        # Only EESSI 2025.06 and older used package sets
+        self.skip_if(self.eessi_version not in ['2023.06', '2025.06'])
         super().__init__()
         self.descr = 'Test whether a the packages of the EESSI set have been installed.'
         self.command = 'qlist -IRv'
@@ -183,7 +187,8 @@ class SymlinksToHostFilesTest(RunInGentooPrefixTest):
         super().__init__()
         self.descr = 'Verify that all required symlinks to host files have been created.'
         symlink_path = os.path.join(self.compat_dir, self.symlink_to_host)
-        self.command = f'readlink {symlink_path}'
+        # cut off variant symlink output
+        self.command = f"readlink {symlink_path} | sed 's/\$(.*):-//'"
         self.sanity_patterns = sn.all([
             sn.assert_eq(self.exit_code, 0),
             sn.assert_found(f'\n/{self.symlink_to_host}\n', self.stdout),
@@ -235,7 +240,7 @@ class GlibcEnvFileTest(RunInGentooPrefixTest):
             trusted_dirs = [os.path.join(self.compat_dir, 'lib', subdir) for subdir in ['override', 'nvidia', 'amd']]
 
         self.sanity_patterns = sn.assert_found(
-            f'user-defined-trusted-dirs={trusted_dir}',
+            f'user-defined-trusted-dirs={trusted_dirs}',
             self.stdout
         )
 

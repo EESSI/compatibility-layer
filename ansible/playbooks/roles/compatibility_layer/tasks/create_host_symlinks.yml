@@ -1,16 +1,16 @@
-# Replace a list of files/directories in Gentoo Prefix installation by symlinks to corresponding files/directories
+# Replace a list of files/directories in Gentoo Prefix installation by (variant) symlinks to corresponding files/directories
 # on the host in order to solve some common issues.
 ---
 
 - name: Check type of original files/directories
   ansible.builtin.stat:
-    path: "{{ gentoo_prefix_path }}{{ item }}"
+    path: "{{ item.dest if item is mapping else gentoo_prefix_path + item }}"
   with_items: "{{ symlinks_to_host }}"
   register: orig_types
 
 - name: Remove original files/directories
   ansible.builtin.file:
-    path: "{{ gentoo_prefix_path }}{{ item.item }}"
+    path: "{{ item.item.dest if item is mapping else gentoo_prefix_path + item.item }}"
     state: absent
   with_items: "{{ orig_types.results }}"
   when:
@@ -19,8 +19,18 @@
 
 - name: Make symlinks
   ansible.builtin.file:
-    src: "{{ item }}"
-    dest: "{{ gentoo_prefix_path }}{{ item }}"
+    # Variant symlink destinations look like: $(EESSI_202606_COMPAT_ETC_HOSTS:-/cvmfs/software.eessi.io/defaults/compat/etc/hosts)
+    # So, if we don't want to use variant symlinks, we use the default source by using the part after :- without the ) at the end
+    # and we also cut off the path to the defaults directory to get a working symlink, i.e. for the example the result would be
+    # /etc/hosts
+    src: "{{ symlink_src if (use_variant_symlinks | default(true) | bool)
+             else (symlink_src | split(':-/cvmfs/' + cvmfs_repository + '/defaults/compat') | last | trim(')')) }}"
+    dest: "{{ symlink_dest }}"
     state: link
     force: true
+  vars:
+    # If the list item is a string, the symlink is assumed to be like /dir/file -> $EPREFIX/dir/file.
+    # Otherwise, it should have a src and dest attribute and we use that.
+    symlink_dest: "{{ item.dest if item is mapping else gentoo_prefix_path + item }}"
+    symlink_src: "{{ item.src if item is mapping else item }}"
   with_items: "{{ symlinks_to_host }}"

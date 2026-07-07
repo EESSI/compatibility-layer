@@ -1,0 +1,25 @@
+---
+- name: "Clone the git repository of a git-based overlay into the prefix overlay directory"
+  ansible.builtin.git:
+    repo: "{{ gitrepo.url }}"
+    dest: "{{ gentoo_prefix_path }}/var/db/repos/{{ gitrepo.name }}"
+    depth: 1
+    force: true
+    version: "{{ gitrepo.branch | default('HEAD') }}"
+
+- name: "Fetch the specific git commit to be used for the git-based overlay"
+  ansible.builtin.git:
+    repo: "{{ gitrepo.url }}"
+    dest: "{{ gentoo_prefix_path }}/var/db/repos/{{ gitrepo.name }}"
+    clone: false
+    refspec: "{{ gitrepo.commit }}"
+    depth: 1
+    version: "{{ gitrepo.branch | default('HEAD') }}"
+
+- name: "Checkout the fetched git commit"
+  ansible.builtin.git:
+    repo: "{{ gitrepo.url }}"
+    dest: "{{ gentoo_prefix_path }}/var/db/repos/{{ gitrepo.name }}"
+    clone: false
+    version: "{{ gitrepo.commit }}"
+...

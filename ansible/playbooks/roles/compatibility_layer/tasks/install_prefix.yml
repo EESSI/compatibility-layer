@@ -94,33 +94,14 @@
   tags:
     - build_prefix
 
-- name: "Clone the Gentoo git repository into the overlay directory"
-  ansible.builtin.git:
-    repo: "{{ gentoo_git_repo }}"
-    dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
-    depth: 1
-    force: true
-    version: master
-  tags:
-    - build_prefix
-
-- name: "Fetch the specific git commit to be used for the bootstrap"
-  ansible.builtin.git:
-    repo: "{{ gentoo_git_repo }}"
-    dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
-    clone: false
-    refspec: "{{ gentoo_git_commit }}"
-    depth: 1
-    version: master
-  tags:
-    - build_prefix
-
-- name: "Checkout the fetched git commit"
-  ansible.builtin.git:
-    repo: "{{ gentoo_git_repo }}"
-    dest: "{{ gentoo_prefix_path }}/var/db/repos/gentoo"
-    clone: false
-    version: "{{ gentoo_git_commit }}"
+- name: "Import the task for checking out the specific commit of git-based overlays"
+  ansible.builtin.import_tasks: sync_git_overlay.yml
+  vars:
+    gitrepo:
+      name: "gentoo"
+      url: "{{ gentoo_git_repo }}"
+      branch: "{{ gentoo_git_branch }}"
+      commit: "{{ gentoo_git_commit }}"
   tags:
     - build_prefix
 
@@ -135,21 +116,8 @@
   tags:
     - build_prefix
 
-- name: "Mask packages for the bootstrap"
-  ansible.builtin.copy:
-    dest: "{{ gentoo_prefix_path }}/etc/portage/package.mask"
-    content: "{{ prefix_mask_packages }}"
-    mode: "0644"
-  when: prefix_mask_packages is defined and prefix_mask_packages | length > 0
-  tags:
-    - build_prefix
-
-- name: "Unmask packages for the bootstrap"
-  ansible.builtin.copy:
-    dest: "{{ gentoo_prefix_path }}/etc/portage/package.unmask"
-    content: "{{ prefix_unmask_packages }}"
-    mode: "0644"
-  when: prefix_unmask_packages is defined and prefix_unmask_packages | length > 0
+- name: "Import task for configuring Portage"
+  ansible.builtin.import_tasks: portage_configuration.yml
   tags:
     - build_prefix
 
@@ -160,15 +128,6 @@
   changed_when: true
   environment:
     STOP_BOOTSTRAP_AFTER: stage3
-  tags:
-    - build_prefix
-
-- name: "Specify use flags before completing bootstrap"
-  ansible.builtin.copy:
-    dest: "{{ gentoo_prefix_path }}/etc/portage/package.use"
-    content: "{{ prefix_bootstrap_use_flags }}"
-    mode: "0644"
-  when: prefix_bootstrap_use_flags is defined and prefix_bootstrap_use_flags | length > 0
   tags:
     - build_prefix
 
@@ -204,5 +163,15 @@
   ansible.builtin.fail:
     msg: "The resulting Gentoo Prefix installation does not have a startprefix script. Something went wrong!"
   when: not startprefix.stat.exists
+  tags:
+    - build_prefix
+
+# Right after we have built a new Prefix, we create regular symlinks first,
+# as variant symlinks will not resolve here, and it will break things.
+# We replace the regular symlinks by variant symlinks at the end.
+- name: Create (regular) symlinks to host files
+  ansible.builtin.include_tasks: create_host_symlinks.yml
+  vars:
+    use_variant_symlinks: false
   tags:
     - build_prefix
