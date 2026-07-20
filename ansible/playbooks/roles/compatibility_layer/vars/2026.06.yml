@@ -101,9 +101,9 @@ prefix_remove_packages:
     - dev-lang/rust
     - dev-lang/rust-bin
     - dev-python/setuptools-rust
-    - dev-util/cmake
+    - dev-build/cmake
+    - dev-build/ninja
     - dev-util/hermes
-    - dev-util/ninja
     - virtual/rust
 
 # version of ReFrame to use for running the tests
