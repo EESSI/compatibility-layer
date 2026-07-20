@@ -102,6 +102,7 @@ prefix_remove_packages:
     - dev-lang/rust-bin
     - dev-python/setuptools-rust
     - dev-build/cmake
+    - dev-build/meson
     - dev-build/ninja
     - dev-util/hermes
     - virtual/rust
