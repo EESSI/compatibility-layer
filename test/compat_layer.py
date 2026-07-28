@@ -186,12 +186,17 @@ class SymlinksToHostFilesTest(RunInGentooPrefixTest):
 
         super().__init__()
         self.descr = 'Verify that all required symlinks to host files have been created.'
+        # since 2026.06 Gentoo symlinks lib to usr/lib
+        if self.symlink_to_host.startswith('lib') and not self.eessi_version in ['2023.06', '2025.06']:
+            self.symlink_to_host = os.path.join('usr', self.symlink_to_host)
         symlink_path = os.path.join(self.compat_dir, self.symlink_to_host)
         # cut off variant symlink output
         self.command = f"readlink {symlink_path} | sed 's/\$(.*):-//'"
+        # check if it points to the defaults dir or to the standard host location
+        # this will fail if you override the variant symlink in your CVMFS setup
         self.sanity_patterns = sn.all([
             sn.assert_eq(self.exit_code, 0),
-            sn.assert_found(f'\n/{self.symlink_to_host}\n', self.stdout),
+            sn.assert_found(f'\n/{self.symlink_to_host}\n|\n{EESSI_REPO_DIR}/defaults/.*\n', self.stdout),
         ])
 
 
@@ -287,3 +292,15 @@ class PipCheckTest(RunInGentooPrefixTest):
             sn.assert_eq(self.exit_code, 0),
             sn.assert_found('\nNo broken requirements found.\n', self.stdout),
         ])
+
+@rfm.simple_test
+class SoftwareCleanupTest(RunInGentooPrefixTest):
+    tool = parameter(['cmake', 'go', 'meson', 'ninja', 'rustc'])
+
+    def __init__(self):
+        super().__init__()
+        self.descr = 'Verify that some packages (build dependencies) have been cleaned up at the end.'
+        self.command = f'command -v {self.tool}'
+        # these commands should not be available in the compat layer,
+        # i.e. command -v should either return nothing or a host location
+        self.sanity_patterns = sn.assert_not_found(f'\n{self.compat_dir}', self.stdout)
