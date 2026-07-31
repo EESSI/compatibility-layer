@@ -215,8 +215,8 @@ symlinks_to_host:
       src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_VAR_TMP:-{{ compat_defaults_dir }}/var/tmp)"
 
     # required if Centrify is used in nsswitch.conf
-    - dest: "{{ gentoo_prefix_path }}/lib64/libnss_centrifydc.so.2"
-      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_LIBNSS_CENTRIFYDB:-{{ compat_defaults_dir }}/lib64/libnss_centrifydc.so.2)"
+    - dest: "{{ gentoo_prefix_path }}/usr/lib64/libnss_centrifydc.so.2"
+      src: "$(EESSI_{{ eessi_version | replace('.', '') }}_COMPAT_LIBNSS_CENTRIFYDB:-{{ compat_defaults_dir }}/usr/lib64/libnss_centrifydc.so.2)"
 
 #  - /var/lib/munge
 #  - /var/lib/unbound
