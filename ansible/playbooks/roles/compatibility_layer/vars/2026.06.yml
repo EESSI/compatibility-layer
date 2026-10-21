@@ -111,8 +111,8 @@ prefix_remove_packages:
     - virtual/rust
 
 update_packages:
-  - name: sys-cluster/lmod
-    version: 9.4
+    - name: sys-cluster/lmod
+      version: 9.4
 
 # version of ReFrame to use for running the tests
 # stick to 4.9.3 for now, as 4.10.0 required a newer Rust in the container
