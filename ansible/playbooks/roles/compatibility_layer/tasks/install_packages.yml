@@ -45,6 +45,7 @@
     package: "={{ item.name }}-{{ item.version }}{{ '::' + item.overlay if item.overlay is defined }}"
     state: present
     oneshot: true
+    verbose: true
   loop: "{{ update_packages }}"
 
 ...
