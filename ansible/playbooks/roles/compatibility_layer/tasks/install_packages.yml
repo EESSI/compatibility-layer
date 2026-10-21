@@ -39,3 +39,12 @@
       {{ '::' + item.overlay if item.overlay is defined }}"
     state: present
   loop: "{{ eessi_os_arch_packages }}"
+
+- name: Update already installed packages
+  community.general.portage:
+    package: "={{ item.name }}-{{ item.version }}{{ '::' + item.overlay if item.overlay is defined }}"
+    state: present
+    oneshot: true
+  loop: "{{ update_packages }}"
+
+...
