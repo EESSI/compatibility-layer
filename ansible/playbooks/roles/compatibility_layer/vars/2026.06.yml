@@ -17,8 +17,7 @@ custom_overlays:
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
 # Jun 17 2026: commit that includes Lmod 9.2.4 and a crates.io rate limit fix (by using its CDN)
-# Oct 21 2026: commit that inludes Lmod 9.4
-gentoo_git_commit: ab1a510b5fbc4dd0059292a439f655291c408a52
+gentoo_git_commit: 91ee4d032fd7b2cf2704f542c78ec12899016bef
 
 prefix_user_defined_trusted_dirs:
     - "/cvmfs/{{ cvmfs_repository }}/versions/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib/override"
