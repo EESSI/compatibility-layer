@@ -7,6 +7,6 @@
     version: "{{ gitrepo.branch | default('HEAD') }}"
     refspec: "{{ gitrepo.commit }}"
     # force can be used to make sure that modified files are discarded,
-    # we usually would not need this
-    # force: true
+    # for newer verions this is not required anymore
+    force: "{{ eessi_version in ['2023.06', '2025.06'] }}"
 ...
