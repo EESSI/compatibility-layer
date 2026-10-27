@@ -7,14 +7,14 @@ eessi_host_arch: "{{ ansible_architecture }}"
 custom_overlays:
     - name: eessi
       source: git
-      url: https://github.com/EESSI/gentoo-overlay.git
+      url: https://github.com/bedroge/gentoo-overlay.git
       eclass-overrides: true
       autosync: false
-      branch: main
+      branch: lmod_fixes
       # 17 Jun 2026: commit that includes SSSD 2.13.1
       # commit: ea41ecc9572555ee8c0a6f2cafff7bef08b32f01
       # 26 Oct 2026: updated to commit that includes Lmod 9.4.5, ca-certificates 20260816.3.131.1, modules 5.7.0
-      commit: 72c6ab6068af669e3ed902a7666624f0a990ceb3
+      commit: 6abd7598a8e5125f57a7d913eba97509cf4c79f6
 
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
