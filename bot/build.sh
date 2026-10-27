@@ -105,7 +105,7 @@ echo "bot/build.sh: requested build type '${build_type}'"
 
 # Set up the script arguments and run the installation script
 script_out="install_stdout.log"
-script_args=(-a ${eessi_arch} -r ${eessi_repo} -g ${STORAGE} -k)
+script_args=(-a ${eessi_arch} -r ${eessi_repo} -g ${STORAGE} -k -v ${job_version})
 # for (very!) verbose output, uncomment:
 #script_args+=(--verbose)
 if [[ "${build_type}" == "update" ]]; then
