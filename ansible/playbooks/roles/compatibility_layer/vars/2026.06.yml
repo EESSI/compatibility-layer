@@ -111,7 +111,7 @@ prefix_remove_packages:
     - dev-util/hermes
     - virtual/rust
 
-update_packages:
+prefix_update_packages:
     - name: sys-cluster/lmod
       version: 9.4.5
     - name: app-misc/ca-certificates
