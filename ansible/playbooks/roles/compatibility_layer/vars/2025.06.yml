@@ -85,8 +85,8 @@ update_packages:
     - name: app-misc/ca-certificates
       version: 20260816.3.131.1
       environment:
-        # Prevent errors like: Invalid implementation in PYTHON_COMPAT: python3_13
-        PYTHON_COMPAT_NO_STRICT: 1
+          # Prevent errors like: Invalid implementation in PYTHON_COMPAT: python3_13
+          PYTHON_COMPAT_NO_STRICT: 1
     - name: modules
       version: 5.7.0
 
