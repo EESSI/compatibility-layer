@@ -7,18 +7,19 @@
     update: false
     version: "{{ gitrepo.branch | default('HEAD') }}"
 
-- name: "Get the currently checked out commit"
+- name: "Get the currently checked out commit"  # noqa: command-instead-of-module
   ansible.builtin.command:
     cmd: git rev-parse HEAD
     chdir: "{{ gentoo_prefix_path }}/var/db/repos/{{ gitrepo.name }}"
   register: current_commit
   changed_when: false
 
-- name: "Fetch and check out the pinned commit"
+- name: "Fetch and check out the pinned commit"  # noqa: command-instead-of-module
   ansible.builtin.shell:
     cmd: >-
       git fetch --depth 1 origin {{ gitrepo.commit | quote }} &&
       git checkout --force FETCH_HEAD
     chdir: "{{ gentoo_prefix_path }}/var/db/repos/{{ gitrepo.name }}"
   when: current_commit.stdout != gitrepo.commit
+  changed_when: true
 ...
