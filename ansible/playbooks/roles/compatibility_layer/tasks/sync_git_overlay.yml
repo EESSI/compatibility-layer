@@ -7,7 +7,7 @@
     update: false
     version: "{{ gitrepo.branch | default('HEAD') }}"
 
-- name: "Get the currently checked out commit"  # noqa: command-instead-of-module
+- name: "Get the currently checked out commit"
   ansible.builtin.command:
     cmd: git rev-parse HEAD
     chdir: "{{ gentoo_prefix_path }}/var/db/repos/{{ gitrepo.name }}"
