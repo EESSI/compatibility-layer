@@ -15,11 +15,10 @@
   changed_when: false
 
 - name: "Fetch and check out the pinned commit"
-  ansible.builtin.command:
-    cmd: "{{ item }}"
+  ansible.builtin.shell:
+    cmd: >-
+      git fetch --depth 1 origin {{ gitrepo.commit | quote }} &&
+      git checkout --force FETCH_HEAD
     chdir: "{{ gentoo_prefix_path }}/var/db/repos/{{ gitrepo.name }}"
-  loop:
-    - "git fetch --depth 1 origin {{ gitrepo.commit }}"
-    - "git checkout --force FETCH_HEAD"
   when: current_commit.stdout != gitrepo.commit
 ...
