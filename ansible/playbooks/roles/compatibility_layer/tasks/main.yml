@@ -7,9 +7,9 @@
 - name: Fail if target CPU architecture does not match with build host
   ansible.builtin.fail:
     msg: |
-      Error: CPU architecture of build host {{ ansible_architecture }} does not match with
+      Error: CPU architecture of build host {{ ansible_facts['architecture'] }} does not match with
       target CPU architecture {{ eessi_host_arch }}.
-  when: not (ansible_architecture == eessi_host_arch)
+  when: ansible_facts['architecture'] != eessi_host_arch
 
 - name: Check for a vars file for this EESSI version
   ansible.builtin.stat:
