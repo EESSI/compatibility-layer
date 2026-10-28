@@ -63,17 +63,21 @@ prefix_mask_packages: |
 prefix_unmask_packages: |
     # unmask older GCC to make it installable
     =sys-devel/gcc-9*
+    # unmask dev-libs/openssl-1.1.1w (openssl 1.1.x is masked via $EPREFIX/var/db/repos/gentoo/profiles/package.mask)
+    =dev-libs/openssl-1.1.1w
 
 prefix_bootstrap_use_flags: |
-    # only build libnss, don't build the daemon (use the one from the host)
-    sys-auth/nss-pam-ldapd -nslcd
-    # don't build the SSSD daemon (and man pages) either
-    sys-auth/sssd -daemon -man
     # make sure that gold linker is installed with binutils
     sys-devel/binutils gold
     # only install Python 3.11
     */* PYTHON_TARGETS: -* python3_11
     */* PYTHON_SINGLE_TARGET: -* python3_11
+    # only build libraries and userspace tools
+    net-nds/openldap minimal
+    # only build libnss, don't build the daemon (use the one from the host)
+    sys-auth/nss-pam-ldapd -nslcd
+    # don't build the SSSD daemon (and man pages) either
+    sys-auth/sssd -daemon -man
 
 prefix_remove_packages:
     - app-eselect/eselect-rust
