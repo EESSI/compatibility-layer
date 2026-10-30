@@ -260,7 +260,7 @@ class GlibcTrustedDirs(RunInGentooPrefixTest):
         # in 2023.06 we had a single trusted directory in host_injections,
         # in 2025.06 we introduced three subdirectories (override, nvidia, amd) in the lib dir of the compat layer itself.
         if self.eessi_version == '2023.06':
-            trusted_dirs = os.path.join(
+            trusted_dirs = [os.path.join(
                 self.eessi_repo_dir,
                 'host_injections',
                 self.eessi_version,
@@ -268,7 +268,7 @@ class GlibcTrustedDirs(RunInGentooPrefixTest):
                 self.eessi_os,
                 self.eessi_arch,
                 'lib'
-            )
+            )]
         else:
             trusted_dirs = [os.path.join(self.compat_dir, 'lib', subdir) for subdir in ['override', 'nvidia', 'amd']]
 

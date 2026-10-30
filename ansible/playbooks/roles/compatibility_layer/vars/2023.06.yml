@@ -7,6 +7,10 @@ custom_overlays:
       source: git
       url: https://github.com/EESSI/gentoo-overlay.git
       eclass-overrides: true
+      autosync: false
+      branch: main
+      # 27 Oct 2026: updated to commit that includes Lmod 9.4.5, hermes 3.2, ca-certificates 20260816.3.131.1, modules 5.7.0
+      commit: 23365d38a33747191da7ba7a695cb5ed99f0218c
 
 # Select a specific commit in the gentoo_git_repo that should be used for the bootstrap,
 # e.g. by checking: https://github.com/gentoo/gentoo/commits/master
@@ -18,7 +22,7 @@ gentoo_git_commit: aab8473aa90e0287553b3348a5c5b17872df4b7b
 prefix_user_defined_trusted_dirs:
     - "/cvmfs/{{ cvmfs_repository }}/host_injections/{{ eessi_version }}/compat/{{ eessi_host_os }}/{{ eessi_host_arch }}/lib"
 
-prefix_make_conf_files:
+prefix_make_conf_files: {}
 
 prefix_package_env_files:
     package.env: |
@@ -59,17 +63,21 @@ prefix_mask_packages: |
 prefix_unmask_packages: |
     # unmask older GCC to make it installable
     =sys-devel/gcc-9*
+    # unmask dev-libs/openssl-1.1.1w (openssl 1.1.x is masked via $EPREFIX/var/db/repos/gentoo/profiles/package.mask)
+    =dev-libs/openssl-1.1.1w
 
 prefix_bootstrap_use_flags: |
-    # only build libnss, don't build the daemon (use the one from the host)
-    sys-auth/nss-pam-ldapd -nslcd
-    # don't build the SSSD daemon (and man pages) either
-    sys-auth/sssd -daemon -man
     # make sure that gold linker is installed with binutils
     sys-devel/binutils gold
     # only install Python 3.11
     */* PYTHON_TARGETS: -* python3_11
     */* PYTHON_SINGLE_TARGET: -* python3_11
+    # only build libraries and userspace tools
+    net-nds/openldap minimal
+    # only build libnss, don't build the daemon (use the one from the host)
+    sys-auth/nss-pam-ldapd -nslcd
+    # don't build the SSSD daemon (and man pages) either
+    sys-auth/sssd -daemon -man
 
 prefix_remove_packages:
     - app-eselect/eselect-rust
@@ -81,6 +89,13 @@ prefix_remove_packages:
     - dev-util/cmake
     - dev-util/ninja
     - virtual/rust
+
+prefix_update_packages:
+    - name: app-misc/ca-certificates
+      version: 20260816.3.131.1
+      environment:
+          # Prevent errors like: Invalid implementation in PYTHON_COMPAT: python3_13
+          PYTHON_COMPAT_NO_STRICT: 1
 
 # List of locations that should get a symlink $EPREFIX/$LOCATION -> $LOCATION.
 # This ensures that things like user/group ids are correct/looked up in the right way in the Prefix environment.
