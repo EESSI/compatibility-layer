@@ -298,6 +298,9 @@ class SoftwareCleanupTest(RunInGentooPrefixTest):
     tool = parameter(['cmake', 'go', 'meson', 'ninja', 'rustc'])
 
     def __init__(self):
+        # older compatibility layers may still have some of these tools
+        self.skip_if(self.tool in ['meson'] and self.eessi_version == '2023.06')
+        self.skip_if(self.tool in ['cmake', 'meson', 'ninja'] and self.eessi_version == '2025.06')
         super().__init__()
         self.descr = 'Verify that some packages (build dependencies) have been cleaned up at the end.'
         self.command = f'command -v {self.tool}'

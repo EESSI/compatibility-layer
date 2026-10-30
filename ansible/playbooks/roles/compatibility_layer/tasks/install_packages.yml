@@ -46,6 +46,8 @@
     state: present
     oneshot: true
     verbose: true
-  loop: "{{ update_packages }}"
-
+  # some package updates may require additional environment variables,
+  # e.g. to prevent failures due to unknown Python versions in the ebuild
+  environment: "{{ item.environment | default(omit) }}"
+  loop: "{{ prefix_update_packages }}"
 ...
