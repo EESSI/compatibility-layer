@@ -50,14 +50,14 @@
     mode: '0644'
   vars:
     metadata:
-      username: "{{ ansible_user_id }}"
-      userid: "{{ ansible_user_uid }}"
-      timestamp: "{{ ansible_date_time.iso8601 }}"
-      hostname: "{{ ansible_hostname }}"
-      host_os: "{{ ansible_distribution }} {{ ansible_distribution_version }}"
-      host_kernel: "{{ ansible_kernel }}"
-      host_memory: "{{ ansible_memory_mb.real }}"
-      host_mounts: "{{ ansible_mounts }}"
+      username: "{{ ansible_facts['user_id'] }}"
+      userid: "{{ ansible_facts['user_uid'] }}"
+      timestamp: "{{ ansible_facts['date_time']['iso8601'] }}"
+      hostname: "{{ ansible_facts['hostname'] }}"
+      host_os: "{{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"
+      host_kernel: "{{ ansible_facts['kernel'] }}"
+      host_memory: "{{ ansible_facts['memory_mb']['real'] }}"
+      host_mounts: "{{ ansible_facts['mounts'] }}"
       gentoo_git_commit: "{{ gentoo_git_commit }}"
   tags:
     - reprod
