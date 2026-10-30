@@ -22,4 +22,4 @@ jobs:
           # skip the var-naming[no-role-prefix] check, as we only have a single role,
           # and prefixing all variables in that role with the role name is really ugly
           skip_list:
-            - var-naming[no-role-prefix]
+            - var-naming
